@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ArrowLeft, Clock, Users, Star, CheckCircle2, PlayCircle, FileText, Award, ChevronRight } from "lucide-react"
 import axios from 'axios';
+import { useNavigate } from "react-router-dom";
 
 import javaCourse from '../data/javaCourse';
 import pythonCourse from '../data/pythonCourse';
@@ -15,18 +16,33 @@ import machineCourse from '../data/machineLearningCourse';
 import systemDesignCourse from '../data/systemDesignCourse';
 
 const CourseDetail = () => {
-  const { id } = useParams()
+  // const { slug } = useParams()
+  const { courseSlug, lessonSlug } = useParams();
   const [selectedLesson, setSelectedLesson] = useState({ moduleIndex: 0, lessonIndex: 0 })
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(null);
   const [error, setError] = useState(null);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const fetchCourse = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`http://localhost:8080/api/courses/${id}`)
+        const res = await axios.get(`http://localhost:8080/api/courses/slug/${courseSlug}`)
         setCourse(res.data);
+
+        if (lessonSlug && res.data.modules) {
+          for (let m = 0; m < res.data.modules.length; m++) {
+            const lessonIndex = res.data.modules[m].lessons.findIndex(
+              (l) => l.slug === lessonSlug
+            );
+            if (lessonIndex !== -1) {
+              setSelectedLesson({ moduleIndex: m, lessonIndex });
+              break;
+            }
+          }
+        }
       } catch {
         setError("Failed to fetch the course Detail");
       } finally {
@@ -35,10 +51,18 @@ const CourseDetail = () => {
     }
 
     fetchCourse()
-  }, [id])
+  }, [courseSlug, lessonSlug])
 
   const handleLessonClick = (moduleIndex: number, lessonIndex: number) => {
-    setSelectedLesson({ moduleIndex, lessonIndex })
+    const lesson = course.modules[moduleIndex].lessons[lessonIndex];
+    setSelectedLesson({ moduleIndex, lessonIndex });
+    if (lesson.slug) {
+      navigate(`/${course.slug}/${lesson.slug}`);
+    } else {
+      // If no slug, just stay on the course page
+      navigate(`/${course.slug}`);
+    }
+    // setSelectedLesson({ moduleIndex, lessonIndex })
   }
 
   if (loading) {

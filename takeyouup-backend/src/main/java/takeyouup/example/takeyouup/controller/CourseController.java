@@ -182,6 +182,17 @@ public class CourseController {
         }
     }
 
+    @GetMapping("/slug/{slug}")
+    public ResponseEntity<?> getCourseBySlug(@PathVariable String slug) {
+        Optional<Course> course = courseService.findBySlug(slug);
+        if (course.isPresent()) {
+            return ResponseEntity.ok(course.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(404, "Course not found with slug " + slug));
+        }
+    }
+
     @GetMapping("/basic")
     public ResponseEntity<List<CourseSummaryDTO>> getAllCoursesBasic() {
         List<CourseSummaryDTO> courses = courseService.getAllCoursesBasic();

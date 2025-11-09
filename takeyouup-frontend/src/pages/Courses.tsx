@@ -183,7 +183,7 @@ const Courses = () => {
                   {course.category}
                 </Badge>
                 <Button asChild variant="ghost" className="group/btn">
-                  <Link to={`/courses/${course.id}`}>
+                  <Link to={`/${course.slug}`}>
                     Details
                     <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                   </Link>

@@ -15,6 +15,7 @@ public class Lesson {
     private Long id;
 
     private String title;
+    private String slug;
     private String duration;
     @Column(length = 5000)
     private String content;
@@ -23,6 +24,14 @@ public class Lesson {
     @JoinColumn(name = "module_id")
     @JsonBackReference
     private CourseModule module;
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
+    }
 
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference

@@ -13,6 +13,7 @@ export const CourseProvider = ({ children }) => {
       try {
         const response = await axios.get("http://localhost:8080/api/courses/basic");
         setCourses(response.data);
+        console.log("Fetched courses:", response.data);
       } catch (err) {
         setError(err.message);
       } finally {

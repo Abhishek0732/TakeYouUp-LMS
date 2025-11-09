@@ -114,6 +114,9 @@ public class CourseService {
 
         for (Lesson lesson : lessons) {
             lesson.setModule(module);
+            lesson.setSlug(
+                    lesson.getTitle().toLowerCase().replaceAll("[^a-z0-9]+", "-")
+            );
 
             if (lesson.getKeyPoints() != null) {
                 for (KeyPoint keyPoint : lesson.getKeyPoints()) {
@@ -126,7 +129,6 @@ public class CourseService {
 
         return courseRepository.save(course);
     }
-
 
     public Course updateLessonInModule(Long courseId, Long moduleId, Long lessonId, Lesson updatedLesson) {
         Course course = courseRepository.findById(courseId)
@@ -142,20 +144,27 @@ public class CourseService {
                 .findFirst()
                 .orElseThrow(() -> new NoSuchElementException("Lesson not found with id " + lessonId));
 
-        if (updatedLesson.getTitle() != null) lesson.setTitle(updatedLesson.getTitle());
-        if (updatedLesson.getDuration() != null) lesson.setDuration(updatedLesson.getDuration());
-        if (updatedLesson.getContent() != null) lesson.setContent(updatedLesson.getContent());
+        Optional.ofNullable(updatedLesson.getTitle()).ifPresent(title -> {
+            lesson.setTitle(title);
+            lesson.setSlug(title.toLowerCase().replaceAll("[^a-z0-9]+", "-"));
+        });
+
+        Optional.ofNullable(updatedLesson.getDuration()).ifPresent(lesson::setDuration);
+        Optional.ofNullable(updatedLesson.getContent()).ifPresent(lesson::setContent);
 
         if (updatedLesson.getKeyPoints() != null) {
-            lesson.getKeyPoints().clear();
-            for (KeyPoint keyPoint : updatedLesson.getKeyPoints()) {
-                keyPoint.setLesson(lesson);
-                lesson.getKeyPoints().add(keyPoint);
+            if (!updatedLesson.getKeyPoints().isEmpty()) {
+                lesson.getKeyPoints().clear();
+                for (KeyPoint keyPoint : updatedLesson.getKeyPoints()) {
+                    keyPoint.setLesson(lesson);
+                    lesson.getKeyPoints().add(keyPoint);
+                }
             }
         }
 
         return courseRepository.save(course);
     }
+
 
     public void deleteLessonFromModule(Long courseId, Long moduleId, Long lessonId) {
         Course course = courseRepository.findById(courseId)
@@ -259,6 +268,10 @@ public class CourseService {
 
     public Optional<Course> getCourseById(Long id) {
         return courseRepository.findById(id);
+    }
+
+    public Optional<Course> findBySlug(String slug) {
+        return courseRepository.findBySlug(slug);
     }
 
     public List<CourseSummaryDTO> getAllCoursesBasic() {

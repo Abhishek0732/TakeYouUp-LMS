@@ -185,7 +185,7 @@ const Home = () => {
                 </CardHeader>
                 <CardFooter>
                   <Button asChild variant="ghost" className="w-full group/btn">
-                    <Link to={`/courses/${course.id}`}>
+                    <Link to={`/${course.slug}`}>
                       View Details
                       <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                     </Link>

@@ -28,12 +28,6 @@ const App = () => (
           <div className="flex flex-col min-h-screen">
             <Navbar />
             <main className="flex-1">
-              {/* <CourseProvider> */}
-                {/* <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/courses" element={<Courses />} />
-                </Routes> */}
-              {/* </CourseProvider> */}
               <Routes>
                 <Route 
                   path="/" 
@@ -50,7 +44,10 @@ const App = () => (
                       <Courses />
                     </CourseProvider>
                   } />
-                <Route path="/courses/:id" element={<CourseDetail />} />
+                {/* <Route path="/:slug" element={<CourseDetail />} /> */}
+                <Route path="/:courseSlug" element={<CourseDetail />} />
+                <Route path="/:courseSlug/:lessonSlug" element={<CourseDetail />} />
+
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="*" element={<NotFound />} />
