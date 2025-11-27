@@ -198,7 +198,6 @@ public class CourseController {
         List<CourseSummaryDTO> courses = courseService.getAllCoursesBasic();
         return ResponseEntity.ok(courses);
     }
-
 }
 
 
