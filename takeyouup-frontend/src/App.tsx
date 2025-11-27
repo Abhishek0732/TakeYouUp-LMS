@@ -15,6 +15,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import { CourseProvider } from "./context/CourseContext";
+import Chatbot from "@/components/Chatbot";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
               </Routes>
             </main>
             <Footer />
+            <Chatbot />
           </div>
         </BrowserRouter>
       </TooltipProvider>
