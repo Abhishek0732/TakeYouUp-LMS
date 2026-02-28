@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Mail, MapPin, Phone, Send } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { set } from "date-fns"
 
 const Contact = () => {
   const { toast } = useToast()
@@ -16,9 +17,12 @@ const Contact = () => {
     message: ""
   })
 
+  const [sending, setSending] = useState(false)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      setSending(true)
       const res = await fetch("http://localhost:8080/api/contacts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -31,6 +35,7 @@ const Contact = () => {
           description: "We've received your message and sent a confirmation email.",
         });
         setFormData({ name: "", email: "", subject: "", message: "" });
+        setSending(false)
       } else {
         toast({
           title: "Error",
@@ -144,8 +149,14 @@ const Contact = () => {
                 </div>
 
                 <Button type="submit" size="lg" className="w-full bg-gradient-primary hover:opacity-90 group">
-                  Send Message
-                  <Send className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    {sending ? (
+                      "Sending..."
+                     ) : (
+                        <>
+                          <span>Send Message</span>
+                          <Send className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        </>
+                     )}  
                 </Button>
               </form>
             </CardContent>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
+import { Send } from "lucide-react";
 
 
 const Chatbot = () => {
@@ -11,8 +12,26 @@ const Chatbot = () => {
     const chatbotRef = useRef(null);
     const lastMessageRef = useRef(null);
 
+    const responses = {
+        pricing: "Our pricing starts from ₹999 per month.",
+        contact: "You can contact us at info@TakeYouUp.com",
+        services: "We provide a learning platform from beginner to advanced programming courses.",
+        courses: "We offer courses in Python, JavaScript, Java, C++, and more.",
+        
+    };
+
     const handleSendMessage = async () => {
         if (!input.trim()) return;
+
+        const lowerInput = input.toLowerCase();
+
+        const found = Object.keys(responses).find(keyword =>
+            lowerInput.includes(keyword)
+        );
+
+        const botReply = found
+            ? responses[found]
+            : "Sorry, I don't have much data yet.";
 
         const userMessage = { text: input, sender: 'user' };
         const botMessage = { text: 'Thinking...', sender: 'bot' };
@@ -23,11 +42,11 @@ const Chatbot = () => {
             setMessages((prev) =>
                 prev.map((msg) =>
                     msg.sender === 'bot' && msg.text === 'Thinking...'
-                        ? { ...msg, text: 'Here is a response from the bot!' }
+                        ? { ...msg, text: botReply }
                         : msg
                 )
             );
-        }, 1500);
+        }, 1000);
 
         setInput('');
     };
@@ -60,7 +79,7 @@ const Chatbot = () => {
     return (
         <div>
             <div
-                className="fixed bottom-5 right-5 p-3 bg-blue-500 text-white rounded-full cursor-pointer shadow-lg"
+                className="fixed bottom-5 right-5 p-3 bg-gradient-primary hover:opacity-90 text-white rounded-full cursor-pointer shadow-lg"
                 onClick={handleToggleChatbot}
             >
                 <span className="text-xl">{isOpen ? 'X' : '💬'}</span>
@@ -91,19 +110,26 @@ const Chatbot = () => {
                             ))}
                             <div ref={lastMessageRef} />
                         </div>
-                        <div className="p-4 ">
-                            <Input
-                                placeholder="Type a message..."
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                            />
-                            <button
-                                onClick={handleSendMessage}
-                                className="mt-2 w-full py-2 bg-blue-500 text-white rounded-lg"
-                            >
-                                Send
-                            </button>
-                        </div>
+                        <div className="p-4">
+  <div className="relative">
+    <Input
+      placeholder="Type a message..."
+      value={input}
+      onChange={(e) => setInput(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          handleSendMessage();
+        }
+      }}
+      className="pr-10"
+    />
+
+    <Send
+      onClick={handleSendMessage}
+      className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 cursor-pointer text-muted-foreground hover:text-primary transition-transform hover:translate-x-1"
+    />
+  </div>
+</div>
                     </div>
                 </div>
             )}
