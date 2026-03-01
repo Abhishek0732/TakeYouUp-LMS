@@ -55,7 +55,7 @@ const Footer = () => {
               <li>
                 <a href="mailto:info@TakeYouUp.com" className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
                   <Mail className="h-4 w-4" />
-                  info@TakeYouUp.com
+                  info@takeyouup.com
                 </a>
               </li>
             </ul>

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Send } from "lucide-react";
+import axios from 'axios';
 
 
 const Chatbot = () => {
@@ -21,35 +22,39 @@ const Chatbot = () => {
     };
 
     const handleSendMessage = async () => {
-        if (!input.trim()) return;
+    if (!input.trim()) return;
 
-        const lowerInput = input.toLowerCase();
+    const userMessage = { text: input, sender: "user" };
+    const botMessage = { text: "Thinking...", sender: "bot" };
 
-        const found = Object.keys(responses).find(keyword =>
-            lowerInput.includes(keyword)
+    setMessages((prev) => [...prev, userMessage, botMessage]);
+    setInput("");
+
+    try {
+        const res = await axios.post(
+            "http://localhost:8080/api/chatbot/chat",
+            { message: input }
         );
 
-        const botReply = found
-            ? responses[found]
-            : "Sorry, I don't have much data yet.";
+        const botReply = res.data;
 
-        const userMessage = { text: input, sender: 'user' };
-        const botMessage = { text: 'Thinking...', sender: 'bot' };
-
-        setMessages((prev) => [...prev, userMessage, botMessage]);
-
-        setTimeout(() => {
-            setMessages((prev) =>
-                prev.map((msg) =>
-                    msg.sender === 'bot' && msg.text === 'Thinking...'
-                        ? { ...msg, text: botReply }
-                        : msg
-                )
-            );
-        }, 1000);
-
-        setInput('');
-    };
+        setMessages((prev) =>
+            prev.map((msg) =>
+                msg.sender === "bot" && msg.text === "Thinking..."
+                    ? { ...msg, text: botReply }
+                    : msg
+            )
+        );
+    } catch (error) {
+        setMessages((prev) =>
+            prev.map((msg) =>
+                msg.sender === "bot" && msg.text === "Thinking..."
+                    ? { ...msg, text: "Error connecting to AI service." }
+                    : msg
+            )
+        );
+    }
+};
 
     const handleToggleChatbot = (e) => {
         e.stopPropagation();

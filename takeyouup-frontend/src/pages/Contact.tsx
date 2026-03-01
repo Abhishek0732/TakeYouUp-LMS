@@ -20,9 +20,11 @@ const Contact = () => {
   const [sending, setSending] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
+
     try {
-      setSending(true)
+      setSending(true);
+
       const res = await fetch("http://localhost:8080/api/contacts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -32,10 +34,11 @@ const Contact = () => {
       if (res.ok) {
         toast({
           title: "Message Sent!",
-          description: "We've received your message and sent a confirmation email.",
+          description:
+            "We've received your message and sent a confirmation email.",
         });
+
         setFormData({ name: "", email: "", subject: "", message: "" });
-        setSending(false)
       } else {
         toast({
           title: "Error",
@@ -49,26 +52,29 @@ const Contact = () => {
         description: "Something went wrong. Please try again later.",
         variant: "destructive",
       });
+    } finally {
+      // ✅ ALWAYS RESET BUTTON STATE
+      setSending(false);
     }
-  }
+  };
 
   const contactInfo = [
     {
       icon: Mail,
       title: "Email",
-      info: "info@TakeYouUp.com",
-      link: "mailto:info@TakeYouUp.com"
+      info: "info@takeyouup.com",
+      link: "mailto:info@takeyouup.com"
     },
     {
       icon: Phone,
       title: "Phone",
-      info: "+1 (555) 123-4567",
-      link: "tel:+15551234567"
+      info: "+91 6387000732",
+      link: "tel:+6387000732"
     },
     {
       icon: MapPin,
       title: "Location",
-      info: "San Francisco, CA",
+      info: "India, UP",
       link: null
     }
   ]
@@ -188,17 +194,6 @@ const Contact = () => {
                 </CardContent>
               </Card>
             ))}
-
-            <Card className="bg-gradient-hero border-border">
-              <CardContent className="pt-6">
-                <h3 className="font-semibold mb-2">Office Hours</h3>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <p>Monday - Friday: 9:00 AM - 6:00 PM</p>
-                  <p>Saturday: 10:00 AM - 4:00 PM</p>
-                  <p>Sunday: Closed</p>
-                </div>
-              </CardContent>
-            </Card>
 
             <Card className="bg-gradient-primary border-0">
               <CardContent className="pt-6 text-center text-primary-foreground">

@@ -106,44 +106,47 @@ const Courses = () => {
         {/* Header */}
         <div className="text-center mb-12 space-y-4 animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-bold">
-            Explore Our{" "}
+            Explore{" "}
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Courses
-            </span>
+              Course
+            </span>{" "}
+            Section
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Comprehensive courses designed to take you from beginner to expert. Learn at your own pace with hands-on projects.
+            Comprehensive courses designed to take you from beginner to expert.
+            Learn at your own pace with hands-on projects.
           </p>
         </div>
 
-        {/* Category Filter */}
-        <div className="mb-8 flex justify-center space-x-4">
-          {categories.map(category => (
-            <button
-              key={category}
-              className={`px-4 py-2 rounded-full border ${
-                selectedCategory === category
-                  ? "bg-primary text-white border-primary"
-                  : "bg-transparent text-muted-foreground border-muted-foreground hover:bg-primary/10"
-              } transition`}
-              onClick={() => setSelectedCategory(category)}
-            >
-              {category}
-            </button>
-          ))}
+        <div className="mb-8 overflow-x-auto">
+          <div className="flex justify-start md:justify-center gap-4 min-w-max px-2">
+            {categories.map((category) => (
+              <button
+                key={category}
+                className={`px-4 py-2 rounded-full border whitespace-nowrap ${
+                  selectedCategory === category
+                    ? "bg-primary text-white border-primary"
+                    : "bg-transparent text-muted-foreground border-muted-foreground hover:bg-primary/10"
+                } transition`}
+                onClick={() => setSelectedCategory(category)}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Course Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCourses.map((course, index) => (
-            <Card 
-              key={course.id} 
+            <Card
+              key={course.id}
               className="overflow-hidden hover:shadow-xl transition-all border-border hover:border-primary group"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="aspect-video overflow-hidden relative">
-                <img 
-                  src={course.image} 
+                <img
+                  src={course.image}
                   alt={course.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 />
@@ -153,7 +156,7 @@ const Courses = () => {
                   </Badge>
                 </div>
               </div>
-              
+
               <CardHeader>
                 <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
@@ -175,7 +178,6 @@ const Courses = () => {
                 <CardDescription className="line-clamp-2">
                   {course.description}
                 </CardDescription>
-                
               </CardHeader>
 
               <CardFooter className="flex justify-between items-center">
@@ -195,17 +197,24 @@ const Courses = () => {
 
         {/* CTA Section */}
         <div className="mt-16 text-center space-y-6 py-12 px-6 rounded-2xl bg-gradient-hero border border-border">
-          <h2 className="text-2xl md:text-3xl font-bold">Can't Find What You're Looking For?</h2>
+          <h2 className="text-2xl md:text-3xl font-bold">
+            Can't Find What You're Looking For?
+          </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Contact us for custom learning paths or suggest a course you'd like to see
+            Contact us for custom learning paths or suggest a course you'd like
+            to see
           </p>
-          <Button asChild size="lg" className="bg-gradient-primary hover:opacity-90">
+          <Button
+            asChild
+            size="lg"
+            className="bg-gradient-primary hover:opacity-90"
+          >
             <Link to="/contact">Get in Touch</Link>
           </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default Courses

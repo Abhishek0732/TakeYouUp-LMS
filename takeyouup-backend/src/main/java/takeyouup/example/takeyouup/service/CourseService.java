@@ -1,7 +1,9 @@
 package takeyouup.example.takeyouup.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import takeyouup.example.takeyouup.dto.CourseSummaryDTO;
 import takeyouup.example.takeyouup.model.Course;
 import takeyouup.example.takeyouup.model.CourseModule;
@@ -9,15 +11,27 @@ import takeyouup.example.takeyouup.model.KeyPoint;
 import takeyouup.example.takeyouup.model.Lesson;
 import takeyouup.example.takeyouup.repository.CourseRepository;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CourseService {
 
-    @Autowired
-    private CourseRepository courseRepository;
+    private final CourseRepository courseRepository;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
+
+    public CourseService(CourseRepository courseRepository) {
+        this.courseRepository = courseRepository;
+    }
 
     public Course addCourse(Course course) {
         if (course.getModules() != null) {
@@ -39,7 +53,7 @@ public class CourseService {
         return courseRepository.save(course);
     }
 
-    public Course updateCourse(Long courseId, Course updatedCourseData) {
+    public Course updateCourse(Long courseId, Course updatedCourseData, MultipartFile file)  throws IOException {
         Course existingCourse = courseRepository.findById(courseId)
                 .orElseThrow(() -> new NoSuchElementException("Course not found with id " + courseId));
 
@@ -70,8 +84,19 @@ public class CourseService {
         if (updatedCourseData.getRating() != 0)
             existingCourse.setRating(updatedCourseData.getRating());
 
-        if (updatedCourseData.getImage() != null)
-            existingCourse.setImage(updatedCourseData.getImage());
+        if(file != null && !file.isEmpty()) {
+            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+
+            Path uploadPath = Paths.get("uploads/");
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            Path filePath = uploadPath.resolve(fileName);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            existingCourse.setImage(fileName);
+        }
 
         if (updatedCourseData.getInstructor() != null)
             existingCourse.setInstructor(updatedCourseData.getInstructor());
@@ -289,7 +314,7 @@ public class CourseService {
                         course.getDuration(),
                         course.getStudents(),
                         course.getRating(),
-                        course.getImage(),
+                        baseUrl + "/uploads/" + course.getImage(),
                         course.getInstructor(),
                         course.getPrice()
                 ))

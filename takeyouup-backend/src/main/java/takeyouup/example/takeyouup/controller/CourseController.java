@@ -1,9 +1,12 @@
 package takeyouup.example.takeyouup.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import takeyouup.example.takeyouup.dto.CourseSummaryDTO;
 import takeyouup.example.takeyouup.helper.ApiResponse;
 import takeyouup.example.takeyouup.model.Course;
@@ -29,12 +32,16 @@ public class CourseController {
         return new ResponseEntity<>(createdCourse, HttpStatus.CREATED);
     }
 
+
     @PatchMapping("/{courseId}")
     public ResponseEntity<?> updateCourse(
             @PathVariable Long courseId,
-            @RequestBody Course updatedCourseData) {
+            @RequestPart("course") String courseJson,
+            @RequestPart(value = "image", required = false) MultipartFile file ) {
         try {
-            Course updatedCourse = courseService.updateCourse(courseId, updatedCourseData);
+            ObjectMapper mapper = new ObjectMapper();
+            Course updatedCourseData = mapper.readValue(courseJson, Course.class);
+            Course updatedCourse = courseService.updateCourse(courseId, updatedCourseData, file);
             return ResponseEntity.ok(updatedCourse);
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());

@@ -16,11 +16,16 @@ import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import { CourseProvider } from "./context/CourseContext";
 import Chatbot from "@/components/Chatbot";
+import { AuthProvider } from "@/context/AuthContext"
+import Login from "./pages/Login";
+import Profile from "./pages/Profile";
+import Signup from "./pages/SignUp";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <AuthProvider>
     <ThemeProvider defaultTheme="dark">
       <TooltipProvider>
         <Toaster />
@@ -30,6 +35,9 @@ const App = () => (
             <Navbar />
             <main className="flex-1">
               <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/signup" element={<Signup />} />
                 <Route 
                   path="/" 
                   element={
@@ -62,6 +70,7 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

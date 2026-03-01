@@ -29,29 +29,34 @@ const CourseDetail = () => {
     const fetchCourse = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`http://localhost:8080/api/courses/slug/${courseSlug}`)
+        const res = await axios.get(
+          `http://localhost:8080/api/courses/slug/${courseSlug}`,
+        );
         setCourse(res.data);
-
-        if (lessonSlug && res.data.modules) {
-          for (let m = 0; m < res.data.modules.length; m++) {
-            const lessonIndex = res.data.modules[m].lessons.findIndex(
-              (l) => l.slug === lessonSlug
-            );
-            if (lessonIndex !== -1) {
-              setSelectedLesson({ moduleIndex: m, lessonIndex });
-              break;
-            }
-          }
-        }
       } catch {
         setError("Failed to fetch the course Detail");
       } finally {
         setLoading(false);
       }
-    }
+    };
 
-    fetchCourse()
-  }, [courseSlug, lessonSlug])
+    fetchCourse();
+  }, [courseSlug]);
+
+  useEffect(() => {
+    if (!course || !lessonSlug) return;
+
+    for (let m = 0; m < course.modules.length; m++) {
+      const lessonIndex = course.modules[m].lessons.findIndex(
+        (l) => l.slug === lessonSlug,
+      );
+
+      if (lessonIndex !== -1) {
+        setSelectedLesson({ moduleIndex: m, lessonIndex });
+        break;
+      }
+    }
+  }, [lessonSlug, course]);
 
   const handleLessonClick = (moduleIndex: number, lessonIndex: number) => {
     const lesson = course.modules[moduleIndex].lessons[lessonIndex];
