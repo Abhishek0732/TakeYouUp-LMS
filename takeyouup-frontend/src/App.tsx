@@ -20,56 +20,75 @@ import { AuthProvider } from "@/context/AuthContext"
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import Signup from "./pages/SignUp";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-    <ThemeProvider defaultTheme="dark">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <div className="flex flex-col min-h-screen">
-            <Navbar />
-            <main className="flex-1">
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route 
-                  path="/" 
-                  element={
-                    <CourseProvider>
-                      <Home />
-                    </CourseProvider>
-                  }
-                />
-                <Route 
-                  path="/courses" 
-                  element={
-                    <CourseProvider>
-                      <Courses />
-                    </CourseProvider>
-                  } />
-                {/* <Route path="/:slug" element={<CourseDetail />} /> */}
-                <Route path="/:courseSlug" element={<CourseDetail />} />
-                <Route path="/:courseSlug/:lessonSlug" element={<CourseDetail />} />
+      <ThemeProvider defaultTheme="dark">
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <main className="flex-1">
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route
+                    path="/"
+                    element={
+                      <CourseProvider>
+                        <Home />
+                      </CourseProvider>
+                    }
+                  />
+                  <Route
+                    path="/courses"
+                    element={
+                      <CourseProvider>
+                        <Courses />
+                      </CourseProvider>
+                    }
+                  />
+                  {/* <Route path="/:slug" element={<CourseDetail />} /> */}
+                  <Route
+                    path="/:courseSlug"
+                    element={
+                      <ProtectedRoute>
+                        <CourseDetail />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/:courseSlug/:lessonSlug"
+                    element={
+                      <ProtectedRoute>
+                        <CourseDetail />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="*" element={<NotFound />} />
-                <Route path="/interview-prep" element={<InterviewPrep />} />
-                <Route path="/interview-prep/:id" element={<InterviewPrepDetail />} />
-              </Routes>
-            </main>
-            <Footer />
-            <Chatbot />
-          </div>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="*" element={<NotFound />} />
+                  <Route path="/interview-prep" element={<InterviewPrep />} />
+                  <Route
+                    path="/interview-prep/:id"
+                    element={<InterviewPrepDetail />}
+                  />
+                </Routes>
+              </main>
+              <Footer />
+              <Chatbot />
+            </div>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

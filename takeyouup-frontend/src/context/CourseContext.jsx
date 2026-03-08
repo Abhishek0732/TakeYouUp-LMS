@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 
 const CourseContext = createContext();
+const API = import.meta.env.VITE_API_URL;
 
 export const CourseProvider = ({ children }) => {
   const [courses, setCourses] = useState([]);
@@ -11,9 +12,8 @@ export const CourseProvider = ({ children }) => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/api/courses/basic");
+        const response = await axios.get(`${API}/api/courses/basic`);
         setCourses(response.data);
-        console.log("Fetched courses:", response.data);
       } catch (err) {
         setError(err.message);
       } finally {

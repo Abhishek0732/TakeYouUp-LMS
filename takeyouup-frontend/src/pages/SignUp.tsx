@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Code2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/api/axios";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -25,6 +26,8 @@ const Signup = () => {
   });
 
   const [loading, setLoading] = useState(false);
+
+  const API = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,9 +43,11 @@ const Signup = () => {
     try {
       setLoading(true);
 
-      const res = await fetch("http://localhost:8080/api/auth/signup", {
+      const res = await fetch(`${API}/api/auth/register`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
@@ -50,24 +55,27 @@ const Signup = () => {
         }),
       });
 
-      if (res.ok) {
-        toast({
-          title: "Account Created 🎉",
-          description: "Welcome to TakeYouUp!",
-        });
+      const data = await res.json();
 
-        navigate("/login");
-      } else {
-        toast({
-          title: "Signup Failed",
-          description: "Email may already exist.",
-          variant: "destructive",
-        });
+      if (!res.ok) {
+        throw new Error(data.message || "Signup failed");
       }
-    } catch (error) {
+
+      // // Save token if backend returns it
+      // if (data.token) {
+      //   localStorage.setItem("token", data.token);
+      // }
+
       toast({
-        title: "Error",
-        description: "Something went wrong.",
+        title: "Account Created",
+        description: "Welcome to TakeYouUp!",
+      });
+
+      navigate("/login");
+    } catch (error: any) {
+      toast({
+        title: "Signup Failed",
+        description: error.message || "Something went wrong",
         variant: "destructive",
       });
     } finally {

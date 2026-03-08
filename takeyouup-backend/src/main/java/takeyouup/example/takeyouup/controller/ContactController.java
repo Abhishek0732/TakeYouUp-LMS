@@ -15,7 +15,6 @@ public class ContactController {
 
     @PostMapping
     public ContactMessage saveContactMessage(@RequestBody ContactMessage contactMessage) {
-        System.out.println(contactMessage);
         return contactMessageService.saveContactMessage(contactMessage);
     }
 }

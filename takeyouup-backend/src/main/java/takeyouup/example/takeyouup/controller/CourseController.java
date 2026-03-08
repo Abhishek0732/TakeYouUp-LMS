@@ -3,7 +3,6 @@ package takeyouup.example.takeyouup.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,7 +30,6 @@ public class CourseController {
         Course createdCourse = courseService.addCourse(course);
         return new ResponseEntity<>(createdCourse, HttpStatus.CREATED);
     }
-
 
     @PatchMapping("/{courseId}")
     public ResponseEntity<?> updateCourse(

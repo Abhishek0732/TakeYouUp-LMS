@@ -1,24 +1,38 @@
-import { useParams, Link } from "react-router-dom"
-import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { ArrowLeft, Clock, Users, Star, CheckCircle2, PlayCircle, FileText, Award, ChevronRight } from "lucide-react"
-import axios from 'axios';
+import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  ArrowLeft,
+  Clock,
+  Users,
+  Star,
+  CheckCircle2,
+  PlayCircle,
+  FileText,
+  Award,
+  ChevronRight,
+} from "lucide-react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-import javaCourse from '../data/javaCourse';
-import pythonCourse from '../data/pythonCourse';
-import dsaCourse from '../data/dsaCourse';
-import webDevCourse from '../data/webDevCourse';
-import machineCourse from '../data/machineLearningCourse';
-import systemDesignCourse from '../data/systemDesignCourse';
+import javaCourse from "../data/javaCourse";
+import pythonCourse from "../data/pythonCourse";
+import dsaCourse from "../data/dsaCourse";
+import webDevCourse from "../data/webDevCourse";
+import machineCourse from "../data/machineLearningCourse";
+import systemDesignCourse from "../data/systemDesignCourse";
+import api from "@/api/axios";
 
 const CourseDetail = () => {
   // const { slug } = useParams()
   const { courseSlug, lessonSlug } = useParams();
-  const [selectedLesson, setSelectedLesson] = useState({ moduleIndex: 0, lessonIndex: 0 })
+  const [selectedLesson, setSelectedLesson] = useState({
+    moduleIndex: 0,
+    lessonIndex: 0,
+  });
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(null);
   const [error, setError] = useState(null);
@@ -26,15 +40,21 @@ const CourseDetail = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    // If user not logged in
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
     const fetchCourse = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(
-          `http://localhost:8080/api/courses/slug/${courseSlug}`,
-        );
+        const res = await api.get(`/courses/slug/${courseSlug}`);
         setCourse(res.data);
       } catch {
-        setError("Failed to fetch the course Detail");
+        setError(err.response?.data?.message || "Failed to fetch course");
       } finally {
         setLoading(false);
       }
@@ -68,14 +88,14 @@ const CourseDetail = () => {
       navigate(`/${course.slug}`);
     }
     // setSelectedLesson({ moduleIndex, lessonIndex })
-  }
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <p className="text-lg font-medium">Loading course details...</p>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -83,7 +103,7 @@ const CourseDetail = () => {
       <div className="flex items-center justify-center h-screen text-red-500">
         {error}
       </div>
-    )
+    );
   }
 
   if (!course) {
@@ -91,31 +111,21 @@ const CourseDetail = () => {
       <div className="flex items-center justify-center h-screen">
         <p>No course found</p>
       </div>
-    )
+    );
   }
 
-
-  const currentLesson = course.modules[selectedLesson.moduleIndex]?.lessons[selectedLesson.lessonIndex]
-  const currentModule = course.modules[selectedLesson.moduleIndex]
-
-  
+  const currentLesson =
+    course.modules[selectedLesson.moduleIndex]?.lessons[
+      selectedLesson.lessonIndex
+    ];
+  const currentModule = course.modules[selectedLesson.moduleIndex];
 
   return (
-    <div className="min-h-screen">
+    <div className="">
       {/* Back Button */}
-     
 
       {/* Hero Section */}
-      <div className="relative h-[50px] overflow-hidden">
-        
-        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/50">
-          <div className="container mx-auto px-4 h-full flex items-center">
-            <div className="max-w-3xl space-y-4 animate-fade-in">
-              <h1 className="text-3xl md:text-4xl font-bold">{course.title}</h1>
-            </div>
-          </div>
-        </div>
-      </div>
+     
 
       {/* Main Content Area with Sidebar */}
       <div className="container mx-auto px-4 py-6">
@@ -126,40 +136,52 @@ const CourseDetail = () => {
               <CardHeader>
                 <CardTitle className="text-xl">Course Content</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  {course.modules.reduce((acc, m) => acc + m.lessons.length, 0)} lessons
+                  {course.modules.reduce((acc, m) => acc + m.lessons.length, 0)}{" "}
+                  lessons
                 </p>
               </CardHeader>
               <CardContent className="p-0">
-                <ScrollArea className="h-[calc(100vh-300px)]">
+                <ScrollArea className="h-[calc(100vh-200px)]">
                   <div className="space-y-1 px-4 pb-4">
                     {course.modules.map((module, moduleIndex) => (
                       <div key={moduleIndex} className="space-y-1">
                         <div className="flex items-center gap-2 py-2 px-3 bg-muted/30 rounded-lg">
                           <FileText className="h-4 w-4 text-primary flex-shrink-0" />
-                          <span className="font-semibold text-sm">{module.title}</span>
+                          <span className="font-semibold text-sm">
+                            {module.title}
+                          </span>
                         </div>
                         {module.lessons.map((lesson, lessonIndex) => {
-                          const isActive = selectedLesson.moduleIndex === moduleIndex && 
-                                         selectedLesson.lessonIndex === lessonIndex
+                          const isActive =
+                            selectedLesson.moduleIndex === moduleIndex &&
+                            selectedLesson.lessonIndex === lessonIndex;
                           return (
                             <button
                               key={lessonIndex}
-                              onClick={() => handleLessonClick(moduleIndex, lessonIndex)}
+                              onClick={() =>
+                                handleLessonClick(moduleIndex, lessonIndex)
+                              }
                               className={`w-full text-left py-2 px-3 rounded-lg transition-all text-sm flex items-center gap-2 group ${
                                 isActive
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'hover:bg-muted/50 text-muted-foreground'
+                                  ? "bg-primary text-primary-foreground"
+                                  : "hover:bg-muted/50 text-muted-foreground"
                               }`}
                             >
-                              <ChevronRight className={`h-3 w-3 flex-shrink-0 transition-transform ${
-                                isActive ? 'rotate-90' : 'group-hover:translate-x-0.5'
-                              }`} />
-                              <span className="flex-1 line-clamp-1">{lesson.title}</span>
+                              <ChevronRight
+                                className={`h-3 w-3 flex-shrink-0 transition-transform ${
+                                  isActive
+                                    ? "rotate-90"
+                                    : "group-hover:translate-x-0.5"
+                                }`}
+                              />
+                              <span className="flex-1 line-clamp-1">
+                                {lesson.title}
+                              </span>
                               {isActive && (
                                 <div className="h-1.5 w-1.5 rounded-full bg-primary-foreground flex-shrink-0" />
                               )}
                             </button>
-                          )
+                          );
                         })}
                       </div>
                     ))}
@@ -184,18 +206,24 @@ const CourseDetail = () => {
                     </p>
 
                     <div>
-                      <h3 className="font-semibold text-lg mb-3">Key Learning Points</h3>
+                      <h3 className="font-semibold text-lg mb-3">
+                        Key Learning Points
+                      </h3>
                       <div className="space-y-3">
                         {currentLesson.keyPoints.map((point, index) => (
                           <div key={index} className="flex items-start gap-3">
-                          <div className="rounded-full bg-gradient-primary p-1 mt-1">
-                            <CheckCircle2 className="h-3 w-3 text-primary-foreground" />
+                            <div className="rounded-full bg-gradient-primary p-1 mt-1">
+                              <CheckCircle2 className="h-3 w-3 text-primary-foreground" />
+                            </div>
+                            <div className="flex-1">
+                              <span className="font-semibold">
+                                {point.point}
+                              </span>
+                              <p className="text-sm text-muted-foreground">
+                                {point.explanation}
+                              </p>
+                            </div>
                           </div>
-                          <div className="flex-1">
-                            <span className="font-semibold">{point.point}</span>
-                            <p className="text-sm text-muted-foreground">{point.explanation}</p>
-                          </div>
-                        </div>
                         ))}
                       </div>
                     </div>
@@ -208,13 +236,23 @@ const CourseDetail = () => {
                     variant="outline"
                     onClick={() => {
                       if (selectedLesson.lessonIndex > 0) {
-                        handleLessonClick(selectedLesson.moduleIndex, selectedLesson.lessonIndex - 1)
+                        handleLessonClick(
+                          selectedLesson.moduleIndex,
+                          selectedLesson.lessonIndex - 1,
+                        );
                       } else if (selectedLesson.moduleIndex > 0) {
-                        const prevModule = course.modules[selectedLesson.moduleIndex - 1]
-                        handleLessonClick(selectedLesson.moduleIndex - 1, prevModule.lessons.length - 1)
+                        const prevModule =
+                          course.modules[selectedLesson.moduleIndex - 1];
+                        handleLessonClick(
+                          selectedLesson.moduleIndex - 1,
+                          prevModule.lessons.length - 1,
+                        );
                       }
                     }}
-                    disabled={selectedLesson.moduleIndex === 0 && selectedLesson.lessonIndex === 0}
+                    disabled={
+                      selectedLesson.moduleIndex === 0 &&
+                      selectedLesson.lessonIndex === 0
+                    }
                     className="border-primary hover:bg-primary/10"
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
@@ -222,15 +260,26 @@ const CourseDetail = () => {
                   </Button>
                   <Button
                     onClick={() => {
-                      if (selectedLesson.lessonIndex < currentModule.lessons.length - 1) {
-                        handleLessonClick(selectedLesson.moduleIndex, selectedLesson.lessonIndex + 1)
-                      } else if (selectedLesson.moduleIndex < course.modules.length - 1) {
-                        handleLessonClick(selectedLesson.moduleIndex + 1, 0)
+                      if (
+                        selectedLesson.lessonIndex <
+                        currentModule.lessons.length - 1
+                      ) {
+                        handleLessonClick(
+                          selectedLesson.moduleIndex,
+                          selectedLesson.lessonIndex + 1,
+                        );
+                      } else if (
+                        selectedLesson.moduleIndex <
+                        course.modules.length - 1
+                      ) {
+                        handleLessonClick(selectedLesson.moduleIndex + 1, 0);
                       }
                     }}
                     disabled={
-                      selectedLesson.moduleIndex === course.modules.length - 1 &&
-                      selectedLesson.lessonIndex === currentModule.lessons.length - 1
+                      selectedLesson.moduleIndex ===
+                        course.modules.length - 1 &&
+                      selectedLesson.lessonIndex ===
+                        currentModule.lessons.length - 1
                     }
                     className="bg-gradient-primary hover:opacity-90"
                   >
@@ -244,7 +293,7 @@ const CourseDetail = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CourseDetail
+export default CourseDetail;

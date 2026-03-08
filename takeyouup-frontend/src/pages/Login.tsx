@@ -2,25 +2,48 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { Code2 } from "lucide-react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
+import { loginUser } from "@/api/auth";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const { toast } = useToast();
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || "/";
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    login({
-      name: "Abhishek Verma",
-      email,
-      avatar: "https://i.pravatar.cc/150?img=3",
-    });
+    try {
+      const data = await loginUser(email, password);
 
-    navigate("/");
+      localStorage.setItem("token", data.token);
+
+      login({
+        name: data.name,
+        email: data.email,
+        avatar: "https://i.pravatar.cc/40",
+      });
+
+      toast({
+        title: "Login Successful",
+        description: "Welcome to TakeYouUp!",
+      });
+
+      navigate(from, { replace: true });
+    } catch (error) {
+      toast({
+        title: "Login Failed",
+        description: error.response.data.message || "Something went wrong",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -77,12 +100,12 @@ const Login = () => {
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-muted-foreground">
           Don’t have an account?{" "}
-            <Link
-                to="/signup"
-                className="text-primary font-medium hover:underline"
-            >
-                Sign Up
-            </Link>
+          <Link
+            to="/signup"
+            className="text-primary font-medium hover:underline"
+          >
+            Sign Up
+          </Link>
         </div>
       </div>
     </div>

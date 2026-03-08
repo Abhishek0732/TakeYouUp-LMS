@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/ThemeProvider";
 import { useState, useEffect, useRef } from "react";
@@ -12,6 +12,7 @@ const Navbar = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const navigate = useNavigate();
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -120,6 +121,7 @@ const Navbar = () => {
                       onClick={() => {
                         logout();
                         setDropdownOpen(false);
+                        navigate("/login");
                       }}
                       className="flex items-center gap-2 px-4 py-2 text-sm w-full text-left hover:bg-primary/10"
                     >

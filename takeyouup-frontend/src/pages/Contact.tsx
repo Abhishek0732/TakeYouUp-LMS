@@ -19,15 +19,20 @@ const Contact = () => {
 
   const [sending, setSending] = useState(false)
 
+  const API = import.meta.env.VITE_API_URL;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       setSending(true);
-
-      const res = await fetch("http://localhost:8080/api/contacts", {
+      const token = localStorage.getItem("token");
+      
+      const res = await fetch(`${API}/api/contacts`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+           "Authorization": `Bearer ${token}`
+         },
         body: JSON.stringify(formData),
       });
 
@@ -42,7 +47,7 @@ const Contact = () => {
       } else {
         toast({
           title: "Error",
-          description: "Failed to send your message. Please try again.",
+          description: res.status === 403 ? "Please log in to send a message." : "Failed to send message. Please try again.",
           variant: "destructive",
         });
       }
@@ -53,7 +58,6 @@ const Contact = () => {
         variant: "destructive",
       });
     } finally {
-      // ✅ ALWAYS RESET BUTTON STATE
       setSending(false);
     }
   };
