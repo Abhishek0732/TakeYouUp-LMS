@@ -18,6 +18,8 @@ const Navbar = () => {
     { name: "Home", path: "/" },
     { name: "Courses", path: "/courses" },
     { name: "Interview Preparation", path: "/interview-prep" },
+    { name: "Practise", path: "/online-compiler" },
+    { name: "Problems", path: "/problems" },
     { name: "About", path: "/about" },
     { name: "Contact", path: "/contact" },
   ];

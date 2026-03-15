@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -6,6 +6,12 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Clock, Users, Star } from "lucide-react"
 
 const InterviewPrep = () => {
+
+  useEffect(() => {
+      document.title =
+        "Interview | TakeYouUp - Master Programming & Build Your Future";
+    }, []);
+
   const [selectedCategory, setSelectedCategory] = useState("All")
 
   const courses = [

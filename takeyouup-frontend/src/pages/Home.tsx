@@ -3,7 +3,15 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowRight, BookOpen, Code, Users, Zap, CheckCircle2 } from "lucide-react"
 import { useCourses } from "@/context/CourseContext";
+import { useEffect } from "react";
+
 const Home = () => {
+
+  useEffect(() => {
+      document.title =
+        "TakeYouUp - Master Programming & Build Your Future";
+    }, []);
+
   const staticCourses = [
     {
       id: 1,
@@ -147,11 +155,20 @@ const Home = () => {
           {/* Error Message */}
           
           {(() => {
-            const shouldShowStatic = loading || error || courses.length === 0;
+            // const shouldShowStatic = loading || error || courses.length === 0;
+
+            // const displayCourses = shouldShowStatic
+            //   ? staticCourses.slice(0, 3)
+            //   : courses.slice(0, 3);
+
+            const courseList = Array.isArray(courses) ? courses : [];
+
+            const shouldShowStatic =
+              loading || error || courseList.length === 0;
 
             const displayCourses = shouldShowStatic
               ? staticCourses.slice(0, 3)
-              : courses.slice(0, 3);
+              : courseList.slice(0, 3);
 
             return (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

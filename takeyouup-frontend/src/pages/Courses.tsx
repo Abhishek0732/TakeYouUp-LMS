@@ -1,104 +1,139 @@
-import { useState } from "react"
-import { Link } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ArrowRight, Clock, Users, Star } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowRight, Clock, Users, Star } from "lucide-react";
 import { useCourses } from "@/context/CourseContext";
 
 const Courses = () => {
-  const [selectedCategory, setSelectedCategory] = useState("All")
 
-  const { courses, loading, error} = useCourses();
+  useEffect(() => {
+      document.title =
+        "Courses | TakeYouUp - Master Programming & Build Your Future";
+    }, []);
 
-  const coursess = [
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
+  const { courses, loading, error } = useCourses();
+
+  const staticCourses = [
     {
       id: 1,
       title: "Data Structures & Algorithms",
-      description: "Master DSA with hands-on practice and real-world problems. Learn sorting, searching, trees, graphs, and dynamic programming.",
+      description:
+        "Master DSA with hands-on practice and real-world problems. Learn sorting, searching, trees, graphs, and dynamic programming.",
       level: "Intermediate",
       duration: "12 weeks",
       students: 1200,
       rating: 4.8,
-      image: "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=600&h=400&fit=crop",
-      category: "Programming"
+      image:
+        "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=600&h=400&fit=crop",
+      category: "Programming",
     },
     {
       id: 2,
       title: "Python Programming Masterclass",
-      description: "Learn Python from basics to advanced topics. Perfect for beginners starting their coding journey.",
+      description:
+        "Learn Python from basics to advanced topics. Perfect for beginners starting their coding journey.",
       level: "Beginner",
       duration: "8 weeks",
       students: 1500,
       rating: 4.9,
-      image: "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=600&h=400&fit=crop",
-      category: "Programming"
+      image:
+        "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=600&h=400&fit=crop",
+      category: "Programming",
     },
     {
       id: 3,
       title: "Java Programming Masterclass",
-      description: "Ace your JAVA interviews with real-world case studies and scalable architecture patterns.",
+      description:
+        "Ace your JAVA interviews with real-world case studies and scalable architecture patterns.",
       level: "Advanced",
       duration: "6 weeks",
       students: 450,
       rating: 4.8,
-      image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&h=400&fit=crop",
-      category: "Programming"
+      image:
+        "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&h=400&fit=crop",
+      category: "Programming",
     },
     {
       id: 4,
       title: "Web Developement Masterclass",
-      description: "Ace your Web Developement interviews with real-world case studies and scalable architecture patterns.",
+      description:
+        "Ace your Web Developement interviews with real-world case studies and scalable architecture patterns.",
       level: "Advanced",
       duration: "6 weeks",
       students: 450,
       rating: 4.8,
-      image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&h=400&fit=crop",
-      category: "Development"
+      image:
+        "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&h=400&fit=crop",
+      category: "Development",
     },
     {
       id: 5,
       title: "Machine Learning Masterclass",
-      description: "Ace your Machine Learning interviews with real-world case studies and scalable architecture patterns.",
+      description:
+        "Ace your Machine Learning interviews with real-world case studies and scalable architecture patterns.",
       level: "Advanced",
       duration: "6 weeks",
       students: 450,
       rating: 4.8,
-      image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&h=400&fit=crop",
-      category: "AI/ML"
+      image:
+        "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&h=400&fit=crop",
+      category: "AI/ML",
     },
     {
       id: 6,
       title: "System Design Masterclass",
-      description: "Ace your System Design interviews with real-world case studies and scalable architecture patterns.",
+      description:
+        "Ace your System Design interviews with real-world case studies and scalable architecture patterns.",
       level: "Advanced",
       duration: "6 weeks",
       students: 450,
       rating: 4.8,
-      image: "https://images.unsplash.com/photo-1593642532973-d31b6557fa68?w=600&h=400&fit=crop",
-      category: "Development"
-    }
-  ]
+      image:
+        "https://images.unsplash.com/photo-1593642532973-d31b6557fa68?w=600&h=400&fit=crop",
+      category: "Development",
+    },
+  ];
+
+  const courseList = Array.isArray(courses) ? courses : [];
+
+  const shouldShowStatic = loading || error || courseList.length === 0;
 
   // Extract unique categories from courses
-  const categories = ["All", ...new Set(courses.map(course => course.category))]
+  const categories = shouldShowStatic
+    ? ["All", ...new Set(staticCourses.map((course) => course.category))]
+    : ["All", ...new Set(courseList.map((course) => course.category))];
 
-  const filteredCourses = selectedCategory === "All"
-    ? courses
-    : courses.filter(course => course.category === selectedCategory)
+  const filteredCourses = shouldShowStatic
+    ? selectedCategory === "All"
+      ? staticCourses
+      : staticCourses.filter((course) => course.category === selectedCategory)
+    : selectedCategory === "All"
+      ? courses
+      : courses.filter((course) => course.category === selectedCategory);
 
   const getLevelColor = (level: string) => {
     switch (level) {
       case "Beginner":
-        return "bg-green-500/10 text-green-500 hover:bg-green-500/20"
+        return "bg-green-500/10 text-green-500 hover:bg-green-500/20";
       case "Intermediate":
-        return "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20"
+        return "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20";
       case "Advanced":
-        return "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20"
+        return "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20";
       default:
-        return "bg-muted text-muted-foreground"
+        return "bg-muted text-muted-foreground";
     }
-  }
+  };
 
   return (
     <div className="min-h-screen py-12">
@@ -215,6 +250,6 @@ const Courses = () => {
       </div>
     </div>
   );
-}
+};
 
-export default Courses
+export default Courses;

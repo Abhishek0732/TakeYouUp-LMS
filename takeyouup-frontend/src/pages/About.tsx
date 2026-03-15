@@ -2,13 +2,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Target, Eye, Award, Users, BookOpen, TrendingUp } from "lucide-react";
 import abhishek from "../assets/abhishek-photo.jpeg";
+import { useEffect } from "react";
+import CountUp from "react-countup";
 
 const About = () => {
+
+  useEffect(() => {
+      document.title =
+        "About | TakeYouUp - Master Programming & Build Your Future";
+    }, []);
+
+  // const stats = [
+  //   { label: "Active Students", value: "10,000+", icon: Users },
+  //   { label: "Courses Offered", value: "50+", icon: BookOpen },
+  //   { label: "Success Rate", value: "95%", icon: TrendingUp },
+  //   { label: "Certifications", value: "8,500+", icon: Award },
+  // ];
+
   const stats = [
-    { label: "Active Students", value: "10,000+", icon: Users },
-    { label: "Courses Offered", value: "50+", icon: BookOpen },
-    { label: "Success Rate", value: "95%", icon: TrendingUp },
-    { label: "Certifications", value: "8,500+", icon: Award },
+    { label: "Active Students", value: 10000, suffix: "+", icon: Users },
+    { label: "Courses Offered", value: 50, suffix: "+", icon: BookOpen },
+    { label: "Success Rate", value: 95, suffix: "%", icon: TrendingUp },
+    { label: "Certifications", value: 8500, suffix: "+", icon: Award },
   ];
 
   const values = [
@@ -69,7 +84,12 @@ const About = () => {
               <CardContent className="pt-6">
                 <stat.icon className="h-8 w-8 mx-auto mb-3 text-primary" />
                 <p className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  {stat.value}
+                  <CountUp
+                    end={stat.value}
+                    duration={2}
+                    separator=","
+                    suffix={stat.suffix}
+                  />
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
                   {stat.label}
@@ -146,7 +166,7 @@ const About = () => {
             >
               <div className="aspect-square overflow-hidden">
                 <img
-                  src={ member.image }
+                  src={member.image}
                   alt={member.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 />

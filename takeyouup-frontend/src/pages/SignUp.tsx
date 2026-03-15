@@ -84,7 +84,7 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-2">
       <Card className="w-full max-w-md shadow-xl border-border">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center items-center gap-2">

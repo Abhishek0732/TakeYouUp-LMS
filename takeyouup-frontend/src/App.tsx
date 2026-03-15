@@ -13,14 +13,16 @@ import InterviewPrepDetail from "./pages/InterviewPrepDetail";
 import CourseDetail from "./pages/CourseDetail";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import CodeEditor from "./pages/CodeEditor";
 import NotFound from "./pages/NotFound";
 import { CourseProvider } from "./context/CourseContext";
 import Chatbot from "@/components/Chatbot";
-import { AuthProvider } from "@/context/AuthContext"
+import { AuthProvider } from "@/context/AuthContext";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import Signup from "./pages/SignUp";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import CodingQuestions from "./pages/CodingQuestions";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +77,15 @@ const App = () => (
 
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
+                  <Route path="/online-compiler" element={<CodeEditor />} />
+                  <Route
+                    path="/problems"
+                    element={
+                      <ProtectedRoute>
+                        <CodingQuestions />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route path="*" element={<NotFound />} />
                   <Route path="/interview-prep" element={<InterviewPrep />} />
                   <Route
