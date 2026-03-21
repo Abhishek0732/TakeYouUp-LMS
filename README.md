@@ -35,7 +35,6 @@ A full-stack ed-tech platform where developers level up through structured cours
 | 🏠 **Home — Hero** | ![Home Hero](./screenshots/home-hero.png) |
 | 📚 **Courses Page** | ![Courses](./screenshots/courses.png) |
 | 📖 **Course Detail** | ![Course Detail](./screenshots/course-detail.png) |
-| 🎯 **Interview Prep** | ![Interview Prep](./screenshots/interview-prep.png) |
 | 🔐 **Login / Signup** | ![Auth](./screenshots/login.png) |
 | 🤖 **AI Chatbot** | ![Chatbot](./screenshots/chatbot.png) |
 
@@ -175,8 +174,8 @@ Make sure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Abhishek0732/takeyouup.git
-cd takeyouup
+git clone https://github.com/Abhishek0732/TakeYouUp-LMS.git
+cd TakeYouUp-LMS
 ```
 
 ---
