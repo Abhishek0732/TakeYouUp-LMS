@@ -12,13 +12,6 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import leetcodeLogo from "@/assets/leetcode-logo.png";
 import gfgLogo from "@/assets/gfg-logo.png";
 import { useQuery } from "@tanstack/react-query";
@@ -64,6 +57,32 @@ const difficultyColor: Record<Difficulty, string> = {
   Hard: "bg-red-500/10 text-red-500 border-red-500/20",
 };
 const ITEMS_PER_PAGE_OPTIONS = [10, 15, 25, 50];
+
+const QuestionSkeleton = () => {
+  return (
+    <Card className="border-border animate-pulse">
+      <CardContent className="py-3 px-4">
+        <div className="hidden md:grid grid-cols-12 gap-4 items-center">
+          
+          <div className="col-span-1 h-4 bg-muted rounded" />
+          
+          <div className="col-span-5 h-4 bg-muted rounded" />
+          
+          <div className="col-span-2 h-6 bg-muted rounded" />
+          
+          <div className="col-span-2 h-6 bg-muted rounded" />
+          
+          <div className="col-span-2 flex items-center gap-2">
+            <div className="h-5 w-5 bg-muted rounded" />
+            <div className="h-4 w-12 bg-muted rounded" />
+          </div>
+
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 const CodingQuestions = () => {
 
   useEffect(() => {
@@ -158,7 +177,6 @@ const CodingQuestions = () => {
           </Card>
         ))}{" "}
       </div>{" "}
-      
       {/* Filters */}{" "}
       <div className="space-y-4 mb-6">
         {" "}
@@ -231,81 +249,74 @@ const CodingQuestions = () => {
       </div>{" "}
       {/* Questions List */}{" "}
       <div className="space-y-2">
-        {" "}
-        {totalElements === 0 ? (
+        {isLoading ? (
+          // 🔥 Show 10 shimmer rows
+          Array.from({ length: itemsPerPage }).map((_, i) => (
+            <QuestionSkeleton key={i} />
+          ))
+        ) : totalElements === 0 ? (
           <Card className="border-border">
-            {" "}
             <CardContent className="py-12 text-center text-muted-foreground">
-              {" "}
-              No questions found for the selected filters.{" "}
-            </CardContent>{" "}
+              No questions found for the selected filters.
+            </CardContent>
           </Card>
         ) : (
           questions.map((q, i) => {
             const globalIndex = (currentPage - 1) * itemsPerPage + i;
+
             return (
               <a
-                // key={`${q.title}-${q.platform}`}
                 key={q.id}
                 href={q.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block"
               >
-                {" "}
                 <Card className="border-border hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer group">
-                  {" "}
                   <CardContent className="py-3 px-4">
-                    {" "}
                     <div className="hidden md:grid grid-cols-12 gap-4 items-center">
-                      {" "}
                       <span className="col-span-1 text-sm text-muted-foreground">
-                        {" "}
-                        {globalIndex + 1}{" "}
-                      </span>{" "}
+                        {globalIndex + 1}
+                      </span>
+
                       <span className="col-span-5 text-sm font-medium group-hover:text-primary transition-colors flex items-center gap-2">
-                        {" "}
-                        {q.title}{" "}
-                        <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />{" "}
-                      </span>{" "}
+                        {q.title}
+                      </span>
+
                       <span className="col-span-2">
-                        {" "}
                         <Badge variant="secondary" className="text-xs">
-                          {" "}
-                          {q.topic}{" "}
-                        </Badge>{" "}
-                      </span>{" "}
+                          {q.topic}
+                        </Badge>
+                      </span>
+
                       <span className="col-span-2">
-                        {" "}
                         <Badge
                           className={`${difficultyColor[q.difficulty]} border text-xs`}
                         >
-                          {" "}
-                          {q.difficulty}{" "}
-                        </Badge>{" "}
-                      </span>{" "}
+                          {q.difficulty}
+                        </Badge>
+                      </span>
+
                       <span className="col-span-2 flex items-center gap-2">
-                        {" "}
                         <img
                           src={
                             q.platform === "LeetCode" ? leetcodeLogo : gfgLogo
                           }
                           alt={q.platform}
                           className="h-5 w-5 rounded"
-                        />{" "}
+                        />
                         <span className="text-xs text-muted-foreground">
-                          {" "}
-                          {q.platform}{" "}
-                        </span>{" "}
-                      </span>{" "}
-                    </div>{" "}
-                  </CardContent>{" "}
-                </Card>{" "}
+                          {q.platform}
+                        </span>
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
               </a>
             );
           })
-        )}{" "}
-      </div>{" "}
+        )}
+      </div>
       {/* Pagination */}{" "}
       {totalElements > 0 && (
         <div className="mt-6 space-y-4">

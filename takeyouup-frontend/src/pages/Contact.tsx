@@ -1,250 +1,207 @@
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Mail, MapPin, Phone, Send } from "lucide-react"
+import { Mail, MapPin, Phone, Send, MessageSquare } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { set } from "date-fns"
 
 const Contact = () => {
-
   useEffect(() => {
-      document.title =
-        "Contact | TakeYouUp - Master Programming & Build Your Future";
-    }, []);
+    document.title = "Contact | TakeYouUp - Master Programming & Build Your Future";
+  }, []);
 
   const { toast } = useToast()
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: ""
-  })
-
+  const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" })
   const [sending, setSending] = useState(false)
-
   const API = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       setSending(true);
       const token = localStorage.getItem("token");
-      
       const res = await fetch(`${API}/api/contacts`, {
         method: "POST",
-        headers: { "Content-Type": "application/json",
-           "Authorization": `Bearer ${token}`
-         },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(formData),
       });
-
       if (res.ok) {
-        toast({
-          title: "Message Sent!",
-          description:
-            "We've received your message and sent a confirmation email.",
-        });
-
+        toast({ title: "Message Sent!", description: "We've received your message and sent a confirmation email." });
         setFormData({ name: "", email: "", subject: "", message: "" });
       } else {
-        toast({
-          title: "Error",
-          description: res.status === 403 ? "Please log in to send a message." : "Failed to send message. Please try again.",
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: res.status === 403 ? "Please log in to send a message." : "Failed to send message. Please try again.", variant: "destructive" });
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again later.",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: "Error", description: "Something went wrong. Please try again later.", variant: "destructive" });
     } finally {
       setSending(false);
     }
   };
 
   const contactInfo = [
-    {
-      icon: Mail,
-      title: "Email",
-      info: "info@takeyouup.com",
-      link: "mailto:info@takeyouup.com"
-    },
-    {
-      icon: Phone,
-      title: "Phone",
-      info: "+91 6387000732",
-      link: "tel:+6387000732"
-    },
-    {
-      icon: MapPin,
-      title: "Location",
-      info: "India, UP",
-      link: null
-    }
-  ]
+    { icon: Mail, title: "Email", info: "info@takeyouup.com", link: "mailto:info@takeyouup.com" },
+    { icon: Phone, title: "Phone", info: "+91 6387000732", link: "tel:+916387000732" },
+    { icon: MapPin, title: "Location", info: "India, UP", link: null },
+  ];
+
+  const faqs = [
+    { q: "How do I enroll in a course?", a: "Simply browse our courses, select the one you're interested in, and start learning." },
+    { q: "Can I access courses on mobile devices?", a: "Absolutely! Our platform is fully responsive and works on all devices including phones and tablets." },
+  ];
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "12px 14px",
+    borderRadius: "10px",
+    border: "1.5px solid hsl(var(--border))",
+    background: "hsl(var(--background))",
+    fontFamily: "'DM Sans', sans-serif",
+    fontSize: "14px",
+    color: "inherit",
+    outline: "none",
+    transition: "border-color 0.2s, box-shadow 0.2s",
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: "block",
+    fontSize: "12px",
+    fontWeight: 600,
+    marginBottom: "6px",
+    fontFamily: "'DM Mono', monospace",
+    letterSpacing: "0.04em",
+    textTransform: "uppercase",
+    color: "hsl(var(--muted-foreground))",
+  };
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-16 space-y-4 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-bold">
-            Get In{" "}
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Touch
-            </span>
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Have questions about our courses? Want to collaborate? We'd love to hear from you.
-            Send us a message and we'll respond as soon as possible.
-          </p>
+    <div style={{ minHeight: "100vh" }}>
+      {/* Hero */}
+      <section className="relative py-20 overflow-hidden" style={{ background: "hsl(var(--background))" }}>
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-20 animate-blob" style={{ background: "radial-gradient(circle, #ff4d1c, transparent 70%)", filter: "blur(80px)" }} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+          <div className="animate-fade-up max-w-2xl">
+            <div className="section-tag">Reach Out</div>
+            <h1 className="text-5xl md:text-6xl font-bold mb-5" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: "-0.03em" }}>
+              Get In <span className="gradient-text">Touch</span>
+            </h1>
+            <p className="text-lg leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
+              Have questions about our courses? Want to collaborate? We'd love to hear from you.
+            </p>
+          </div>
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {/* Contact Form */}
-          <Card className="lg:col-span-2 border-border">
-            <CardHeader>
-              <CardTitle className="text-2xl">Send Us a Message</CardTitle>
-              <CardDescription>
-                Fill out the form below and we'll get back to you within 24 hours
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Name</Label>
-                    <Input
-                      id="name"
-                      placeholder="Your name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="your.email@example.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      required
-                    />
-                  </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+          {/* Form */}
+          <div
+            className="lg:col-span-2 rounded-3xl p-8 border animate-fade-up"
+            style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}
+          >
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,77,28,0.1)" }}>
+                <MessageSquare className="h-5 w-5" style={{ color: "#ff4d1c" }} />
+              </div>
+              <div>
+                <h2 className="font-bold text-xl" style={{ fontFamily: "'Syne', sans-serif" }}>Send Us a Message</h2>
+                <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))", fontFamily: "'DM Mono', monospace" }}>We'll respond within 24 hours</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label style={labelStyle}>Name</label>
+                  <input style={inputStyle} placeholder="Your name" value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })} required
+                    onFocus={(e) => { e.target.style.borderColor = "#ff4d1c"; e.target.style.boxShadow = "0 0 0 3px rgba(255,77,28,0.12)"; }}
+                    onBlur={(e) => { e.target.style.borderColor = "hsl(var(--border))"; e.target.style.boxShadow = "none"; }} />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Subject</Label>
-                  <Input
-                    id="subject"
-                    placeholder="What is this regarding?"
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    required
-                  />
+                <div>
+                  <label style={labelStyle}>Email</label>
+                  <input type="email" style={inputStyle} placeholder="your.email@example.com" value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })} required
+                    onFocus={(e) => { e.target.style.borderColor = "#ff4d1c"; e.target.style.boxShadow = "0 0 0 3px rgba(255,77,28,0.12)"; }}
+                    onBlur={(e) => { e.target.style.borderColor = "hsl(var(--border))"; e.target.style.boxShadow = "none"; }} />
                 </div>
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="message">Message</Label>
-                  <Textarea
-                    id="message"
-                    placeholder="Tell us more about your inquiry..."
-                    className="min-h-[150px]"
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    required
-                  />
-                </div>
+              <div>
+                <label style={labelStyle}>Subject</label>
+                <input style={inputStyle} placeholder="What is this regarding?" value={formData.subject}
+                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })} required
+                  onFocus={(e) => { e.target.style.borderColor = "#ff4d1c"; e.target.style.boxShadow = "0 0 0 3px rgba(255,77,28,0.12)"; }}
+                  onBlur={(e) => { e.target.style.borderColor = "hsl(var(--border))"; e.target.style.boxShadow = "none"; }} />
+              </div>
 
-                <Button type="submit" size="lg" className="w-full bg-gradient-primary hover:opacity-90 group">
-                    {sending ? (
-                      "Sending..."
-                     ) : (
-                        <>
-                          <span>Send Message</span>
-                          <Send className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                        </>
-                     )}  
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+              <div>
+                <label style={labelStyle}>Message</label>
+                <textarea
+                  style={{ ...inputStyle, minHeight: 140, resize: "vertical" }}
+                  placeholder="Tell us more about your inquiry..."
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  required
+                  onFocus={(e) => { e.target.style.borderColor = "#ff4d1c"; e.target.style.boxShadow = "0 0 0 3px rgba(255,77,28,0.12)"; }}
+                  onBlur={(e) => { e.target.style.borderColor = "hsl(var(--border))"; e.target.style.boxShadow = "none"; }}
+                />
+              </div>
+
+              <button type="submit" disabled={sending} className="btn-orange w-full justify-center" style={{ borderRadius: "12px" }}>
+                {sending ? "Sending..." : <><span>Send Message</span><Send className="h-4 w-4" /></>}
+              </button>
+            </form>
+          </div>
 
           {/* Contact Info */}
-          <div className="space-y-6">
-            {contactInfo.map((item, index) => (
-              <Card key={index} className="hover:border-primary transition-all border-border group">
-                <CardContent className="pt-6">
-                  <div className="flex items-start gap-4">
-                    <div className="rounded-lg bg-gradient-primary p-3 group-hover:animate-float">
-                      <item.icon className="h-5 w-5 text-primary-foreground" />
-                    </div>
-                    <div>
-                      <p className="font-semibold mb-1">{item.title}</p>
-                      {item.link ? (
-                        <a 
-                          href={item.link}
-                          className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          {item.info}
-                        </a>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">{item.info}</p>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+          <div className="space-y-4">
+            {contactInfo.map((item, i) => (
+              <div
+                key={i}
+                className="card-lift rounded-2xl p-5 border flex items-start gap-4"
+                style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}
+              >
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "rgba(255,77,28,0.1)" }}>
+                  <item.icon className="h-4.5 w-4.5" style={{ color: "#ff4d1c", width: 18, height: 18 }} />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold mb-1 uppercase tracking-wider" style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>{item.title}</p>
+                  {item.link
+                    ? <a href={item.link} className="text-sm font-medium hover:text-orange-500 transition-colors">{item.info}</a>
+                    : <p className="text-sm font-medium">{item.info}</p>}
+                </div>
+              </div>
             ))}
 
-            <Card className="bg-gradient-primary border-0">
-              <CardContent className="pt-6 text-center text-primary-foreground">
-                <h3 className="font-bold text-lg mb-2">Quick Response</h3>
-                <p className="text-sm opacity-90">
-                  We typically respond to inquiries within 24 hours during business days
-                </p>
-              </CardContent>
-            </Card>
+            <div
+              className="rounded-2xl p-6 text-center relative overflow-hidden"
+              style={{ background: "linear-gradient(135deg, #ff4d1c, #ffb800)" }}
+            >
+              <p className="font-bold text-white text-sm mb-1" style={{ fontFamily: "'Syne', sans-serif" }}>Quick Response</p>
+              <p className="text-xs text-white/80">We typically respond within 24 hours during business days</p>
+            </div>
           </div>
         </div>
 
-        {/* FAQ Section */}
-        <Card className="mt-16 max-w-6xl mx-auto border-border">
-          <CardHeader>
-            <CardTitle className="text-2xl">Frequently Asked Questions</CardTitle>
-            <CardDescription>
-              Quick answers to common questions
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {[
-              {
-                q: "How do I enroll in a course?",
-                a: "Simply browse our courses, select the one you're interested in, and start learning"
-              },
-              {
-                q: "Can I access courses on mobile devices?",
-                a: "Absolutely! Our platform is fully responsive and works on all devices including phones and tablets."
-              }
-            ].map((faq, index) => (
-              <div key={index} className="border-b border-border last:border-0 pb-4 last:pb-0">
-                <h4 className="font-semibold mb-2">{faq.q}</h4>
-                <p className="text-sm text-muted-foreground">{faq.a}</p>
+        {/* FAQ */}
+        <div
+          className="rounded-3xl p-8 border"
+          style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}
+        >
+          <div className="section-tag">FAQ</div>
+          <h2 className="text-2xl font-bold mb-6" style={{ fontFamily: "'Syne', sans-serif" }}>Frequently Asked Questions</h2>
+          <div className="space-y-5">
+            {faqs.map((faq, i) => (
+              <div key={i} className="border-b pb-5 last:border-0 last:pb-0" style={{ borderColor: "hsl(var(--border))" }}>
+                <h4 className="font-semibold mb-2 flex items-center gap-2" style={{ fontFamily: "'Syne', sans-serif" }}>
+                  <span className="text-xs font-mono-custom" style={{ color: "#ff4d1c", fontFamily: "'DM Mono', monospace" }}>Q{i + 1}.</span>
+                  {faq.q}
+                </h4>
+                <p className="text-sm leading-relaxed pl-6" style={{ color: "hsl(var(--muted-foreground))" }}>{faq.a}</p>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Contact
+export default Contact;

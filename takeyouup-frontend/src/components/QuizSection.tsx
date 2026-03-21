@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +8,10 @@ import {
   RotateCcw,
   BookOpen,
 } from "lucide-react";
+
+import { useState, useEffect } from "react";
+import api from "@/api/axios";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Question {
   question: string;
@@ -21,176 +24,14 @@ interface QuizTopic {
   questions: Question[];
 }
 
-const quizData: QuizTopic[] = [
-  {
-    title: "Big O Notation",
-    questions: [
-      {
-        question:
-          "What is the time complexity of accessing an element in an array by index?",
-        options: ["O(n)", "O(1)", "O(log n)", "O(n²)"],
-        correct: 1,
-      },
-      {
-        question: "Which of the following has the highest growth rate?",
-        options: ["O(n log n)", "O(n²)", "O(2ⁿ)", "O(n³)"],
-        correct: 2,
-      },
-      {
-        question: "What is the time complexity of binary search?",
-        options: ["O(n)", "O(n²)", "O(log n)", "O(1)"],
-        correct: 2,
-      },
-      {
-        question: "Big O notation describes which case scenario?",
-        options: ["Best case", "Average case", "Worst case", "All cases"],
-        correct: 2,
-      },
-    ],
-  },
-  {
-    title: "Arrays & Strings",
-    questions: [
-      {
-        question:
-          "What is the time complexity of inserting an element at the beginning of an array?",
-        options: ["O(1)", "O(log n)", "O(n)", "O(n²)"],
-        correct: 2,
-      },
-      {
-        question:
-          "Which technique is best for finding a pair with a given sum in a sorted array?",
-        options: [
-          "Brute force",
-          "Two pointers",
-          "Binary search tree",
-          "Hashing only",
-        ],
-        correct: 1,
-      },
-      {
-        question: "What does the sliding window technique help optimize?",
-        options: [
-          "Space complexity",
-          "Subarray/substring problems",
-          "Sorting",
-          "Graph traversal",
-        ],
-        correct: 1,
-      },
-      {
-        question: "What is the time complexity of reversing a string?",
-        options: ["O(1)", "O(log n)", "O(n)", "O(n²)"],
-        correct: 2,
-      },
-    ],
-  },
-  {
-    title: "Linked Lists",
-    questions: [
-      {
-        question: "What is the main advantage of a linked list over an array?",
-        options: [
-          "Faster access",
-          "Dynamic size",
-          "Less memory",
-          "Better cache performance",
-        ],
-        correct: 1,
-      },
-      {
-        question: "How do you detect a cycle in a linked list?",
-        options: [
-          "Use a stack",
-          "Floyd's cycle detection",
-          "Sort the list",
-          "Use binary search",
-        ],
-        correct: 1,
-      },
-      {
-        question:
-          "What is the time complexity of inserting at the head of a singly linked list?",
-        options: ["O(n)", "O(log n)", "O(1)", "O(n²)"],
-        correct: 2,
-      },
-      {
-        question: "A doubly linked list node contains how many pointers?",
-        options: ["1", "2", "3", "0"],
-        correct: 1,
-      },
-    ],
-  },
-  {
-    title: "Trees & Graphs",
-    questions: [
-      {
-        question:
-          "What is the maximum number of children a binary tree node can have?",
-        options: ["1", "2", "3", "Unlimited"],
-        correct: 1,
-      },
-      {
-        question: "Which traversal visits nodes level by level?",
-        options: ["Inorder", "Preorder", "Postorder", "Level order (BFS)"],
-        correct: 3,
-      },
-      {
-        question: "What data structure is used in BFS?",
-        options: ["Stack", "Queue", "Heap", "Array"],
-        correct: 1,
-      },
-      {
-        question: "Dijkstra's algorithm finds the:",
-        options: [
-          "Minimum spanning tree",
-          "Shortest path",
-          "Longest path",
-          "Maximum flow",
-        ],
-        correct: 1,
-      },
-    ],
-  },
-  {
-    title: "Dynamic Programming",
-    questions: [
-      {
-        question:
-          "Which property is required for a problem to be solved using DP?",
-        options: [
-          "Greedy choice",
-          "Optimal substructure",
-          "Linear structure",
-          "Binary property",
-        ],
-        correct: 1,
-      },
-      {
-        question: "What is the top-down approach in DP called?",
-        options: ["Tabulation", "Memoization", "Recursion", "Iteration"],
-        correct: 1,
-      },
-      {
-        question: "The bottom-up DP approach is called:",
-        options: ["Memoization", "Tabulation", "Recursion", "Backtracking"],
-        correct: 1,
-      },
-      {
-        question: "Which of these is a classic DP problem?",
-        options: [
-          "Binary search",
-          "Knapsack problem",
-          "Quick sort",
-          "BFS traversal",
-        ],
-        correct: 1,
-      },
-    ],
-  },
-];
+interface QuizSectionProps {
+  courseId: number;
+}
 
-const QuizSection = ({ quizData }) => {
+const QuizSection = ({ courseId }: QuizSectionProps) => {
+  const [quizData, setQuizData] = useState<QuizTopic[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [selectedTopic, setSelectedTopic] = useState<number | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -198,7 +39,22 @@ const QuizSection = ({ quizData }) => {
   const [score, setScore] = useState(0);
   const [answered, setAnswered] = useState<boolean[]>([]);
 
-  console.log(quizData);
+  // console.log(quizData);
+
+  useEffect(() => {
+    const fetchQuiz = async () => {
+      try {
+        const res = await api.get(`/quizzes/course/${courseId}`);
+        setQuizData(res.data);
+      } catch (err) {
+        console.error("Failed to fetch quiz", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (courseId) fetchQuiz();
+  }, [courseId]);
 
   const handleTopicClick = (index: number) => {
     setSelectedTopic(index);
@@ -239,6 +95,63 @@ const QuizSection = ({ quizData }) => {
 
   const topic = selectedTopic !== null ? quizData[selectedTopic] : null;
   const question = topic ? topic.questions[currentQuestion] : null;
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Sidebar Skeleton */}
+        <div className="lg:col-span-4">
+          <Card className="sticky top-20 border-border">
+            <CardHeader>
+              <Skeleton className="h-6 w-40 mb-2" />
+              <Skeleton className="h-4 w-28" />
+            </CardHeader>
+
+            <CardContent className="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex justify-between items-center">
+                  <Skeleton className="h-8 w-3/4 rounded-md" />
+                  <Skeleton className="h-6 w-10 rounded-md" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quiz Content Skeleton */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* Progress Skeleton */}
+          <Card>
+            <CardContent className="py-4 space-y-2">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-2 w-full rounded-full" />
+            </CardContent>
+          </Card>
+
+          {/* Question Skeleton */}
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-3/4" />
+            </CardHeader>
+
+            <CardContent className="space-y-3">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton
+                  key={i}
+                  className="h-14 w-full rounded-lg  animate-pulse"
+                />
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Button Skeleton */}
+          <div className="flex justify-end">
+            <Skeleton className="h-10 w-36 rounded-lg" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

@@ -1,329 +1,215 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  ArrowLeft,
-  Clock,
-  Users,
-  Star,
-  CheckCircle2,
-  PlayCircle,
-  FileText,
-  Award,
-  ChevronRight,
-  BrainCircuit,
-} from "lucide-react";
-import axios from "axios";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, CheckCircle2, FileText, ChevronRight, BrainCircuit, Clock, Users, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import QuizSection from "@/components/QuizSection";
-import javaCourse from "../data/javaCourse";
-import pythonCourse from "../data/pythonCourse";
-import dsaCourse from "../data/dsaCourse";
-import webDevCourse from "../data/webDevCourse";
-import machineCourse from "../data/machineLearningCourse";
-import systemDesignCourse from "../data/systemDesignCourse";
 import api from "@/api/axios";
 import dsaQuiz from "@/data/quizzes/dsaQuiz";
 import javaQuiz from "@/data/quizzes/javaQuiz";
 import pythonQuiz from "@/data/quizzes/pythonQuiz";
 
 const CourseDetail = () => {
-  // const { slug } = useParams()
   const { courseSlug, lessonSlug } = useParams();
-  const [selectedLesson, setSelectedLesson] = useState({
-    moduleIndex: 0,
-    lessonIndex: 0,
-  });
-  const [course, setCourse] = useState(null);
-  const [loading, setLoading] = useState(null);
-  const [error, setError] = useState(null);
-
-  const quizMap = {
-    dsa: dsaQuiz,
-    java: javaQuiz,
-    python: pythonQuiz,
-  };
-
+  const [selectedLesson, setSelectedLesson] = useState({ moduleIndex: 0, lessonIndex: 0 });
+  const [course, setCourse] = useState<any>(null);
+  const [loading, setLoading] = useState<any>(null);
+  const [error, setError] = useState<any>(null);
+  const quizMap: any = { dsa: dsaQuiz, java: javaQuiz, python: pythonQuiz };
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-
-    // If user not logged in
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
+    if (!token) { navigate("/login"); return; }
     const fetchCourse = async () => {
       try {
         setLoading(true);
         const res = await api.get(`/courses/slug/${courseSlug}`);
         setCourse(res.data);
-      } catch {
+      } catch (err: any) {
         setError(err.response?.data?.message || "Failed to fetch course");
       } finally {
         setLoading(false);
       }
     };
-
     fetchCourse();
   }, [courseSlug]);
 
   useEffect(() => {
     if (!course || !lessonSlug) return;
-
     for (let m = 0; m < course.modules.length; m++) {
-      const lessonIndex = course.modules[m].lessons.findIndex(
-        (l) => l.slug === lessonSlug,
-      );
-
-      if (lessonIndex !== -1) {
-        setSelectedLesson({ moduleIndex: m, lessonIndex });
-        break;
-      }
+      const lessonIndex = course.modules[m].lessons.findIndex((l: any) => l.slug === lessonSlug);
+      if (lessonIndex !== -1) { setSelectedLesson({ moduleIndex: m, lessonIndex }); break; }
     }
   }, [lessonSlug, course]);
 
   const handleLessonClick = (moduleIndex: number, lessonIndex: number) => {
     const lesson = course.modules[moduleIndex].lessons[lessonIndex];
     setSelectedLesson({ moduleIndex, lessonIndex });
-    if (lesson.slug) {
-      navigate(`/${course.slug}/${lesson.slug}`);
-    } else {
-      // If no slug, just stay on the course page
-      navigate(`/${course.slug}`);
-    }
-    // setSelectedLesson({ moduleIndex, lessonIndex })
+    navigate(lesson.slug ? `/${course.slug}/${lesson.slug}` : `/${course.slug}`);
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-lg font-medium">Loading course details...</p>
-      </div>
-    );
-  }
+  const cardStyle: React.CSSProperties = { background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 16 };
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-screen text-red-500">
-        {error}
+  if (loading) return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-4">
+          <div style={{ ...cardStyle, padding: 24 }}>
+            <Skeleton className="h-6 w-40 mb-2" /><Skeleton className="h-4 w-24 mb-4" />
+            {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-8 w-full rounded-lg mb-2" />)}
+          </div>
+        </div>
+        <div className="lg:col-span-8 space-y-4">
+          <div style={{ ...cardStyle, padding: 24 }}>
+            <Skeleton className="h-7 w-2/3 mb-4" />
+            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-4 w-full mb-2" />)}
+          </div>
+        </div>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (!course) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p>No course found</p>
-      </div>
-    );
-  }
+  if (error) return (
+    <div className="flex items-center justify-center h-screen">
+      <div style={{ color: "#ef4444", fontFamily: "'DM Mono', monospace", fontSize: 14 }}>{error}</div>
+    </div>
+  );
 
-  const currentLesson =
-    course.modules[selectedLesson.moduleIndex]?.lessons[
-      selectedLesson.lessonIndex
-    ];
+  if (!course) return (
+    <div className="flex items-center justify-center h-screen" style={{ color: "hsl(var(--muted-foreground))" }}>No course found</div>
+  );
+
+  const currentLesson = course.modules[selectedLesson.moduleIndex]?.lessons[selectedLesson.lessonIndex];
   const currentModule = course.modules[selectedLesson.moduleIndex];
 
   return (
-    <div className="">
-      {/* Back Button */}
+    <div style={{ minHeight: "100vh", background: "hsl(var(--background))" }}>
+      {/* Mini header */}
+      <div style={{ borderBottom: "1px solid hsl(var(--border))", padding: "12px 0", background: "hsl(var(--card))" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-4">
+          <Link to="/courses" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "hsl(var(--muted-foreground))", textDecoration: "none", fontFamily: "'DM Sans', sans-serif" }}
+            className="hover:text-orange-500 transition-colors">
+            <ArrowLeft style={{ width: 15, height: 15 }} /> Back to Courses
+          </Link>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, fontFamily: "'DM Mono', monospace", fontSize: 11, color: "hsl(var(--muted-foreground))" }}>
+            {course.students && <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Users style={{ width: 12, height: 12 }} /> {course.students?.toLocaleString()}</span>}
+            {course.rating && <span style={{ display: "flex", alignItems: "center", gap: 4, color: "#f59e0b" }}><Star style={{ width: 12, height: 12, fill: "#f59e0b" }} /> {course.rating}</span>}
+          </div>
+        </div>
+      </div>
 
-      {/* Hero Section */}
-
-      {/* Main Content Area with Sidebar */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <Tabs defaultValue="lessons" className="space-y-6">
-          <TabsList className="bg-muted/50 p-1">
-            <TabsTrigger
-              value="lessons"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2"
-            >
-              <FileText className="h-4 w-4" />
-              Lessons
+          <TabsList style={{ background: "hsl(var(--muted))", padding: 4, borderRadius: 10, border: "none" }}>
+            <TabsTrigger value="lessons"
+              className="data-[state=active]:bg-orange-500 data-[state=active]:text-white gap-2 rounded-lg transition-all"
+              style={{ fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 13 }}>
+              <FileText style={{ width: 14, height: 14 }} /> Lessons
             </TabsTrigger>
-            <TabsTrigger
-              value="quiz"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2"
-            >
-              <BrainCircuit className="h-4 w-4" />
-              Quiz
+            <TabsTrigger value="quiz"
+              className="data-[state=active]:bg-orange-500 data-[state=active]:text-white gap-2 rounded-lg transition-all"
+              style={{ fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 13 }}>
+              <BrainCircuit style={{ width: 14, height: 14 }} /> Quiz
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="lessons">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Left Sidebar - Topics */}
+              {/* Sidebar */}
               <div className="lg:col-span-4">
-                <Card className="sticky top-20 border-border">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Course Content</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {course.modules.reduce(
-                        (acc, m) => acc + m.lessons.length,
-                        0,
-                      )}{" "}
-                      lessons
+                <div style={{ ...cardStyle, position: "sticky", top: 80 }}>
+                  <div style={{ padding: "20px 20px 12px" }}>
+                    <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "1rem", marginBottom: 4 }}>Course Content</h3>
+                    <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "hsl(var(--muted-foreground))" }}>
+                      {course.modules.reduce((acc: number, m: any) => acc + m.lessons.length, 0)} lessons
                     </p>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <ScrollArea className="h-[calc(100vh-200px)]">
-                      <div className="space-y-1 px-4 pb-4">
-                        {course.modules.map((module, moduleIndex) => (
-                          <div key={moduleIndex} className="space-y-1">
-                            <div className="flex items-center gap-2 py-2 px-3 bg-muted/30 rounded-lg">
-                              <FileText className="h-4 w-4 text-primary flex-shrink-0" />
-                              <span className="font-semibold text-sm">
-                                {module.title}
-                              </span>
-                            </div>
-                            {module.lessons.map((lesson, lessonIndex) => {
-                              const isActive =
-                                selectedLesson.moduleIndex === moduleIndex &&
-                                selectedLesson.lessonIndex === lessonIndex;
-                              return (
-                                <button
-                                  key={lessonIndex}
-                                  onClick={() =>
-                                    handleLessonClick(moduleIndex, lessonIndex)
-                                  }
-                                  className={`w-full text-left py-2 px-3 rounded-lg transition-all text-sm flex items-center gap-2 group ${
-                                    isActive
-                                      ? "bg-primary text-primary-foreground"
-                                      : "hover:bg-muted/50 text-muted-foreground"
-                                  }`}
-                                >
-                                  <ChevronRight
-                                    className={`h-3 w-3 flex-shrink-0 transition-transform ${
-                                      isActive
-                                        ? "rotate-90"
-                                        : "group-hover:translate-x-0.5"
-                                    }`}
-                                  />
-                                  <span className="flex-1 line-clamp-1">
-                                    {lesson.title}
-                                  </span>
-                                  {isActive && (
-                                    <div className="h-1.5 w-1.5 rounded-full bg-primary-foreground flex-shrink-0" />
-                                  )}
-                                </button>
-                              );
-                            })}
+                  </div>
+                  <ScrollArea style={{ height: "calc(100vh - 260px)" }}>
+                    <div style={{ padding: "0 12px 16px" }}>
+                      {course.modules.map((module: any, mIdx: number) => (
+                        <div key={mIdx} style={{ marginBottom: 8 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: "hsl(var(--muted))", borderRadius: 8, marginBottom: 4 }}>
+                            <FileText style={{ width: 13, height: 13, color: "#ff4d1c", flexShrink: 0 }} />
+                            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 12 }}>{module.title}</span>
                           </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  </CardContent>
-                </Card>
+                          {module.lessons.map((lesson: any, lIdx: number) => {
+                            const isActive = selectedLesson.moduleIndex === mIdx && selectedLesson.lessonIndex === lIdx;
+                            return (
+                              <button key={lIdx} onClick={() => handleLessonClick(mIdx, lIdx)}
+                                style={{
+                                  width: "100%", textAlign: "left", padding: "8px 10px", borderRadius: 8, border: "none", cursor: "pointer",
+                                  display: "flex", alignItems: "center", gap: 6, fontSize: 12, transition: "all 0.15s",
+                                  fontFamily: "'DM Sans', sans-serif",
+                                  background: isActive ? "#ff4d1c" : "transparent",
+                                  color: isActive ? "white" : "hsl(var(--muted-foreground))",
+                                  marginBottom: 2,
+                                }}>
+                                <ChevronRight style={{ width: 11, height: 11, flexShrink: 0, transform: isActive ? "rotate(90deg)" : "none", transition: "transform 0.15s" }} />
+                                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lesson.title}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
               </div>
 
-              {/* Right Side - Lesson Content */}
-              <div className="lg:col-span-8 space-y-6">
+              {/* Main content */}
+              <div className="lg:col-span-8 space-y-5">
                 {currentLesson && (
                   <>
-                    {/* Lesson Content */}
-                    <Card className="border-border">
-                      <CardHeader>
-                        <CardTitle>{currentLesson.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
-                        <p className="text-muted-foreground leading-relaxed">
-                          {currentLesson.content}
-                        </p>
-
-                        <div>
-                          <h3 className="font-semibold text-lg mb-3">
-                            Key Learning Points
-                          </h3>
-                          <div className="space-y-3">
-                            {currentLesson.keyPoints.map((point, index) => (
-                              <div
-                                key={index}
-                                className="flex items-start gap-3"
-                              >
-                                <div className="rounded-full bg-gradient-primary p-1 mt-1">
-                                  <CheckCircle2 className="h-3 w-3 text-primary-foreground" />
+                    <div style={cardStyle}>
+                      <div style={{ padding: "24px 28px" }}>
+                        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "1.4rem", marginBottom: 16 }}>{currentLesson.title}</h2>
+                        <p style={{ color: "hsl(var(--muted-foreground))", lineHeight: 1.75, fontSize: "0.95rem", marginBottom: 24 }}>{currentLesson.content}</p>
+                        {currentLesson.keyPoints?.length > 0 && (
+                          <div>
+                            <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "1rem", marginBottom: 14 }}>Key Learning Points</h3>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                              {currentLesson.keyPoints.map((point: any, i: number) => (
+                                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                                  <div style={{ marginTop: 3, flexShrink: 0, width: 20, height: 20, borderRadius: "50%", background: "rgba(255,77,28,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                    <CheckCircle2 style={{ width: 12, height: 12, color: "#ff4d1c" }} />
+                                  </div>
+                                  <div>
+                                    <p style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: 2 }}>{point.point}</p>
+                                    {point.explanation && <p style={{ fontSize: "0.82rem", color: "hsl(var(--muted-foreground))", lineHeight: 1.6 }}>{point.explanation}</p>}
+                                  </div>
                                 </div>
-                                <div className="flex-1">
-                                  <span className="font-semibold">
-                                    {point.point}
-                                  </span>
-                                  <p className="text-sm text-muted-foreground">
-                                    {point.explanation}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                        )}
+                      </div>
+                    </div>
 
-                    {/* Navigation Buttons */}
-                    <div className="flex items-center justify-between gap-4">
-                      <Button
-                        variant="outline"
+                    {/* Nav buttons */}
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                      <button
                         onClick={() => {
-                          if (selectedLesson.lessonIndex > 0) {
-                            handleLessonClick(
-                              selectedLesson.moduleIndex,
-                              selectedLesson.lessonIndex - 1,
-                            );
-                          } else if (selectedLesson.moduleIndex > 0) {
-                            const prevModule =
-                              course.modules[selectedLesson.moduleIndex - 1];
-                            handleLessonClick(
-                              selectedLesson.moduleIndex - 1,
-                              prevModule.lessons.length - 1,
-                            );
-                          }
+                          if (selectedLesson.lessonIndex > 0) handleLessonClick(selectedLesson.moduleIndex, selectedLesson.lessonIndex - 1);
+                          else if (selectedLesson.moduleIndex > 0) { const pm = course.modules[selectedLesson.moduleIndex - 1]; handleLessonClick(selectedLesson.moduleIndex - 1, pm.lessons.length - 1); }
                         }}
-                        disabled={
-                          selectedLesson.moduleIndex === 0 &&
-                          selectedLesson.lessonIndex === 0
-                        }
-                        className="border-primary hover:bg-primary/10"
+                        disabled={selectedLesson.moduleIndex === 0 && selectedLesson.lessonIndex === 0}
+                        style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 20px", borderRadius: 10, border: "1.5px solid hsl(var(--border))", background: "transparent", cursor: "pointer", fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 13, transition: "all 0.2s", opacity: (selectedLesson.moduleIndex === 0 && selectedLesson.lessonIndex === 0) ? 0.4 : 1, color: "hsl(var(--foreground))" }}
                       >
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Previous Lesson
-                      </Button>
-                      <Button
+                        <ArrowLeft style={{ width: 14, height: 14 }} /> Previous
+                      </button>
+                      <button
                         onClick={() => {
-                          if (
-                            selectedLesson.lessonIndex <
-                            currentModule.lessons.length - 1
-                          ) {
-                            handleLessonClick(
-                              selectedLesson.moduleIndex,
-                              selectedLesson.lessonIndex + 1,
-                            );
-                          } else if (
-                            selectedLesson.moduleIndex <
-                            course.modules.length - 1
-                          ) {
-                            handleLessonClick(
-                              selectedLesson.moduleIndex + 1,
-                              0,
-                            );
-                          }
+                          if (selectedLesson.lessonIndex < currentModule.lessons.length - 1) handleLessonClick(selectedLesson.moduleIndex, selectedLesson.lessonIndex + 1);
+                          else if (selectedLesson.moduleIndex < course.modules.length - 1) handleLessonClick(selectedLesson.moduleIndex + 1, 0);
                         }}
-                        disabled={
-                          selectedLesson.moduleIndex ===
-                            course.modules.length - 1 &&
-                          selectedLesson.lessonIndex ===
-                            currentModule.lessons.length - 1
-                        }
-                        className="bg-gradient-primary hover:opacity-90"
+                        disabled={selectedLesson.moduleIndex === course.modules.length - 1 && selectedLesson.lessonIndex === currentModule.lessons.length - 1}
+                        style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 20px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #ff4d1c, #ffb800)", cursor: "pointer", fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 13, color: "white", transition: "all 0.2s", opacity: (selectedLesson.moduleIndex === course.modules.length - 1 && selectedLesson.lessonIndex === currentModule.lessons.length - 1) ? 0.4 : 1 }}
                       >
-                        Next Lesson
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                      </Button>
+                        Next Lesson <ChevronRight style={{ width: 14, height: 14 }} />
+                      </button>
                     </div>
                   </>
                 )}
@@ -332,7 +218,7 @@ const CourseDetail = () => {
           </TabsContent>
 
           <TabsContent value="quiz">
-            <QuizSection quizData={quizMap["dsa"] || []} />
+            <QuizSection courseId={course.id} />
           </TabsContent>
         </Tabs>
       </div>
