@@ -4,7 +4,7 @@
 
 # 🚀 TakeYouUp
 
-### *Master Programming. Crack Interviews. Build Your Future.*
+### _Master Programming. Crack Interviews. Build Your Future._
 
 A full-stack ed-tech platform where developers level up through structured courses, real-world projects, interview prep question banks, an in-browser code editor, an AI chatbot, and live quizzes — all in one place.
 
@@ -30,13 +30,13 @@ A full-stack ed-tech platform where developers level up through structured cours
 > **Add your screenshots here** — replace the placeholder paths below with actual images from your project.
 > Recommended: take screenshots of Home, Courses, Course Detail, Interview Prep, and Login pages.
 
-| Page | Preview |
-|------|---------|
-| 🏠 **Home — Hero** | ![Home Hero](./screenshots/home-hero.png) |
-| 📚 **Courses Page** | ![Courses](./screenshots/courses.png) |
-| 📖 **Course Detail** | ![Course Detail](./screenshots/course-detail.png) |
-| 🔐 **Login / Signup** | ![Auth](./screenshots/login.png) |
-| 🤖 **AI Chatbot** | ![Chatbot](./screenshots/chatbot.png) |
+| Page                  | Preview                                           |
+| --------------------- | ------------------------------------------------- |
+| 🏠 **Home — Hero**    | ![Home Hero](./screenshots/home-hero.png)         |
+| 📚 **Courses Page**   | ![Courses](./screenshots/courses.png)             |
+| 📖 **Course Detail**  | ![Course Detail](./screenshots/course-detail.png) |
+| 🔐 **Login / Signup** | ![Auth](./screenshots/login.png)                  |
+| 🤖 **AI Chatbot**     | ![Chatbot](./screenshots/chatbot.png)             |
 
 > 💡 **Tip:** Create a `/screenshots` folder in your repo root and add PNG/JPG images there. GitHub renders them automatically in the README.
 
@@ -45,20 +45,24 @@ A full-stack ed-tech platform where developers level up through structured cours
 ## ✨ Features
 
 ### 🎓 Learning
+
 - **Structured Course Catalog** — Browse courses by category (Programming, Development, AI/ML)
 - **Lesson-by-Lesson Navigation** — Module-based sidebar with progress tracking per lesson
 - **Live Quizzes** — Topic-specific quizzes for DSA, Java, and Python with instant feedback
 - **Interview Prep Bank** — Curated question sets for DSA, Python, Java, OOPS, React, DBMS
 
 ### 💻 Practice
+
 - **In-Browser Code Editor** — Monaco-powered online compiler to write and run code without setup
 - **Coding Problems** — Curated coding challenges (protected — login required)
 
 ### 🤖 AI & Personalization
+
 - **AI Chatbot** — Context-aware chatbot powered by your Spring Boot backend for course queries
 - **Dark / Light Mode** — Fully persistent theme toggle across the entire app
 
 ### 🔐 Auth & Profiles
+
 - **JWT Authentication** — Secure login / signup with token-based sessions
 - **User Profile** — View and edit display name, protected by auth middleware
 - **Protected Routes** — Course detail, problems, and profile pages require login
@@ -68,30 +72,32 @@ A full-stack ed-tech platform where developers level up through structured cours
 ## 🛠️ Tech Stack
 
 ### Frontend
-| Technology | Purpose |
-|---|---|
-| **React 18** | UI library |
-| **TypeScript** | Type safety |
-| **Vite** | Build tool & dev server |
-| **Tailwind CSS** | Utility-first styling |
-| **shadcn/ui + Radix UI** | Accessible component primitives |
-| **React Router v6** | Client-side routing |
-| **TanStack Query** | Server state & data fetching |
-| **Axios** | HTTP client |
-| **Monaco Editor** | In-browser code editor |
-| **Lucide React** | Icon library |
-| **React Hook Form + Zod** | Form management & validation |
-| **Syne + DM Mono + DM Sans** | Custom Google Fonts typography |
+
+| Technology                   | Purpose                         |
+| ---------------------------- | ------------------------------- |
+| **React 18**                 | UI library                      |
+| **TypeScript**               | Type safety                     |
+| **Vite**                     | Build tool & dev server         |
+| **Tailwind CSS**             | Utility-first styling           |
+| **shadcn/ui + Radix UI**     | Accessible component primitives |
+| **React Router v6**          | Client-side routing             |
+| **TanStack Query**           | Server state & data fetching    |
+| **Axios**                    | HTTP client                     |
+| **Monaco Editor**            | In-browser code editor          |
+| **Lucide React**             | Icon library                    |
+| **React Hook Form + Zod**    | Form management & validation    |
+| **Syne + DM Mono + DM Sans** | Custom Google Fonts typography  |
 
 ### Backend
-| Technology | Purpose |
-|---|---|
-| **Spring Boot** | REST API framework |
-| **Java** | Backend language |
-| **JWT (JSON Web Tokens)** | Authentication & authorization |
-| **Spring Security** | Route protection & token validation |
-| **Spring Data JPA** | ORM & database access |
-| **REST API** | Course, Auth, Contact, Chatbot, User endpoints |
+
+| Technology                | Purpose                                        |
+| ------------------------- | ---------------------------------------------- |
+| **Spring Boot**           | REST API framework                             |
+| **Java**                  | Backend language                               |
+| **JWT (JSON Web Tokens)** | Authentication & authorization                 |
+| **Spring Security**       | Route protection & token validation            |
+| **Spring Data JPA**       | ORM & database access                          |
+| **REST API**              | Course, Auth, Contact, Chatbot, User endpoints |
 
 ---
 
@@ -206,7 +212,7 @@ The backend API will start on **`http://localhost:8080`**
 cd takeyouup-frontend
 
 # Install dependencies
-npm install
+yarn install
 
 # Create environment file
 cp .env.example .env
@@ -220,7 +226,7 @@ VITE_API_URL=http://localhost:8080
 
 ```bash
 # Start the development server
-npm run dev
+yarn dev
 ```
 
 The frontend will be available at **`http://localhost:5173`**
@@ -244,15 +250,15 @@ npm run preview
 
 The frontend communicates with the Spring Boot backend through these endpoints:
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|:---:|
-| `POST` | `/api/auth/register` | Register new user | ❌ |
-| `POST` | `/api/auth/login` | Login & get JWT token | ❌ |
-| `GET` | `/api/courses` | Fetch all courses | ❌ |
-| `GET` | `/api/courses/slug/:slug` | Fetch course by slug | ✅ |
-| `PUT` | `/api/users/update-name` | Update display name | ✅ |
-| `POST` | `/api/contacts` | Submit contact form | ✅ |
-| `POST` | `/api/chatbot/generate` | AI chatbot response | ✅ |
+| Method | Endpoint                  | Description           | Auth Required |
+| ------ | ------------------------- | --------------------- | :-----------: |
+| `POST` | `/api/auth/register`      | Register new user     |      ❌       |
+| `POST` | `/api/auth/login`         | Login & get JWT token |      ❌       |
+| `GET`  | `/api/courses`            | Fetch all courses     |      ❌       |
+| `GET`  | `/api/courses/slug/:slug` | Fetch course by slug  |      ✅       |
+| `PUT`  | `/api/users/update-name`  | Update display name   |      ✅       |
+| `POST` | `/api/contacts`           | Submit contact form   |      ✅       |
+| `POST` | `/api/chatbot/generate`   | AI chatbot response   |      ✅       |
 
 > All protected routes require the `Authorization: Bearer <token>` header.
 
@@ -288,14 +294,14 @@ jwt.expiration=86400000
 
 TakeYouUp uses a custom design system built on top of Tailwind CSS and shadcn/ui:
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--orange` | `#ff4d1c` | Primary accent, CTAs, active states |
-| `--gold` | `#ffb800` | Gradient partner, ratings |
-| `--ink` | `#0c0c0e` | Dark backgrounds, hero sections |
-| **Syne** | Display font | All headings & titles |
-| **DM Mono** | Monospace font | Labels, badges, metadata |
-| **DM Sans** | Body font | Paragraphs & UI text |
+| Token       | Value          | Usage                               |
+| ----------- | -------------- | ----------------------------------- |
+| `--orange`  | `#ff4d1c`      | Primary accent, CTAs, active states |
+| `--gold`    | `#ffb800`      | Gradient partner, ratings           |
+| `--ink`     | `#0c0c0e`      | Dark backgrounds, hero sections     |
+| **Syne**    | Display font   | All headings & titles               |
+| **DM Mono** | Monospace font | Labels, badges, metadata            |
+| **DM Sans** | Body font      | Paragraphs & UI text                |
 
 Dark mode is fully supported across all pages using CSS variables and the `ThemeProvider` context.
 
