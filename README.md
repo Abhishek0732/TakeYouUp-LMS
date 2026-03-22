@@ -27,18 +27,14 @@ A full-stack ed-tech platform where developers level up through structured cours
 
 ## 📸 Screenshots
 
-> **Add your screenshots here** — replace the placeholder paths below with actual images from your project.
-> Recommended: take screenshots of Home, Courses, Course Detail, Interview Prep, and Login pages.
-
 | Page                  | Preview                                           |
 | --------------------- | ------------------------------------------------- |
 | 🏠 **Home — Hero**    | ![Home Hero](./screenshots/home-hero.png)         |
 | 📚 **Courses Page**   | ![Courses](./screenshots/courses.png)             |
 | 📖 **Course Detail**  | ![Course Detail](./screenshots/course-detail.png) |
+| 📚 **Problems Page**  | ![Problems](./screenshots/problems.png)           |
 | 🔐 **Login / Signup** | ![Auth](./screenshots/login.png)                  |
 | 🤖 **AI Chatbot**     | ![Chatbot](./screenshots/chatbot.png)             |
-
-> 💡 **Tip:** Create a `/screenshots` folder in your repo root and add PNG/JPG images there. GitHub renders them automatically in the README.
 
 ---
 
