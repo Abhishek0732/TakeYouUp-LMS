@@ -17,12 +17,15 @@ D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\t
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\controller\resources\QuestionController.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\controller\resources\TopicController.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\controller\UserController.java
+D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\controller\UserProgressController.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\dto\AuthResponse.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\dto\CourseSummaryDTO.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\dto\dsa\QuestionDTO.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\dto\dsa\QuestionRequest.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\dto\dsa\QuestionResponse.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\dto\LoginRequest.java
+D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\dto\ProgressRequest.java
+D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\dto\ProgressResponse.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\dto\quiz\QuestionDTO.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\dto\quiz\QuizRequest.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\dto\quiz\QuizResponse.java
@@ -63,6 +66,7 @@ D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\t
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\model\resources\ResourceTopic.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\model\resources\TopicConcept.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\model\User.java
+D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\model\UserProgress.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\repository\ContactMessageRepository.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\repository\CourseRepository.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\repository\dsa\DifficultyRepository.java
@@ -78,6 +82,7 @@ D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\t
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\repository\resources\ResourceCategoryRepository.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\repository\resources\ResourceTopicRepository.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\repository\resources\TopicConceptRepository.java
+D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\repository\UserProgressRepository.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\repository\UserRepository.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\service\AuthService.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\service\ChatBotService.java
@@ -93,5 +98,6 @@ D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\t
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\service\resources\CategoryService.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\service\resources\ResourceQuestionService.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\service\resources\ResourceTopicService.java
+D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\service\UserProgressService.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\service\UserService.java
 D:\Java Spring\TakeYouUp-LMS\takeyouup-backend\src\main\java\takeyouup\example\takeyouup\TakeyouupApplication.java

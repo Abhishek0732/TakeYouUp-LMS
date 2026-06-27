@@ -10,6 +10,7 @@ import api from "@/api/axios";
 import dsaQuiz from "@/data/quizzes/dsaQuiz";
 import javaQuiz from "@/data/quizzes/javaQuiz";
 import pythonQuiz from "@/data/quizzes/pythonQuiz";
+import { useProgress } from "@/context/ProgressContext";
 
 const CourseDetail = () => {
   const { courseSlug, lessonSlug } = useParams();
@@ -19,6 +20,7 @@ const CourseDetail = () => {
   const [error, setError] = useState<any>(null);
   const quizMap: any = { dsa: dsaQuiz, java: javaQuiz, python: pythonQuiz };
   const navigate = useNavigate();
+  const { isCompleted, toggleProgress } = useProgress();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -85,6 +87,8 @@ const CourseDetail = () => {
   const currentLesson = course.modules[selectedLesson.moduleIndex]?.lessons[selectedLesson.lessonIndex];
   const currentModule = course.modules[selectedLesson.moduleIndex];
 
+  const getLessonKey = (lesson: any) => lesson.slug || String(lesson.id);
+
   return (
     <div style={{ minHeight: "100vh", background: "hsl(var(--background))" }}>
       {/* Mini header */}
@@ -137,6 +141,7 @@ const CourseDetail = () => {
                           </div>
                           {module.lessons.map((lesson: any, lIdx: number) => {
                             const isActive = selectedLesson.moduleIndex === mIdx && selectedLesson.lessonIndex === lIdx;
+                            const isDone = isCompleted("LESSON", getLessonKey(lesson));
                             return (
                               <button key={lIdx} onClick={() => handleLessonClick(mIdx, lIdx)}
                                 style={{
@@ -149,6 +154,7 @@ const CourseDetail = () => {
                                 }}>
                                 <ChevronRight style={{ width: 11, height: 11, flexShrink: 0, transform: isActive ? "rotate(90deg)" : "none", transition: "transform 0.15s" }} />
                                 <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lesson.title}</span>
+                                {isDone && <CheckCircle2 style={{ width: 12, height: 12, color: isActive ? "white" : "#22c55e", flexShrink: 0 }} />}
                               </button>
                             );
                           })}
@@ -190,18 +196,37 @@ const CourseDetail = () => {
 
                     {/* Nav buttons */}
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                      <div style={{ display: "flex", gap: 12 }}>
+                        <button
+                          onClick={() => {
+                            if (selectedLesson.lessonIndex > 0) handleLessonClick(selectedLesson.moduleIndex, selectedLesson.lessonIndex - 1);
+                            else if (selectedLesson.moduleIndex > 0) { const pm = course.modules[selectedLesson.moduleIndex - 1]; handleLessonClick(selectedLesson.moduleIndex - 1, pm.lessons.length - 1); }
+                          }}
+                          disabled={selectedLesson.moduleIndex === 0 && selectedLesson.lessonIndex === 0}
+                          style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 20px", borderRadius: 10, border: "1.5px solid hsl(var(--border))", background: "transparent", cursor: "pointer", fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 13, transition: "all 0.2s", opacity: (selectedLesson.moduleIndex === 0 && selectedLesson.lessonIndex === 0) ? 0.4 : 1, color: "hsl(var(--foreground))" }}
+                        >
+                          <ArrowLeft style={{ width: 14, height: 14 }} /> Previous
+                        </button>
+                        <button
+                          onClick={() => toggleProgress("LESSON", getLessonKey(currentLesson))}
+                          style={{ 
+                            display: "flex", alignItems: "center", gap: 6, padding: "10px 20px", borderRadius: 10, 
+                            border: isCompleted("LESSON", getLessonKey(currentLesson)) ? "1px solid rgba(34,197,94,0.3)" : "1.5px solid hsl(var(--border))", 
+                            background: isCompleted("LESSON", getLessonKey(currentLesson)) ? "rgba(34,197,94,0.1)" : "transparent", 
+                            cursor: "pointer", fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 13, transition: "all 0.2s", 
+                            color: isCompleted("LESSON", getLessonKey(currentLesson)) ? "#22c55e" : "hsl(var(--foreground))" 
+                          }}
+                        >
+                          <CheckCircle2 style={{ width: 14, height: 14 }} /> 
+                          {isCompleted("LESSON", getLessonKey(currentLesson)) ? "Completed" : "Mark as Completed"}
+                        </button>
+                      </div>
+                      
                       <button
                         onClick={() => {
-                          if (selectedLesson.lessonIndex > 0) handleLessonClick(selectedLesson.moduleIndex, selectedLesson.lessonIndex - 1);
-                          else if (selectedLesson.moduleIndex > 0) { const pm = course.modules[selectedLesson.moduleIndex - 1]; handleLessonClick(selectedLesson.moduleIndex - 1, pm.lessons.length - 1); }
-                        }}
-                        disabled={selectedLesson.moduleIndex === 0 && selectedLesson.lessonIndex === 0}
-                        style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 20px", borderRadius: 10, border: "1.5px solid hsl(var(--border))", background: "transparent", cursor: "pointer", fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 13, transition: "all 0.2s", opacity: (selectedLesson.moduleIndex === 0 && selectedLesson.lessonIndex === 0) ? 0.4 : 1, color: "hsl(var(--foreground))" }}
-                      >
-                        <ArrowLeft style={{ width: 14, height: 14 }} /> Previous
-                      </button>
-                      <button
-                        onClick={() => {
+                          if (!isCompleted("LESSON", getLessonKey(currentLesson))) {
+                            toggleProgress("LESSON", getLessonKey(currentLesson));
+                          }
                           if (selectedLesson.lessonIndex < currentModule.lessons.length - 1) handleLessonClick(selectedLesson.moduleIndex, selectedLesson.lessonIndex + 1);
                           else if (selectedLesson.moduleIndex < course.modules.length - 1) handleLessonClick(selectedLesson.moduleIndex + 1, 0);
                         }}

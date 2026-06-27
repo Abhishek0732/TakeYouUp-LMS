@@ -2,10 +2,12 @@ import { useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, CheckCircle2, RotateCcw, XCircle } from "lucide-react";
 import { findResourceTopic } from "@/data/resources";
+import { useProgress } from "@/context/ProgressContext";
 
 const ResourceTopic = () => {
   const { categorySlug, topicSlug } = useParams();
   const { category, topic } = findResourceTopic(categorySlug, topicSlug);
+  const { isCompleted, toggleProgress } = useProgress();
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -147,6 +149,24 @@ const ResourceTopic = () => {
                     Retry topic
                     <RotateCcw className="h-4 w-4" />
                   </button>
+                  
+                  <button 
+                    onClick={() => topic && toggleProgress("RESOURCE_TOPIC", topic.slug)} 
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                      topic && isCompleted("RESOURCE_TOPIC", topic.slug) 
+                        ? "bg-green-500/10 text-green-600 border border-green-500/20" 
+                        : "bg-muted/70 text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    {topic && isCompleted("RESOURCE_TOPIC", topic.slug) ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4" /> Completed
+                      </>
+                    ) : (
+                      "Mark as Completed"
+                    )}
+                  </button>
+
                   <Link to={`/resources/${category.slug}`} className="btn-outline-dark">
                     Explore more topics
                   </Link>

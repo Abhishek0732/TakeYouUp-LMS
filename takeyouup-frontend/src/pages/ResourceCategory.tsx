@@ -6,11 +6,13 @@ import {
   Clock3,
   GraduationCap,
   Layers3,
+  CheckCircle2,
 } from "lucide-react";
 import { findResourceCategory } from "@/data/resources";
 import { useEffect, useState } from "react";
 import api from "@/api/axios";
 import { useNavigate } from "react-router-dom";
+import { useProgress } from "@/context/ProgressContext";
 
 const difficultyStyles: Record<string, string> = {
   Beginner: "pill-green",
@@ -22,6 +24,7 @@ const ResourceCategory = () => {
   const { categorySlug } = useParams();
   const navigate = useNavigate();
   const category = findResourceCategory(categorySlug);
+  const { isCompleted } = useProgress();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -99,11 +102,18 @@ const ResourceCategory = () => {
               }}
             >
               <div className="mb-4 flex items-start justify-between gap-4">
-                <span
-                  className={`pill-orange ${difficultyStyles[topic.difficulty] ?? ""}`}
-                >
-                  {topic.difficulty}
-                </span>
+                <div className="flex gap-2">
+                  <span
+                    className={`pill-orange ${difficultyStyles[topic.difficulty] ?? ""}`}
+                  >
+                    {topic.difficulty}
+                  </span>
+                  {isCompleted("RESOURCE_TOPIC", topic.slug) && (
+                    <span className="flex items-center gap-1 rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-semibold text-green-600 border border-green-500/20">
+                      <CheckCircle2 className="h-3 w-3" /> Completed
+                    </span>
+                  )}
+                </div>
               </div>
               <h3
                 className="mb-3 text-2xl font-bold transition-colors duration-300 group-hover:text-[color:var(--topic-accent)]"

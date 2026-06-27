@@ -13,14 +13,16 @@ const Courses = () => {
   const { courses, loading, error } = useCourses();
 
   useEffect(() => {
-    const els = revealRef.current?.querySelectorAll(".reveal") ?? [];
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in-view"); obs.unobserve(e.target); } }),
-      { threshold: 0.1 }
-    );
-    els.forEach((el) => obs.observe(el));
-    return () => obs.disconnect();
-  }, [selectedCategory]);
+    const frame = requestAnimationFrame(() => {
+      const els = revealRef.current?.querySelectorAll(".reveal:not(.in-view)") ?? [];
+      const obs = new IntersectionObserver(
+        (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in-view"); obs.unobserve(e.target); } }),
+        { threshold: 0.05 }
+      );
+      els.forEach((el) => obs.observe(el));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [selectedCategory, courses]);
 
   const staticCourses = [
     { id: 1, slug: "data-structures-algorithms", title: "Data Structures & Algorithms", description: "Master DSA with hands-on practice and real-world problems. Learn sorting, searching, trees, graphs, and dynamic programming.", level: "Intermediate", duration: "12 weeks", students: 1200, rating: 4.8, image: "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=600&h=400&fit=crop", category: "Programming" },

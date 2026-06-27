@@ -27,20 +27,23 @@ import Resources from "./pages/Resources";
 import ResourceCategory from "./pages/ResourceCategory";
 import ResourceTopic from "./pages/ResourceTopic";
 
+import { ProgressProvider } from "./context/ProgressContext";
+
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <ThemeProvider defaultTheme="dark">
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-1">
-                <Routes>
+      <ProgressProvider>
+        <ThemeProvider defaultTheme="dark">
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <div className="flex flex-col min-h-screen">
+                <Navbar />
+                <main className="flex-1">
+                  <Routes>
                   <Route path="/login" element={<Login />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/signup" element={<Signup />} />
@@ -109,11 +112,12 @@ const App = () => (
               <Footer />
               <Chatbot />
             </div>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ThemeProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+              </BrowserRouter>
+            </TooltipProvider>
+          </ThemeProvider>
+        </ProgressProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
 
 export default App;
