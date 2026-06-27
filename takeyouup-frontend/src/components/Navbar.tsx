@@ -111,7 +111,7 @@ const Navbar = () => {
                 letterSpacing: "-0.02em",
               }}
             >
-              TakeYou<span style={{ color: "#ff4d1c" }}>Up</span>
+              <span style={{ color: "#ff4d1c" }}>Take</span>You<span style={{ color: "#ff4d1c" }}>Up</span>
             </span>
           </Link>
 

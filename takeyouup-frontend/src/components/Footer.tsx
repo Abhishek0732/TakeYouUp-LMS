@@ -5,6 +5,7 @@ const Footer = () => {
   const links = {
     Learn: [
       { name: "Courses", path: "/courses" },
+      { name: "Resources", path: "/resources" },
       { name: "Interview Prep", path: "/interview-prep" },
       { name: "Practice", path: "/online-compiler" },
       { name: "Problems", path: "/problems" },
@@ -38,7 +39,7 @@ const Footer = () => {
                 className="text-xl font-bold"
                 style={{ fontFamily: "'Syne', sans-serif", letterSpacing: "-0.02em" }}
               >
-                TakeYou<span style={{ color: "#ff4d1c" }}>Up</span>
+                <span style={{ color: "#ff4d1c" }}>Take</span>You<span style={{ color: "#ff4d1c" }}>Up</span>
               </span>
             </Link>
             <p className="text-sm leading-relaxed max-w-xs" style={{ color: "hsl(var(--muted-foreground))" }}>

@@ -71,7 +71,7 @@ const Signup = () => {
             <Code2 className="h-7 w-7 text-white" />
           </div>
           <h1 className="text-2xl font-bold" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: "-0.02em" }}>
-            TakeYou<span style={{ color: "#ff4d1c" }}>Up</span>
+            <span style={{ color: "#ff4d1c" }}>Take</span>You<span style={{ color: "#ff4d1c" }}>Up</span>
           </h1>
           <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>Create your free account today</p>
         </div>

@@ -46,6 +46,9 @@ const QuizSection = ({ courseId }: QuizSectionProps) => {
       try {
         const res = await api.get(`/quizzes/course/${courseId}`);
         setQuizData(res.data);
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setSelectedTopic(0);
+        }
       } catch (err) {
         console.error("Failed to fetch quiz", err);
       } finally {

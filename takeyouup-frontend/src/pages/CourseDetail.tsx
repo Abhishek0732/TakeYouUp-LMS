@@ -94,10 +94,14 @@ const CourseDetail = () => {
       {/* Mini header */}
       <div style={{ borderBottom: "1px solid hsl(var(--border))", padding: "12px 0", background: "hsl(var(--card))" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-4">
-          <Link to="/courses" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "hsl(var(--muted-foreground))", textDecoration: "none", fontFamily: "'DM Sans', sans-serif" }}
-            className="hover:text-orange-500 transition-colors">
-            <ArrowLeft style={{ width: 15, height: 15 }} /> Back to Courses
-          </Link>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <Link to="/courses" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "hsl(var(--muted-foreground))", textDecoration: "none", fontFamily: "'DM Sans', sans-serif" }}
+              className="hover:text-orange-500 transition-colors">
+              <ArrowLeft style={{ width: 15, height: 15 }} /> Back to Courses
+            </Link>
+            <span style={{ color: "hsl(var(--muted-foreground))", fontSize: 13 }}>/</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "hsl(var(--foreground))", fontFamily: "'Syne', sans-serif" }}>{course.title}</span>
+          </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, fontFamily: "'DM Mono', monospace", fontSize: 11, color: "hsl(var(--muted-foreground))" }}>
             {course.students && <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Users style={{ width: 12, height: 12 }} /> {course.students?.toLocaleString()}</span>}
             {course.rating && <span style={{ display: "flex", alignItems: "center", gap: 4, color: "#f59e0b" }}><Star style={{ width: 12, height: 12, fill: "#f59e0b" }} /> {course.rating}</span>}
@@ -195,22 +199,24 @@ const CourseDetail = () => {
                     </div>
 
                     {/* Nav buttons */}
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                      <div style={{ display: "flex", gap: 12 }}>
+                    <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 mt-6">
+                      <div className="flex gap-2 w-full sm:w-auto">
                         <button
                           onClick={() => {
                             if (selectedLesson.lessonIndex > 0) handleLessonClick(selectedLesson.moduleIndex, selectedLesson.lessonIndex - 1);
                             else if (selectedLesson.moduleIndex > 0) { const pm = course.modules[selectedLesson.moduleIndex - 1]; handleLessonClick(selectedLesson.moduleIndex - 1, pm.lessons.length - 1); }
                           }}
                           disabled={selectedLesson.moduleIndex === 0 && selectedLesson.lessonIndex === 0}
-                          style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 20px", borderRadius: 10, border: "1.5px solid hsl(var(--border))", background: "transparent", cursor: "pointer", fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 13, transition: "all 0.2s", opacity: (selectedLesson.moduleIndex === 0 && selectedLesson.lessonIndex === 0) ? 0.4 : 1, color: "hsl(var(--foreground))" }}
+                          className="flex-1 sm:flex-initial justify-center"
+                          style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 16px", borderRadius: 10, border: "1.5px solid hsl(var(--border))", background: "transparent", cursor: "pointer", fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 13, transition: "all 0.2s", opacity: (selectedLesson.moduleIndex === 0 && selectedLesson.lessonIndex === 0) ? 0.4 : 1, color: "hsl(var(--foreground))" }}
                         >
                           <ArrowLeft style={{ width: 14, height: 14 }} /> Previous
                         </button>
                         <button
                           onClick={() => toggleProgress("LESSON", getLessonKey(currentLesson))}
+                          className="flex-1 sm:flex-initial justify-center"
                           style={{ 
-                            display: "flex", alignItems: "center", gap: 6, padding: "10px 20px", borderRadius: 10, 
+                            display: "flex", alignItems: "center", gap: 6, padding: "10px 16px", borderRadius: 10, 
                             border: isCompleted("LESSON", getLessonKey(currentLesson)) ? "1px solid rgba(34,197,94,0.3)" : "1.5px solid hsl(var(--border))", 
                             background: isCompleted("LESSON", getLessonKey(currentLesson)) ? "rgba(34,197,94,0.1)" : "transparent", 
                             cursor: "pointer", fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 13, transition: "all 0.2s", 
@@ -218,7 +224,7 @@ const CourseDetail = () => {
                           }}
                         >
                           <CheckCircle2 style={{ width: 14, height: 14 }} /> 
-                          {isCompleted("LESSON", getLessonKey(currentLesson)) ? "Completed" : "Mark as Completed"}
+                          <span className="truncate">{isCompleted("LESSON", getLessonKey(currentLesson)) ? "Completed" : "Mark Done"}</span>
                         </button>
                       </div>
                       
@@ -231,6 +237,7 @@ const CourseDetail = () => {
                           else if (selectedLesson.moduleIndex < course.modules.length - 1) handleLessonClick(selectedLesson.moduleIndex + 1, 0);
                         }}
                         disabled={selectedLesson.moduleIndex === course.modules.length - 1 && selectedLesson.lessonIndex === currentModule.lessons.length - 1}
+                        className="w-full sm:w-auto justify-center"
                         style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 20px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #ff4d1c, #ffb800)", cursor: "pointer", fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 13, color: "white", transition: "all 0.2s", opacity: (selectedLesson.moduleIndex === course.modules.length - 1 && selectedLesson.lessonIndex === currentModule.lessons.length - 1) ? 0.4 : 1 }}
                       >
                         Next Lesson <ChevronRight style={{ width: 14, height: 14 }} />
