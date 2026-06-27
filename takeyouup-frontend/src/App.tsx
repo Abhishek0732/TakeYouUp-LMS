@@ -23,6 +23,9 @@ import Profile from "./pages/Profile";
 import Signup from "./pages/SignUp";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import CodingQuestions from "./pages/CodingQuestions";
+import Resources from "./pages/Resources";
+import ResourceCategory from "./pages/ResourceCategory";
+import ResourceTopic from "./pages/ResourceTopic";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +80,15 @@ const App = () => (
 
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
+                  <Route path="/resources" element={<Resources />} />
+                  <Route
+                    path="/resources/:categorySlug"
+                    element={<ResourceCategory />}
+                  />
+                  <Route
+                    path="/resources/:categorySlug/:topicSlug"
+                    element={<ResourceTopic />}
+                  />
                   <Route path="/online-compiler" element={<CodeEditor />} />
                   <Route
                     path="/problems"

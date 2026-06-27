@@ -1,0 +1,260 @@
+export interface McqQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+}
+
+export interface ResourceTopic {
+  slug: string;
+  title: string;
+  summary: string;
+  difficulty: string;
+  duration: string;
+  questionCount: number;
+  concepts: string[];
+  questions: McqQuestion[];
+}
+
+export interface ResourceCategory {
+  slug: string;
+  title: string;
+  shortTitle: string;
+  description: string;
+  heroText: string;
+  accent: string;
+  topics: ResourceTopic[];
+}
+
+export const resourceCategories: ResourceCategory[] = [
+  {
+    slug: "quantitative-aptitude",
+    title: "Quantitative Aptitude",
+    shortTitle: "Quant Aptitude",
+    description: "Build speed and confidence with arithmetic, ratios, percentages, and work-rate questions.",
+    heroText: "Practice the most common quant topics asked in aptitude and placement rounds.",
+    accent: "#ff7a18",
+    topics: [
+      {
+        slug: "percentages-profit-loss",
+        title: "Percentages, Profit and Loss",
+        summary: "Revise percentage change, discount, selling price, and profit-loss conversions.",
+        difficulty: "Beginner",
+        duration: "20 min",
+        questionCount: 4,
+        concepts: ["Percentages", "Discount", "Selling Price", "Profit & Loss"],
+        questions: [
+          { question: "A shopkeeper marks an item at Rs. 800 and gives a 10% discount. What is the selling price?", options: ["Rs. 700", "Rs. 720", "Rs. 740", "Rs. 760"], correctAnswer: 1, explanation: "10% of 800 is 80, so the selling price is 720." },
+          { question: "If the cost price of an article is Rs. 500 and the profit is 20%, what is the selling price?", options: ["Rs. 560", "Rs. 580", "Rs. 600", "Rs. 620"], correctAnswer: 2, explanation: "20% of 500 is 100, so selling price is 600." },
+          { question: "A number increases from 240 to 300. What is the percentage increase?", options: ["20%", "25%", "30%", "35%"], correctAnswer: 1, explanation: "Increase is 60. 60/240 x 100 = 25%." },
+          { question: "An item is sold at Rs. 450 with a loss of 10%. What is its cost price?", options: ["Rs. 475", "Rs. 500", "Rs. 525", "Rs. 550"], correctAnswer: 1, explanation: "If SP is 90% of CP, then CP = 450 / 0.9 = 500." },
+        ],
+      },
+      {
+        slug: "ratio-proportion",
+        title: "Ratio and Proportion",
+        summary: "Practice sharing quantities, comparing values, and solving direct proportion questions.",
+        difficulty: "Beginner",
+        duration: "18 min",
+        questionCount: 4,
+        concepts: ["Ratio", "Proportion", "Distribution", "Comparison"],
+        questions: [
+          { question: "The ratio of boys to girls in a class is 3:2. If there are 30 boys, how many girls are there?", options: ["18", "20", "22", "24"], correctAnswer: 1, explanation: "3 parts = 30, so 1 part = 10 and girls = 20." },
+          { question: "If A:B = 4:5 and B:C = 10:11, then A:C is", options: ["4:11", "8:11", "5:11", "20:11"], correctAnswer: 1, explanation: "Scale 4:5 to 8:10. Then A:C = 8:11." },
+          { question: "A sum is divided between X and Y in the ratio 7:3. If Y gets Rs. 900, the total is", options: ["Rs. 2,700", "Rs. 3,000", "Rs. 3,300", "Rs. 3,600"], correctAnswer: 1, explanation: "3 parts = 900, so 10 parts = 3,000." },
+          { question: "Which pair is in proportion?", options: ["4:6 and 8:12", "3:5 and 12:25", "5:7 and 15:20", "2:9 and 8:18"], correctAnswer: 0, explanation: "4/6 and 8/12 are both 2/3." },
+        ],
+      },
+      {
+        slug: "time-work",
+        title: "Time and Work",
+        summary: "Strengthen work-rate logic for individual and combined productivity questions.",
+        difficulty: "Intermediate",
+        duration: "25 min",
+        questionCount: 4,
+        concepts: ["Work Rate", "Combined Work", "Efficiency", "Pipes & Cisterns"],
+        questions: [
+          { question: "A can complete a job in 10 days. What fraction of work does A complete in one day?", options: ["1/5", "1/10", "1/12", "1/15"], correctAnswer: 1, explanation: "Daily work = 1/10." },
+          { question: "A can do work in 12 days and B in 18 days. In how many days can they finish it together?", options: ["6.2 days", "7.2 days", "8 days", "9 days"], correctAnswer: 1, explanation: "Combined rate = 1/12 + 1/18 = 5/36, so time = 36/5 = 7.2 days." },
+          { question: "If 8 workers finish a task in 15 days, how many days will 10 workers take?", options: ["10", "12", "14", "16"], correctAnswer: 1, explanation: "Workers x days is constant, so 8 x 15 = 10 x d. d = 12." },
+          { question: "A is twice as efficient as B. If B takes 18 days, A takes", options: ["6 days", "8 days", "9 days", "12 days"], correctAnswer: 2, explanation: "Twice efficiency means half the time, so 9 days." },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "data-interpretation",
+    title: "Data Interpretation",
+    shortTitle: "DI",
+    description: "Decode tables, charts, and trends quickly to answer calculation-heavy exam questions.",
+    heroText: "Learn how to compare datasets and spot trends without wasting time in exams.",
+    accent: "#0ea5e9",
+    topics: [
+      {
+        slug: "table-analysis",
+        title: "Table Analysis",
+        summary: "Read row-column data carefully and answer percentage, difference, and ranking questions.",
+        difficulty: "Intermediate",
+        duration: "18 min",
+        questionCount: 4,
+        concepts: ["Tables", "Comparison", "Difference", "Percentages"],
+        questions: [
+          { question: "A table shows sales of 120, 150, 180, and 210 units in four quarters. Which quarter had the highest sales?", options: ["Q1", "Q2", "Q3", "Q4"], correctAnswer: 3, explanation: "210 is the highest value, so Q4 is highest." },
+          { question: "From the values 80, 100, 120, and 140, what is the average?", options: ["105", "110", "115", "120"], correctAnswer: 1, explanation: "Average = 440 / 4 = 110." },
+          { question: "If production rises from 250 to 300 units, the increase is", options: ["15%", "18%", "20%", "25%"], correctAnswer: 2, explanation: "Increase is 50, so percentage increase = 20%." },
+          { question: "If employee count is 240 and 25% are interns, the number of interns is", options: ["48", "54", "60", "72"], correctAnswer: 2, explanation: "25% of 240 is 60." },
+        ],
+      },
+      {
+        slug: "bar-graph",
+        title: "Bar Graph Interpretation",
+        summary: "Practice reading bars, comparing heights, and calculating totals and gaps.",
+        difficulty: "Intermediate",
+        duration: "18 min",
+        questionCount: 4,
+        concepts: ["Bar Graph", "Comparison", "Trends", "Totals"],
+        questions: [
+          { question: "A bar graph shows monthly revenues of 30, 45, 50, and 35 lakhs. Which month is second highest?", options: ["Month 1", "Month 2", "Month 3", "Month 4"], correctAnswer: 1, explanation: "50 is highest and 45 is second highest." },
+          { question: "What is the total of values 15, 25, 35, and 45 shown in the graph?", options: ["110", "115", "120", "125"], correctAnswer: 2, explanation: "15 + 25 + 35 + 45 = 120." },
+          { question: "If one bar is 80 and another is 64, what percent is the second of the first?", options: ["70%", "75%", "80%", "85%"], correctAnswer: 2, explanation: "64/80 x 100 = 80%." },
+          { question: "Values increase from 40 to 52. The increase is", options: ["25%", "30%", "35%", "40%"], correctAnswer: 1, explanation: "Increase is 12, so 12/40 x 100 = 30%." },
+        ],
+      },
+      {
+        slug: "pie-chart",
+        title: "Pie Chart Reasoning",
+        summary: "Convert sectors to percentages and absolute values quickly.",
+        difficulty: "Intermediate",
+        duration: "16 min",
+        questionCount: 4,
+        concepts: ["Pie Chart", "Angles", "Percentages", "Share"],
+        questions: [
+          { question: "A pie chart sector of 90 degrees represents what percent of the whole?", options: ["20%", "25%", "30%", "35%"], correctAnswer: 1, explanation: "90/360 x 100 = 25%." },
+          { question: "If 30% of a pie chart represents 150 students, total students are", options: ["450", "500", "520", "600"], correctAnswer: 1, explanation: "150 is 30%, so total = 500." },
+          { question: "A category has a 72-degree sector. Its share is", options: ["18%", "20%", "22%", "24%"], correctAnswer: 1, explanation: "72/360 x 100 = 20%." },
+          { question: "Which angle corresponds to 15% of a pie chart?", options: ["36 degrees", "45 degrees", "54 degrees", "60 degrees"], correctAnswer: 2, explanation: "15% of 360 is 54 degrees." },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "logical-reasoning",
+    title: "Logical Reasoning",
+    shortTitle: "Logical",
+    description: "Sharpen pattern recognition, arrangement, coding-decoding, and deduction skills.",
+    heroText: "Train your mind to identify relationships and solve logic puzzles with structure.",
+    accent: "#8b5cf6",
+    topics: [
+      {
+        slug: "coding-decoding",
+        title: "Coding-Decoding",
+        summary: "Find letter, number, and substitution patterns in encoded words and phrases.",
+        difficulty: "Beginner",
+        duration: "18 min",
+        questionCount: 4,
+        concepts: ["Patterns", "Letters", "Substitution", "Sequence"],
+        questions: [
+          { question: "If CAT is coded as DBU, how is DOG coded in the same pattern?", options: ["EPH", "EPF", "FPH", "EOH"], correctAnswer: 0, explanation: "Each letter moves one step ahead: D->E, O->P, G->H." },
+          { question: "If A = 1, B = 2, C = 3, then BAD equals", options: ["7", "8", "9", "10"], correctAnswer: 0, explanation: "B + A + D = 2 + 1 + 4 = 7." },
+          { question: "If APPLE is coded as ELPPA, the pattern used is", options: ["Alphabet shift", "Reversal", "Skipping letters", "Number code"], correctAnswer: 1, explanation: "The letters are written in reverse order." },
+          { question: "Which coding rule best explains DOG -> EPH?", options: ["Each letter +1", "Reverse letters", "Each letter -1", "Swap vowels"], correctAnswer: 0, explanation: "Every letter advances by one." },
+        ],
+      },
+      {
+        slug: "seating-arrangement",
+        title: "Seating Arrangement",
+        summary: "Practice linear and circular arrangement logic using clue-based elimination.",
+        difficulty: "Advanced",
+        duration: "25 min",
+        questionCount: 4,
+        concepts: ["Arrangement", "Position", "Deduction", "Clues"],
+        questions: [
+          { question: "If A sits to the immediate right of B in a row, which statement must be true?", options: ["B is right of A", "A is left of B", "B is left of A", "A and B are opposite"], correctAnswer: 2, explanation: "If A is right of B, then B is left of A." },
+          { question: "In a circular arrangement, all face the center. The person to your right is in which direction?", options: ["Clockwise", "Anticlockwise", "Opposite", "Random"], correctAnswer: 1, explanation: "Facing the center flips the usual direction, so right becomes anticlockwise." },
+          { question: "Five people sit in a row. The middle position is", options: ["1st", "2nd", "3rd", "4th"], correctAnswer: 2, explanation: "In five places, the 3rd seat is central." },
+          { question: "If two people sit at the extreme ends of a row of six seats, how many seats are between them?", options: ["3", "4", "5", "6"], correctAnswer: 1, explanation: "Seats 2, 3, 4, and 5 are between the two ends." },
+        ],
+      },
+      {
+        slug: "syllogism",
+        title: "Syllogism",
+        summary: "Strengthen conclusion-based reasoning from statements involving classes and sets.",
+        difficulty: "Intermediate",
+        duration: "18 min",
+        questionCount: 4,
+        concepts: ["Statements", "Conclusions", "Sets", "Logic"],
+        questions: [
+          { question: "All cats are animals. Some animals are pets. Which conclusion definitely follows?", options: ["All pets are cats", "Some cats are pets", "All cats are animals", "No pets are animals"], correctAnswer: 2, explanation: "Only the original universal statement definitely follows." },
+          { question: "Some pens are pencils. All pencils are wooden. Which conclusion follows?", options: ["Some pens are wooden", "All pens are wooden", "No pens are wooden", "All wooden things are pencils"], correctAnswer: 0, explanation: "Pens that are pencils must also be wooden." },
+          { question: "No books are tables. All tables are furniture. Which conclusion is valid?", options: ["Some books are furniture", "No furniture are books", "No tables are books", "All books are furniture"], correctAnswer: 2, explanation: "If no books are tables, then no tables are books." },
+          { question: "All roses are flowers. All flowers are plants. Which conclusion follows?", options: ["All plants are roses", "All roses are plants", "Some plants are not flowers", "No roses are plants"], correctAnswer: 1, explanation: "Roses are flowers and flowers are plants, so roses are plants." },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "verbal-reasoning",
+    title: "Verbal Reasoning",
+    shortTitle: "Verbal",
+    description: "Improve grammar, vocabulary, inference, and sentence flow for aptitude tests.",
+    heroText: "Practice context clues, correct sentence structures, and language-based reasoning.",
+    accent: "#14b8a6",
+    topics: [
+      {
+        slug: "synonyms-antonyms",
+        title: "Synonyms and Antonyms",
+        summary: "Sharpen vocabulary by identifying close meanings and opposite meanings quickly.",
+        difficulty: "Beginner",
+        duration: "15 min",
+        questionCount: 4,
+        concepts: ["Vocabulary", "Meaning", "Opposite", "Context"],
+        questions: [
+          { question: "Choose the synonym of 'Rapid'.", options: ["Slow", "Quick", "Heavy", "Late"], correctAnswer: 1, explanation: "Rapid means quick or fast." },
+          { question: "Choose the antonym of 'Expand'.", options: ["Stretch", "Increase", "Contract", "Develop"], correctAnswer: 2, explanation: "Contract is the opposite of expand." },
+          { question: "Choose the synonym of 'Elegant'.", options: ["Graceful", "Rough", "Harsh", "Noisy"], correctAnswer: 0, explanation: "Elegant means graceful or stylish." },
+          { question: "Choose the antonym of 'Ancient'.", options: ["Old", "Modern", "Historic", "Traditional"], correctAnswer: 1, explanation: "Modern is opposite in meaning to ancient." },
+        ],
+      },
+      {
+        slug: "sentence-improvement",
+        title: "Sentence Improvement",
+        summary: "Spot grammar, usage, and structure errors and choose the best correction.",
+        difficulty: "Intermediate",
+        duration: "18 min",
+        questionCount: 4,
+        concepts: ["Grammar", "Tense", "Agreement", "Usage"],
+        questions: [
+          { question: "Choose the correct sentence: 'She do not like coffee.'", options: ["She do not likes coffee.", "She does not like coffee.", "She not like coffee.", "She did not likes coffee."], correctAnswer: 1, explanation: "With 'she', the correct form is 'does not like'." },
+          { question: "Identify the best correction: 'He is senior than me.'", options: ["He is senior then me.", "He is senior to me.", "He is more senior than me.", "He senior to me."], correctAnswer: 1, explanation: "The standard phrase is 'senior to'." },
+          { question: "Choose the correct form: 'Each of the players ___ ready.'", options: ["are", "were", "is", "have"], correctAnswer: 2, explanation: "'Each' takes a singular verb." },
+          { question: "Select the best correction for: 'I look forward to meet you.'", options: ["I look forward to meeting you.", "I look forward for meeting you.", "I look forward to met you.", "I look forward meeting you."], correctAnswer: 0, explanation: "'Look forward to' takes a gerund: meeting." },
+        ],
+      },
+      {
+        slug: "para-jumbles",
+        title: "Para Jumbles",
+        summary: "Organize scrambled sentences into logical order by tracking flow and connectors.",
+        difficulty: "Advanced",
+        duration: "18 min",
+        questionCount: 4,
+        concepts: ["Sequence", "Connectors", "Flow", "Paragraph Logic"],
+        questions: [
+          { question: "Which sentence usually works best as an opening sentence in a paragraph?", options: ["A sentence with 'however'", "A sentence introducing the topic", "A sentence with 'therefore'", "A sentence giving an example"], correctAnswer: 1, explanation: "The opening sentence generally introduces the topic." },
+          { question: "A sentence starting with 'Therefore' should usually come", options: ["At the beginning", "After a cause or argument", "Before the topic sentence", "Randomly"], correctAnswer: 1, explanation: "'Therefore' signals a conclusion." },
+          { question: "Pronouns like 'this' or 'they' often indicate that the sentence", options: ["Starts the paragraph", "Depends on a previous sentence", "Ends the paragraph always", "Has no relation to others"], correctAnswer: 1, explanation: "Pronouns refer back to earlier ideas or nouns." },
+          { question: "Which clue is most helpful for arranging para jumbles?", options: ["Sentence length only", "Font size", "Logical connectors and references", "Number of commas"], correctAnswer: 2, explanation: "Connectors and references reveal the paragraph flow." },
+        ],
+      },
+    ],
+  },
+];
+
+export const findResourceCategory = (categorySlug?: string) =>
+  resourceCategories.find((category) => category.slug === categorySlug);
+
+export const findResourceTopic = (categorySlug?: string, topicSlug?: string) => {
+  const category = findResourceCategory(categorySlug);
+  const topic = category?.topics.find((item) => item.slug === topicSlug);
+
+  return { category, topic };
+};

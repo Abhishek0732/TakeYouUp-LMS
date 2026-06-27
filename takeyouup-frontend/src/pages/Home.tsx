@@ -30,7 +30,7 @@ const Home = () => {
             obs.unobserve(e.target);
           }
         }),
-      { threshold: 0.1},
+      { threshold: 0.1 },
     );
     els.forEach((el) => obs.observe(el));
     return () => obs.disconnect();
@@ -106,7 +106,10 @@ const Home = () => {
 
   const { courses, loading, error } = useCourses();
   const courseList = Array.isArray(courses) ? courses : [];
-  const displayCourses = (loading || error || courseList.length === 0) ? staticCourses : courseList.slice(0, 3)
+  const displayCourses =
+    loading || error || courseList.length === 0
+      ? staticCourses
+      : courseList.slice(0, 3);
 
   const levelPill = (level: string) => {
     if (level === "Beginner") return "pill-green";
@@ -631,6 +634,137 @@ const Home = () => {
                   >
                     View course <ArrowRight style={{ width: 14, height: 14 }} />
                   </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        style={{
+          background: "hsl(var(--card))",
+          borderTop: "1px solid hsl(var(--border))",
+          borderBottom: "1px solid hsl(var(--border))",
+          padding: "64px 0",
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 reveal in-view">
+            <div className="section-tag justify-center">Student Stories</div>
+            <h2
+              style={{
+                fontFamily: "'Syne', sans-serif",
+                fontWeight: 800,
+                fontSize: "clamp(1.6rem, 3vw, 2.2rem)",
+                letterSpacing: "-0.025em",
+              }}
+            >
+              What our learners <span className="gradient-text">say</span>
+            </h2>
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: 20,
+            }}
+          >
+            {[
+              {
+                name: "Priya Sharma",
+                role: "SDE at Amazon",
+                text: "TakeYouUp's DSA course was a game-changer. The structured approach and real interview questions helped me crack Amazon in 3 months.",
+                avatar: "PS",
+                color: "#8b5cf6",
+              },
+              {
+                name: "Rahul Verma",
+                role: "Python Dev at Flipkart",
+                text: "Best Python course I've ever taken. The hands-on projects and AI chatbot made complex concepts crystal clear.",
+                avatar: "RV",
+                color: "#3b82f6",
+              },
+              {
+                name: "Anjali Singh",
+                role: "ML Engineer at Zomato",
+                text: "The Machine Learning masterclass is incredibly comprehensive. Went from zero ML knowledge to building real models.",
+                avatar: "AS",
+                color: "#10b981",
+              },
+            ].map((t, i) => (
+              <div
+                key={t.name}
+                className={`reveal delay-${i + 1}`}
+                style={{
+                  background: "hsl(var(--background))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: 18,
+                  padding: "24px 22px",
+                }}
+              >
+                <div style={{ display: "flex", gap: 4, marginBottom: 14 }}>
+                  {[...Array(5)].map((_, j) => (
+                    <Star
+                      key={j}
+                      style={{
+                        width: 14,
+                        height: 14,
+                        fill: "#f59e0b",
+                        color: "#f59e0b",
+                      }}
+                    />
+                  ))}
+                </div>
+                <p
+                  style={{
+                    color: "hsl(var(--muted-foreground))",
+                    fontSize: "0.875rem",
+                    lineHeight: 1.7,
+                    marginBottom: 18,
+                    fontStyle: "italic",
+                  }}
+                >
+                  "{t.text}"
+                </p>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: "50%",
+                      background: t.color,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#fff",
+                      fontFamily: "'Syne', sans-serif",
+                      fontWeight: 700,
+                      fontSize: 13,
+                    }}
+                  >
+                    {t.avatar}
+                  </div>
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: "'Syne', sans-serif",
+                        fontWeight: 700,
+                        fontSize: 13,
+                      }}
+                    >
+                      {t.name}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: "hsl(var(--muted-foreground))",
+                        fontFamily: "'DM Mono', monospace",
+                      }}
+                    >
+                      {t.role}
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
