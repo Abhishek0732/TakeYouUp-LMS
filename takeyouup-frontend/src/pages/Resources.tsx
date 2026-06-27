@@ -8,8 +8,8 @@ import {
   Sparkles,
   Target,
 } from "lucide-react";
-// import { resourceCategories } from "@/data/resources";
-import { useEffect, useState } from "react";
+import { resourceCategories } from "@/data/resources";
+import { useEffect } from "react";
 import api from "@/api/axios";
 import { useNavigate } from "react-router-dom";
 
@@ -22,41 +22,13 @@ const iconMap = {
 
 const Resources = () => {
   const navigate = useNavigate();
-  const [resourceCategories, setResourceCategories] = useState([]);
-
-  // useEffect(() => {
-  //   const res = await api.get(`/resources/categories`);
-  //   setResourceCategories(res.data);
-  //   fetch("http://localhost:8080/api/resources/categories") // your API
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       setResourceCategories(data);
-  //     })
-  //     .catch((err) => {
-  //       console.error("Error fetching resources:", err);
-  //     });
-  // }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
-      return;
     }
-    const fetchCourse = async () => {
-      try {
-        // setLoading(true);
-        const res = await api.get(`/resources/categories`);
-        console.log(res.data);
-        setResourceCategories(res.data);
-      } catch (err: any) {
-        // setError(err.response?.data?.message || "Failed to fetch course");
-      } finally {
-        // setLoading(false);
-      }
-    };
-    fetchCourse();
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-background">

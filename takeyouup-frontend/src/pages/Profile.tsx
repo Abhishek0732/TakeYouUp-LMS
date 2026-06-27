@@ -8,7 +8,7 @@ import { LogOut, Edit3, Save, X, User, Mail, Camera } from "lucide-react";
 const API = import.meta.env.VITE_API_URL;
 
 const Profile = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, login } = useAuth();
   const navigate = useNavigate();
   const [editMode, setEditMode] = useState(false);
   const [name, setName] = useState("");
@@ -27,6 +27,7 @@ const Profile = () => {
       setLoading(true);
       const token = localStorage.getItem("token");
       await axios.put(`${API}/api/users/update-name`, { name }, { headers: { Authorization: `Bearer ${token}` } });
+      login({ ...user, name });
       toast({ title: "Profile Updated", description: "Your profile has been updated successfully" });
       setEditMode(false);
     } catch {

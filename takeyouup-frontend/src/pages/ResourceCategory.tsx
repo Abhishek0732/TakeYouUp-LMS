@@ -21,45 +21,20 @@ const difficultyStyles: Record<string, string> = {
 const ResourceCategory = () => {
   const { categorySlug } = useParams();
   const navigate = useNavigate();
-  // const category = findResourceCategory(categorySlug);
-  // const [category, setCategory] = useState([]);
-  const [category, setCategory] = useState<any | null>(null);
-  const [loading, setLoading] = useState(false);
+  const category = findResourceCategory(categorySlug);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
-      return;
     }
-    const fetchCategory = async () => {
-      try {
-        setLoading(true);
-        console.log(`/resources/categories/${categorySlug}`);
-        const res = await api.get(`/resources/categories/${categorySlug}`);
-        // console.log(res.data.topics.map((t: any) => t.title));
-        setCategory(res.data);
-        console.log(category.topics);
-      } catch (err: any) {
-        console.log(err.response?.data?.message || "Failed to fetch course");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCategory();
-  }, [categorySlug, navigate]);
+  }, [navigate]);
 
-  // if (!category) {
-  //   return <Navigate to="/resources" replace />;
-  // }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Clock3 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+  if (!category) {
+    return <Navigate to="/resources" replace />;
   }
+
+
 
   return (
     <div className="min-h-screen bg-background">
