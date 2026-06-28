@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Code2, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
@@ -6,6 +6,9 @@ import { loginUser } from "@/api/auth";
 import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
+  useEffect(() => {
+    document.title = "Login | TakeYouUp - Master Programming & Build Your Future";
+  }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

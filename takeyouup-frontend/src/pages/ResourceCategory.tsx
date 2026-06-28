@@ -33,6 +33,12 @@ const ResourceCategory = () => {
     }
   }, [navigate]);
 
+  useEffect(() => {
+    if (category) {
+      document.title = `${category.title} | TakeYouUp - Master Programming & Build Your Future`;
+    }
+  }, [category]);
+
   if (!category) {
     return <Navigate to="/resources" replace />;
   }

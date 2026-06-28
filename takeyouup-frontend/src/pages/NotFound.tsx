@@ -6,6 +6,7 @@ import { Home, ArrowRight } from "lucide-react";
 const NotFound = () => {
   const location = useLocation();
   useEffect(() => {
+    document.title = "404 Not Found | TakeYouUp - Master Programming & Build Your Future";
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
   }, [location.pathname]);
 

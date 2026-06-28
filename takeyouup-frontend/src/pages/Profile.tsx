@@ -16,6 +16,10 @@ const Profile = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    document.title = "Profile | TakeYouUp - Master Programming & Build Your Future";
+  }, []);
+
+  useEffect(() => {
     if (!user) navigate("/login");
     else setName(user.name);
   }, [user, navigate]);

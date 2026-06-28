@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Code2, Eye, EyeOff, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Signup = () => {
+  useEffect(() => {
+    document.title = "Sign Up | TakeYouUp - Master Programming & Build Your Future";
+  }, []);
   const navigate = useNavigate();
   const { toast } = useToast();
   const [formData, setFormData] = useState({ name: "", email: "", password: "", confirmPassword: "" });

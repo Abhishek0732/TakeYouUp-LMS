@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -18,7 +18,7 @@ const InterviewPrepDetail = () => {
   const { id } = useParams()
   const [selectedLesson, setSelectedLesson] = useState({ moduleIndex: 0, lessonIndex: 0 })
 
-  let course = {};
+  let course: any = {};
 
   if(id == '1') {
     course = dsaInterview;
@@ -301,6 +301,12 @@ const InterviewPrepDetail = () => {
       ]
     }
   }
+
+  useEffect(() => {
+    if (course && course.title) {
+      document.title = `${course.title} | TakeYouUp - Master Programming & Build Your Future`;
+    }
+  }, [course]);
 
   const currentLesson = course.modules[selectedLesson.moduleIndex]?.lessons[selectedLesson.lessonIndex]
   const currentModule = course.modules[selectedLesson.moduleIndex]

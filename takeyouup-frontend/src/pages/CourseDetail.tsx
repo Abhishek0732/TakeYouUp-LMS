@@ -40,6 +40,12 @@ const CourseDetail = () => {
   }, [courseSlug]);
 
   useEffect(() => {
+    if (course && course.title) {
+      document.title = `${course.title} | TakeYouUp - Master Programming & Build Your Future`;
+    }
+  }, [course]);
+
+  useEffect(() => {
     if (!course || !lessonSlug) return;
     for (let m = 0; m < course.modules.length; m++) {
       const lessonIndex = course.modules[m].lessons.findIndex((l: any) => l.slug === lessonSlug);

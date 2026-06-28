@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, CheckCircle2, RotateCcw, XCircle } from "lucide-react";
 import { findResourceTopic } from "@/data/resources";
@@ -8,6 +8,12 @@ const ResourceTopic = () => {
   const { categorySlug, topicSlug } = useParams();
   const { category, topic } = findResourceTopic(categorySlug, topicSlug);
   const { isCompleted, toggleProgress } = useProgress();
+
+  useEffect(() => {
+    if (topic) {
+      document.title = `${topic.title} | TakeYouUp - Master Programming & Build Your Future`;
+    }
+  }, [topic]);
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);

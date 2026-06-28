@@ -24,6 +24,7 @@ const Resources = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    document.title = "Resources | TakeYouUp - Master Programming & Build Your Future";
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
