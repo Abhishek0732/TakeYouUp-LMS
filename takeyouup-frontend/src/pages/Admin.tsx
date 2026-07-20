@@ -9,6 +9,7 @@ import api from "@/api/axios";
 import DataGrid, { Column } from "@/components/admin/DataGrid";
 import EntityModal, { Field } from "@/components/admin/EntityModal";
 import CourseContent from "@/components/admin/CourseContent";
+import QuizEditor from "@/components/admin/QuizEditor";
 
 // ---------------------------------------------------------------- helpers
 const clientPager = (loader: () => Promise<any[]>, searchKeys: string[]) =>
@@ -146,6 +147,8 @@ function Dashboard() {
 function QuizzesView() {
   const [courses, setCourses] = useState<any[]>([]);
   const [courseId, setCourseId] = useState<string>("");
+  const [editingQuiz, setEditingQuiz] = useState<any>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   useEffect(() => { api.get("/courses/basic").then((r) => setCourses(r.data)).catch(() => {}); }, []);
 
   const cfg: ResourceConfig | null = courseId ? {
@@ -159,11 +162,15 @@ function QuizzesView() {
     ],
     fields: [{ name: "title", label: "Quiz title", required: true }],
     fetchPage: clientPager(() => api.get(`/quizzes/course/${courseId}`).then((r) => r.data), ["title"]),
-    create: (v) => api.post("/quizzes", {
-      title: v.title, courseId: Number(courseId),
-      questions: [{ question: "Sample question?", options: ["A", "B", "C", "D"], correct: 0 }],
-    }),
+    // Create an empty quiz; questions are added via the "Questions" editor.
+    create: (v) => api.post("/quizzes", { title: v.title, courseId: Number(courseId), questions: [] }),
     remove: (row) => api.delete(`/quizzes/${row.id}`),
+    rowActions: (row) => (
+      <button title="Edit questions & options" className="text-orange-500 flex items-center gap-1 text-sm"
+        onClick={() => setEditingQuiz({ ...row, courseId: row.courseId ?? Number(courseId) })}>
+        <ListChecks className="h-4 w-4" /> Questions
+      </button>
+    ),
   } : null;
 
   return (
@@ -177,7 +184,10 @@ function QuizzesView() {
           {courses.map((c) => <option key={c.id} value={String(c.id)} style={{ background: "hsl(var(--card))" }}>{c.title}</option>)}
         </select>
       </div>
-      {cfg ? <ResourceView config={cfg} /> : <p className="opacity-60">Pick a course to manage its quizzes.</p>}
+      {cfg ? <ResourceView key={`${courseId}-${reloadKey}`} config={cfg} /> : <p className="opacity-60">Pick a course to manage its quizzes.</p>}
+      {editingQuiz && (
+        <QuizEditor quiz={editingQuiz} onClose={() => setEditingQuiz(null)} onSaved={() => setReloadKey((k) => k + 1)} />
+      )}
     </div>
   );
 }

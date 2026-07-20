@@ -7,6 +7,7 @@ import takeyouup.example.takeyouup.dto.quiz.QuestionDTO;
 import takeyouup.example.takeyouup.dto.quiz.QuizRequest;
 import takeyouup.example.takeyouup.dto.quiz.QuizResponse;
 import takeyouup.example.takeyouup.model.quiz.Quiz;
+import takeyouup.example.takeyouup.repository.quiz.QuizAttemptRepository;
 import takeyouup.example.takeyouup.repository.quiz.QuizRepository;
 
 import java.util.ArrayList;
@@ -16,10 +17,12 @@ import java.util.List;
 public class QuizService {
 
     private final QuizRepository quizRepository;
+    private final QuizAttemptRepository quizAttemptRepository;
     private final ObjectMapper objectMapper;
 
-    public QuizService(QuizRepository quizRepository, ObjectMapper objectMapper) {
+    public QuizService(QuizRepository quizRepository, QuizAttemptRepository quizAttemptRepository, ObjectMapper objectMapper) {
         this.quizRepository = quizRepository;
+        this.quizAttemptRepository = quizAttemptRepository;
         this.objectMapper = objectMapper;
     }
 
@@ -132,6 +135,8 @@ public class QuizService {
     }
 
     public void deleteQuiz(Long id) {
+        // Remove attempt history first so the FK constraint doesn't block deletion.
+        quizAttemptRepository.deleteByQuizId(id);
         quizRepository.deleteById(id);
     }
 }
