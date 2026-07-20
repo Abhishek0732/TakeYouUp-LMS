@@ -10,6 +10,7 @@ import DataGrid, { Column } from "@/components/admin/DataGrid";
 import EntityModal, { Field } from "@/components/admin/EntityModal";
 import CourseContent from "@/components/admin/CourseContent";
 import QuizEditor from "@/components/admin/QuizEditor";
+import ResourceCategoryContent from "@/components/admin/ResourceCategoryContent";
 
 // ---------------------------------------------------------------- helpers
 const clientPager = (loader: () => Promise<any[]>, searchKeys: string[]) =>
@@ -215,6 +216,7 @@ export default function Admin() {
   const token = localStorage.getItem("token");
   const [active, setActive] = useState("dashboard");
   const [manageCourse, setManageCourse] = useState<any>(null);
+  const [manageCategory, setManageCategory] = useState<any>(null);
   const [lookups, setLookups] = useState<{ topics: any[]; platforms: any[]; difficulties: any[] }>({ topics: [], platforms: [], difficulties: [] });
 
   useEffect(() => {
@@ -355,6 +357,12 @@ export default function Admin() {
       create: (v) => api.post("/resources/categories", v),
       update: (row, v) => api.put(`/resources/categories/${row.id}`, { ...row, ...v }),
       remove: (row) => api.delete(`/resources/categories/${row.id}`),
+      rowActions: (row) => (
+        <button title="Manage topics & questions" className="text-orange-500 flex items-center gap-1 text-sm"
+          onClick={() => setManageCategory(row)}>
+          <Layers className="h-4 w-4" /> Content
+        </button>
+      ),
     },
     users: {
       title: "Users", idKey: "id",
@@ -390,7 +398,7 @@ export default function Admin() {
           <div key={grp.section} className="mb-5">
             <p className="text-[10px] uppercase tracking-wider opacity-40 px-2 mb-1">{grp.section}</p>
             {grp.items.map((it) => (
-              <button key={it.key} onClick={() => { setActive(it.key); setManageCourse(null); }}
+              <button key={it.key} onClick={() => { setActive(it.key); setManageCourse(null); setManageCategory(null); }}
                 className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm mb-0.5 transition-colors ${
                   active === it.key ? "bg-orange-500 text-white" : "hover:bg-muted"}`}>
                 <it.icon className="h-4 w-4" /> {it.label}
@@ -406,6 +414,8 @@ export default function Admin() {
         {active === "quizzes" && <QuizzesView />}
         {active === "courses" && manageCourse
           ? <CourseContent course={manageCourse} onBack={() => setManageCourse(null)} />
+          : active === "categories" && manageCategory
+          ? <ResourceCategoryContent category={manageCategory} onBack={() => setManageCategory(null)} />
           : (configs[active] && <ResourceView key={active} config={configs[active]} />)}
       </main>
     </div>
