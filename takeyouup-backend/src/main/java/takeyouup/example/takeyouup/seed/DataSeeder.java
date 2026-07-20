@@ -316,81 +316,79 @@ public class DataSeeder implements ApplicationRunner {
         if (resourceCategoryRepository.count() > 0) {
             return;
         }
+        try {
+            var resource = new org.springframework.core.io.ClassPathResource("seed/aptitude-resources.json");
+            com.fasterxml.jackson.databind.JsonNode root;
+            try (var in = resource.getInputStream()) {
+                root = objectMapper.readTree(in);
+            }
 
-        // DSA interview-prep category
-        ResourceCategory dsa = ResourceCategory.builder()
-                .slug("dsa")
-                .title("Data Structures & Algorithms")
-                .shortTitle("DSA")
-                .description("Interview-focused DSA concepts and practice MCQs covering the patterns interviewers love.")
-                .heroText("Sharpen the core problem-solving skills every technical interview tests.")
-                .accent("#ff4d1c")
-                .build();
-        topic(dsa, "arrays", "Arrays & Hashing", "Contiguous storage, prefix sums and hash-map patterns.", "Easy", "45 min", 0,
-                concepts("Contiguous memory & O(1) access", "Prefix sum technique", "Hash maps for O(1) lookups", "Two-pointer traversal"),
-                mcqs(
-                        rq("Which operation is O(1) on an array?", List.of("Insert at front", "Access by index", "Delete from middle", "Search unsorted"), 1,
-                                "Arrays store elements contiguously, so indexing is constant time."),
-                        rq("A hash map offers average lookup time of…", List.of("O(n)", "O(log n)", "O(1)", "O(n^2)"), 2,
-                                "Hashing distributes keys into buckets giving average O(1) access."),
-                        rq("Prefix sums help answer which query fastest?", List.of("Range sum", "Sorting", "Insertion", "Reversal"), 0,
-                                "A precomputed prefix-sum array answers range-sum queries in O(1).")
-                ));
-        topic(dsa, "trees", "Trees & Graphs", "Hierarchical and networked structures with BFS/DFS traversals.", "Medium", "60 min", 1,
-                concepts("Binary trees & BSTs", "DFS vs BFS", "Adjacency list representation", "Topological sort"),
-                mcqs(
-                        rq("Which traversal visits nodes level by level?", List.of("DFS", "BFS", "In-order", "Post-order"), 1,
-                                "Breadth-first search explores neighbours level by level using a queue."),
-                        rq("An in-order traversal of a BST yields values in…", List.of("Random order", "Sorted order", "Reverse order", "Level order"), 1,
-                                "In-order traversal of a binary search tree visits keys in ascending order."),
-                        rq("Topological sort applies to which graph type?", List.of("Any graph", "Undirected graph", "Directed acyclic graph", "Complete graph"), 2,
-                                "Topological ordering exists only for directed acyclic graphs (DAGs).")
-                ));
-        resourceCategoryRepository.save(dsa);
+            int count = 0;
+            for (var catNode : root) {
+                ResourceCategory category = ResourceCategory.builder()
+                        .slug(catNode.path("slug").asText())
+                        .title(catNode.path("title").asText())
+                        .shortTitle(catNode.path("shortTitle").asText(null))
+                        .description(catNode.path("description").asText(null))
+                        .heroText(catNode.path("heroText").asText(null))
+                        .accent(catNode.path("accent").asText(null))
+                        .topics(new ArrayList<>())
+                        .build();
 
-        // Python category
-        ResourceCategory python = ResourceCategory.builder()
-                .slug("python")
-                .title("Python")
-                .shortTitle("Python")
-                .description("Language fundamentals and gotchas that come up again and again in interviews.")
-                .heroText("Master Python's data model, collections and idioms.")
-                .accent("#ffb800")
-                .build();
-        topic(python, "data-types", "Data Types & Collections", "Mutability, built-in collections and comprehensions.", "Easy", "40 min", 0,
-                concepts("Mutable vs immutable types", "List, dict, set, tuple", "Comprehensions", "Slicing"),
-                mcqs(
-                        rq("Which type is immutable?", List.of("list", "set", "dict", "tuple"), 3,
-                                "Tuples cannot be modified after creation, making them immutable."),
-                        rq("What does {} create by default?", List.of("An empty set", "An empty dict", "An empty list", "A syntax error"), 1,
-                                "Curly braces with no key-value pairs create an empty dictionary."),
-                        rq("Which is a valid list comprehension?", List.of("[x for x in range(5)]", "{x in range(5)}", "(x : range(5))", "for x in range(5)"), 0,
-                                "[expr for item in iterable] is the list-comprehension syntax.")
-                ));
-        resourceCategoryRepository.save(python);
+                int topicOrder = 0;
+                for (var topicNode : catNode.path("topics")) {
+                    ResourceTopic topic = ResourceTopic.builder()
+                            .slug(topicNode.path("slug").asText())
+                            .title(topicNode.path("title").asText())
+                            .summary(topicNode.path("summary").asText(null))
+                            .difficulty(topicNode.path("difficulty").asText(null))
+                            .duration(topicNode.path("duration").asText(null))
+                            .sortOrder(topicOrder++)
+                            .category(category)
+                            .concepts(new ArrayList<>())
+                            .questions(new ArrayList<>())
+                            .build();
 
-        // Java category
-        ResourceCategory java = ResourceCategory.builder()
-                .slug("java")
-                .title("Java")
-                .shortTitle("Java")
-                .description("OOP principles, the collections framework and JVM essentials for interviews.")
-                .heroText("Solidify the Java concepts interviewers probe most.")
-                .accent("#4d7cff")
-                .build();
-        topic(java, "oop", "OOP & Collections", "The four pillars and the collections framework.", "Medium", "50 min", 0,
-                concepts("Encapsulation, Inheritance, Polymorphism, Abstraction", "List vs Set vs Map", "equals() & hashCode()", "Generics"),
-                mcqs(
-                        rq("Which keyword prevents a class from being subclassed?", List.of("static", "final", "sealed", "private"), 1,
-                                "A final class cannot be extended."),
-                        rq("Which collection guarantees unique elements?", List.of("ArrayList", "LinkedList", "HashSet", "Vector"), 2,
-                                "A HashSet stores only unique elements."),
-                        rq("If you override equals(), you should also override…", List.of("toString()", "hashCode()", "clone()", "finalize()"), 1,
-                                "The equals/hashCode contract requires equal objects to share a hash code.")
-                ));
-        resourceCategoryRepository.save(java);
+                    int conceptOrder = 0;
+                    for (var conceptNode : topicNode.path("concepts")) {
+                        topic.getConcepts().add(TopicConcept.builder()
+                                .name(conceptNode.asText())
+                                .sortOrder(conceptOrder++)
+                                .topic(topic)
+                                .build());
+                    }
 
-        log.info("Seeded resource categories: dsa, python, java.");
+                    int qOrder = 0;
+                    for (var qNode : topicNode.path("questions")) {
+                        McqQuestion question = McqQuestion.builder()
+                                .questionText(qNode.path("question").asText())
+                                .correctAnswerIndex(qNode.path("correctAnswer").asInt())
+                                .explanation(qNode.path("explanation").asText(null))
+                                .sortOrder(qOrder++)
+                                .topic(topic)
+                                .options(new ArrayList<>())
+                                .build();
+                        int optIndex = 0;
+                        for (var optNode : qNode.path("options")) {
+                            question.getOptions().add(QuestionOption.builder()
+                                    .optionText(optNode.asText())
+                                    .optionIndex(optIndex++)
+                                    .question(question)
+                                    .build());
+                        }
+                        topic.getQuestions().add(question);
+                    }
+
+                    category.getTopics().add(topic);
+                }
+
+                resourceCategoryRepository.save(category);
+                count++;
+            }
+            log.info("Seeded {} aptitude resource categories from seed/aptitude-resources.json.", count);
+        } catch (Exception e) {
+            log.warn("Could not seed aptitude resources: {}", e.getMessage());
+        }
     }
 
     // =================================================================== helpers
@@ -542,68 +540,9 @@ public class DataSeeder implements ApplicationRunner {
 
     // ---- resources builders ----
 
-    private ResourceTopic topic(ResourceCategory category, String slug, String title, String summary,
-                                String difficulty, String duration, int sortOrder,
-                                List<TopicConcept> concepts, List<McqQuestion> questions) {
-        ResourceTopic t = ResourceTopic.builder()
-                .slug(slug)
-                .title(title)
-                .summary(summary)
-                .difficulty(difficulty)
-                .duration(duration)
-                .sortOrder(sortOrder)
-                .category(category)
-                .concepts(new ArrayList<>())
-                .questions(new ArrayList<>())
-                .build();
-        for (TopicConcept concept : concepts) {
-            concept.setTopic(t);
-            t.getConcepts().add(concept);
-        }
-        for (McqQuestion q : questions) {
-            q.setTopic(t);
-            t.getQuestions().add(q);
-        }
-        category.getTopics().add(t);
-        return t;
-    }
 
-    private List<TopicConcept> concepts(String... names) {
-        List<TopicConcept> list = new ArrayList<>();
-        for (int i = 0; i < names.length; i++) {
-            list.add(TopicConcept.builder()
-                    .name(names[i])
-                    .sortOrder(i)
-                    .build());
-        }
-        return list;
-    }
 
-    private List<McqQuestion> mcqs(McqQuestion... questions) {
-        List<McqQuestion> list = new ArrayList<>();
-        for (int i = 0; i < questions.length; i++) {
-            questions[i].setSortOrder(i);
-            list.add(questions[i]);
-        }
-        return list;
-    }
 
     /** Build a resource MCQ with its options wired up. */
-    private McqQuestion rq(String questionText, List<String> options, int correctIndex, String explanation) {
-        McqQuestion q = McqQuestion.builder()
-                .questionText(questionText)
-                .correctAnswerIndex(correctIndex)
-                .explanation(explanation)
-                .options(new ArrayList<>())
-                .build();
-        for (int i = 0; i < options.size(); i++) {
-            QuestionOption option = QuestionOption.builder()
-                    .optionText(options.get(i))
-                    .optionIndex(i)
-                    .question(q)
-                    .build();
-            q.getOptions().add(option);
-        }
-        return q;
-    }
+
 }
