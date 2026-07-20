@@ -26,6 +26,9 @@ import CodingQuestions from "./pages/CodingQuestions";
 import Resources from "./pages/Resources";
 import ResourceCategory from "./pages/ResourceCategory";
 import ResourceTopic from "./pages/ResourceTopic";
+import Admin from "./pages/Admin";
+import Certificates from "./pages/Certificates";
+import VerifyCertificate from "./pages/VerifyCertificate";
 
 import { ProgressProvider } from "./context/ProgressContext";
 
@@ -47,6 +50,16 @@ const App = () => (
                   <Route path="/login" element={<Login />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/signup" element={<Signup />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route
+                    path="/certificates"
+                    element={
+                      <ProtectedRoute>
+                        <Certificates />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/verify/:serial" element={<VerifyCertificate />} />
                   <Route
                     path="/"
                     element={

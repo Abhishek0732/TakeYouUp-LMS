@@ -160,7 +160,78 @@ takeyouup-frontend/
 
 ---
 
-## 🚀 Getting Started
+## 🔐 Security & platform capabilities
+
+Recent hardening and feature work (all covered by the docker-compose stack):
+
+| Area | What it does |
+| --- | --- |
+| **Role-based access** | Content mutations (courses, quizzes, DSA bank, resources) require `ADMIN`; normal users get `403`. Reads and user actions (progress, quiz attempts, certificates) need only login. |
+| **Refresh tokens** | Short-lived access token (15 min) + long-lived refresh token (7 days). The client auto-refreshes on `401` via `/api/auth/refresh`. |
+| **Login throttling** | 5 failed attempts per email → `429` for 15 minutes. |
+| **Email verification** | Registration issues a verification token + email; `GET /api/auth/verify?token=…` confirms it. Enforcement is off by default (`REQUIRE_VERIFIED_EMAIL=true` to require it). |
+| **Consistent errors** | `GlobalExceptionHandler` returns proper `400/401/403/404/409/429` with `{timestamp,status,error,message}` instead of 500s. |
+| **Quiz attempts** | `POST /api/quizzes/attempts` grades answers server-side and stores the score; `GET /api/quizzes/attempts/mine` lists history. |
+| **Course progress** | `GET /api/progress/courses/{id}/summary` returns completion `%`. |
+| **Certificates** | `POST /api/certificates/courses/{id}` issues a certificate once a course is 100% complete; `GET /api/certificates/verify/{serial}` verifies it publicly (no login). |
+| **Admin dashboard** | `/admin` (admins only) manages courses, DSA topics/questions, and quizzes from the UI. |
+| **Tests + CI** | Unit tests (`mvn test`) plus a GitHub Actions pipeline building & testing backend, frontend, and both Docker images. |
+
+---
+
+## 🐳 Run with Docker (recommended)
+
+The entire stack — MySQL, the Spring Boot API, the React SPA, and an Adminer DB
+console — runs with a single command. No local Java, Node, or MySQL required.
+
+```bash
+cp .env.example .env      # optional: add your own Gemini/SMTP keys
+docker compose up -d --build
+```
+
+| Service        | URL                                            |
+| -------------- | ---------------------------------------------- |
+| 🖥️ Frontend    | http://localhost:5174                          |
+| ⚙️ Backend API | http://localhost:8082                          |
+| ❤️ Health      | http://localhost:8082/actuator/health          |
+| 🗄️ Adminer     | http://localhost:8083 (server `db`, user `root`, pass `takeyouup`) |
+
+**Seeded demo accounts** (created automatically on first boot):
+
+| Role  | Email                    | Password      |
+| ----- | ------------------------ | ------------- |
+| Admin | `admin@takeyouup.com`    | `admin1234`   |
+| User  | `student@takeyouup.com`  | `student1234` |
+
+The database schema is created and versioned by **Flyway** migrations
+(`takeyouup-backend/src/main/resources/db/migration`), and starter content
+(courses, lessons, quizzes, DSA question bank, and interview-prep resources) is
+inserted by an idempotent seeder (`seed/DataSeeder.java`). Ports, credentials,
+and API keys are all configurable in `.env`.
+
+**Works on any host.** The React app talks to the API using **relative** URLs,
+which nginx proxies to the backend. So the same build works whether you open it
+at `http://localhost:5174`, a LAN address like `http://192.168.1.9:5174`, or a
+real domain — no rebuild, nothing hardcoded. Course cover images are generated
+locally and served from `/uploads`, so there are no external image dependencies.
+
+**Your data persists.** MySQL data (`db_data`) and uploaded files
+(`uploads_data`) live in named Docker volumes. They survive `up`, `down`, and
+restarts — the seeder only fills empty tables, so it never overwrites or removes
+anything you create. Data is wiped **only** if you explicitly run `down -v`.
+
+Common commands:
+
+```bash
+docker compose logs -f backend      # follow API logs
+docker compose restart backend      # restart after a rebuild (keeps data)
+docker compose down                 # stop containers (KEEPS data)
+docker compose down -v              # stop AND wipe the database (fresh start)
+```
+
+---
+
+## 🚀 Getting Started (manual / without Docker)
 
 ### Prerequisites
 

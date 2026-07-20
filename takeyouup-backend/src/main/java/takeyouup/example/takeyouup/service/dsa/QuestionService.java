@@ -37,8 +37,16 @@ public class QuestionService {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
 
-        Page<Question> questions =
-                questionRepository.findQuestions(topic, difficulty, search, pageable);
+        boolean noFilters = (topic == null || topic.isBlank())
+                && (difficulty == null || difficulty.isBlank())
+                && (search == null || search.isBlank());
+
+        // Fast path for the unfiltered listing: findAll() uses a plain COUNT(*)
+        // instead of counting over the LEFT JOINs + LOWER()/OR-null conditions,
+        // which is dramatically cheaper on large tables.
+        Page<Question> questions = noFilters
+                ? questionRepository.findAll(pageable)
+                : questionRepository.findQuestions(topic, difficulty, search, pageable);
 
         return questions.map(this::mapToResponse);
     }

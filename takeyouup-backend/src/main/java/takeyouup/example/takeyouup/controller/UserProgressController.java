@@ -27,4 +27,9 @@ public class UserProgressController {
     public ResponseEntity<ProgressResponse> toggleProgress(@Valid @RequestBody ProgressRequest request) {
         return ResponseEntity.ok(progressService.toggleProgress(request));
     }
+
+    @GetMapping("/courses/{courseId}/summary")
+    public ResponseEntity<?> courseSummary(@PathVariable Long courseId) {
+        return ResponseEntity.ok(progressService.getCourseSummary(courseId));
+    }
 }

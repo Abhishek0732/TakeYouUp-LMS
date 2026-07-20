@@ -337,6 +337,22 @@ const Navbar = () => {
                     >
                       <User className="h-4 w-4 opacity-60" /> Profile
                     </Link>
+                    <Link
+                      to="/certificates"
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-muted"
+                      onClick={() => setDropOpen(false)}
+                    >
+                      <User className="h-4 w-4 opacity-60" /> My Certificates
+                    </Link>
+                    {localStorage.getItem("role") === "ADMIN" && (
+                      <Link
+                        to="/admin"
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-muted"
+                        onClick={() => setDropOpen(false)}
+                      >
+                        <User className="h-4 w-4 opacity-60" /> Admin Dashboard
+                      </Link>
+                    )}
                     <button
                       onClick={() => {
                         logout();

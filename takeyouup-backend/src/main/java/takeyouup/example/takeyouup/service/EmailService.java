@@ -21,4 +21,16 @@ public class EmailService {
                 + "Best Regards,\nThe TakeYouUp Team");
         mailSender.send(message);
     }
+
+    public void sendVerificationEmail(String toEmail, String userName, String verifyLink) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("Verify your TakeYouUp email");
+        message.setText("Hi " + userName + ",\n\n"
+                + "Welcome to TakeYouUp! Please verify your email by opening the link below:\n\n"
+                + verifyLink + "\n\n"
+                + "This link expires in 24 hours.\n\n"
+                + "Best Regards,\nThe TakeYouUp Team");
+        mailSender.send(message);
+    }
 }

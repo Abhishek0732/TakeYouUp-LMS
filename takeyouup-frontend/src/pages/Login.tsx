@@ -25,6 +25,8 @@ const Login = () => {
       setLoading(true);
       const data = await loginUser(email, password);
       localStorage.setItem("token", data.token);
+      if (data.refreshToken) localStorage.setItem("refreshToken", data.refreshToken);
+      if (data.role) localStorage.setItem("role", data.role);
       login({ name: data.name, email: data.email, avatar: "https://i.pravatar.cc/40" });
       toast({ title: "Login Successful", description: "Welcome to TakeYouUp!" });
       navigate(from, { replace: true });
