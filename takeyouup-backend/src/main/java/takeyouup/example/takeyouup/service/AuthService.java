@@ -2,6 +2,8 @@ package takeyouup.example.takeyouup.service;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -12,7 +14,9 @@ import takeyouup.example.takeyouup.dto.AuthResponse;
 import takeyouup.example.takeyouup.dto.LoginRequest;
 import takeyouup.example.takeyouup.dto.RegisterRequest;
 import takeyouup.example.takeyouup.enums.Role;
+import takeyouup.example.takeyouup.exception.DuplicateResourceException;
 import takeyouup.example.takeyouup.exception.InvalidCredentialsException;
+import takeyouup.example.takeyouup.exception.ResourceNotFoundException;
 import takeyouup.example.takeyouup.model.User;
 import takeyouup.example.takeyouup.repository.UserRepository;
 
@@ -24,60 +28,84 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final LoginRateLimiter loginRateLimiter;
+    private final EmailVerificationService emailVerificationService;
 
+    @Value("${app.auth.require-verified-email:false}")
+    private boolean requireVerifiedEmail;
 
     // ✅ Register User
     public AuthResponse register(RegisterRequest request) {
 
-        // Check if email already exists
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new DuplicateResourceException("Email already registered");
         }
 
-        // Create user
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER) // Default role
+                .emailVerified(false)
                 .build();
 
         userRepository.save(user);
+        emailVerificationService.createAndSend(user);
 
-        String jwtToken = jwtService.generateToken(user);
+        return buildAuthResponse(user);
+    }
 
-        return AuthResponse.builder()
-                .token(jwtToken)
-                .name(user.getName())
-                .email(user.getEmail())
-                .build();
+    public void verifyEmail(String token) {
+        emailVerificationService.verify(token);
     }
 
     public AuthResponse login(LoginRequest request) {
 
+        String email = request.getEmail();
+
+        // Reject early if this account is currently rate limited.
+        loginRateLimiter.checkAllowed(email);
+
         try {
-
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getEmail(),
-                            request.getPassword()
-                    )
+                    new UsernamePasswordAuthenticationToken(email, request.getPassword())
             );
-
         } catch (BadCredentialsException e) {
+            loginRateLimiter.recordFailure(email);
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        // If authentication successful
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        loginRateLimiter.reset(email);
 
-        String jwtToken = jwtService.generateToken(user);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        if (requireVerifiedEmail && !user.isEmailVerified()) {
+            throw new AccessDeniedException("Please verify your email before logging in.");
+        }
+
+        return buildAuthResponse(user);
+    }
+
+    /** Exchange a valid refresh token for a fresh access/refresh pair. */
+    public AuthResponse refresh(String refreshToken) {
+        if (refreshToken == null || !jwtService.isRefreshTokenValid(refreshToken)) {
+            throw new InvalidCredentialsException("Invalid or expired refresh token");
+        }
+        String email = jwtService.extractUsername(refreshToken);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        return buildAuthResponse(user);
+    }
+
+    private AuthResponse buildAuthResponse(User user) {
         return AuthResponse.builder()
-                .token(jwtToken)
+                .token(jwtService.generateAccessToken(user))
+                .refreshToken(jwtService.generateRefreshToken(user))
                 .name(user.getName())
                 .email(user.getEmail())
+                .role(user.getRole().name())
                 .build();
     }
 }

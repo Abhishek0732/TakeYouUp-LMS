@@ -39,6 +39,13 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
+    public User updateRole(Long id, String role) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setRole(takeyouup.example.takeyouup.enums.Role.valueOf(role.trim().toUpperCase()));
+        return userRepository.save(user);
+    }
+
     public User updateUserName(String email, String newName) {
 
         User user = userRepository.findByEmail(email)

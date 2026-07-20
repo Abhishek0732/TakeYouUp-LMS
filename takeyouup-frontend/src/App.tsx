@@ -13,32 +13,53 @@ import InterviewPrepDetail from "./pages/InterviewPrepDetail";
 import CourseDetail from "./pages/CourseDetail";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import CodeEditor from "./pages/CodeEditor";
 import NotFound from "./pages/NotFound";
 import { CourseProvider } from "./context/CourseContext";
 import Chatbot from "@/components/Chatbot";
-import { AuthProvider } from "@/context/AuthContext"
+import { AuthProvider } from "@/context/AuthContext";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import Signup from "./pages/SignUp";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import CodingQuestions from "./pages/CodingQuestions";
+import Resources from "./pages/Resources";
+import ResourceCategory from "./pages/ResourceCategory";
+import ResourceTopic from "./pages/ResourceTopic";
+import Admin from "./pages/Admin";
+import Certificates from "./pages/Certificates";
+import VerifyCertificate from "./pages/VerifyCertificate";
+
+import { ProgressProvider } from "./context/ProgressContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <ThemeProvider defaultTheme="dark">
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-1">
-                <Routes>
+      <ProgressProvider>
+        <ThemeProvider defaultTheme="dark">
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <div className="flex flex-col min-h-screen">
+                <Navbar />
+                <main className="flex-1">
+                  <Routes>
                   <Route path="/login" element={<Login />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/signup" element={<Signup />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route
+                    path="/certificates"
+                    element={
+                      <ProtectedRoute>
+                        <Certificates />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/verify/:serial" element={<VerifyCertificate />} />
                   <Route
                     path="/"
                     element={
@@ -75,6 +96,24 @@ const App = () => (
 
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
+                  <Route path="/resources" element={<Resources />} />
+                  <Route
+                    path="/resources/:categorySlug"
+                    element={<ResourceCategory />}
+                  />
+                  <Route
+                    path="/resources/:categorySlug/:topicSlug"
+                    element={<ResourceTopic />}
+                  />
+                  <Route path="/online-compiler" element={<CodeEditor />} />
+                  <Route
+                    path="/problems"
+                    element={
+                      <ProtectedRoute>
+                        <CodingQuestions />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route path="*" element={<NotFound />} />
                   <Route path="/interview-prep" element={<InterviewPrep />} />
                   <Route
@@ -86,11 +125,12 @@ const App = () => (
               <Footer />
               <Chatbot />
             </div>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ThemeProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+              </BrowserRouter>
+            </TooltipProvider>
+          </ThemeProvider>
+        </ProgressProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
 
 export default App;

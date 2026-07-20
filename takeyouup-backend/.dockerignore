@@ -1,0 +1,10 @@
+target/
+.git/
+.idea/
+.mvn/
+*.iml
+node_modules/
+uploads/
+HELP.md
+Dockerfile
+.dockerignore

@@ -38,25 +38,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
-
+        const localName = localStorage.getItem("userName");
+        
         setUser({
-          name: payload.name,
+          name: localName || payload.name,
           email: payload.sub,
           avatar: "https://i.pravatar.cc/40",
         });
       } catch (err) {
         console.error("Invalid token");
         localStorage.removeItem("token");
+        localStorage.removeItem("userName");
       }
     }
   }, []);
 
   const login = (userData: User) => {
+    localStorage.setItem("userName", userData.name);
     setUser(userData);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("role");
+    localStorage.removeItem("userName");
     setUser(null);
   };
 

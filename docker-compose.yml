@@ -1,0 +1,105 @@
+# TakeYouUp LMS — full stack (MySQL + Spring Boot API + React SPA)
+# Bring everything up with:   docker compose up -d --build
+# Host ports are chosen to avoid clashes with other local services.
+
+services:
+  db:
+    image: mysql:8.4
+    container_name: takeyouup-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-takeyouup}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-takeyouup}
+    ports:
+      - "${DB_HOST_PORT:-3308}:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD:-takeyouup}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - takeyouup
+
+  backend:
+    build:
+      context: ./takeyouup-backend
+    container_name: takeyouup-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8080
+      APP_BASE_URL: http://localhost:${BACKEND_HOST_PORT:-8082}
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-takeyouup}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-takeyouup}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-validate}
+      SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-true}
+      JWT_SECRET: ${JWT_SECRET:-takeyouupsecretkeytakeyouupsecretkeytakeyouupsecretkeytakeyouupsecretkey}
+      JWT_ACCESS_EXPIRATION_MS: ${JWT_ACCESS_EXPIRATION_MS:-900000}
+      JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS:-604800000}
+      REQUIRE_VERIFIED_EMAIL: ${REQUIRE_VERIFIED_EMAIL:-false}
+      # Spring AI needs a non-empty key to build the chat client at startup.
+      # Falls back to the bundled demo key when .env leaves GEMINI_API_KEY blank.
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-AIzaSyANL8sqF5bCHMB1nTiTTxhwXsmqf_3j910}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3-flash-preview}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      # Relative dir — WebConfig resolves it under the working dir (/app),
+      # matching the mounted volume at /app/uploads. Must NOT be absolute,
+      # or WebConfig would build a doubled path (/app//app/uploads).
+      FILE_UPLOAD_DIR: uploads
+    ports:
+      - "${BACKEND_HOST_PORT:-8082}:8080"
+    volumes:
+      - uploads_data:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    networks:
+      - takeyouup
+
+  frontend:
+    build:
+      context: ./takeyouup-frontend
+      args:
+        # Empty => frontend uses relative /api paths, proxied by nginx to the
+        # backend. Works on any host the frontend is served from.
+        VITE_API_URL: ""
+    container_name: takeyouup-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_HOST_PORT:-5174}:80"
+    networks:
+      - takeyouup
+
+  # Lightweight DB UI for inspecting seeded data — http://localhost:8083
+  adminer:
+    image: adminer:latest
+    container_name: takeyouup-adminer
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "${ADMINER_HOST_PORT:-8083}:8080"
+    networks:
+      - takeyouup
+
+volumes:
+  db_data:
+  uploads_data:
+
+networks:
+  takeyouup:
+    driver: bridge

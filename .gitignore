@@ -1,0 +1,17 @@
+# Environment / secrets
+.env
+
+# Backend build output
+takeyouup-backend/target/
+
+# Frontend build output & deps
+takeyouup-frontend/node_modules/
+takeyouup-frontend/dist/
+
+# CI workflow — pushing it needs a PAT with the 'workflow' scope, so it is
+# kept out of git for now; add it with a workflow-scoped token when ready.
+.github/workflows/ci.yml
+
+# OS / editor
+.DS_Store
+*.log

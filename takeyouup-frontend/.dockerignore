@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.git/
+*.local
+*.log
+takeyouup-frontend-redesign.zip
+Dockerfile
+.dockerignore

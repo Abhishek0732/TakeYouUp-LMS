@@ -3,6 +3,7 @@ package takeyouup.example.takeyouup.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -27,11 +28,35 @@ public class SecurityConfig {
                 .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())   // ✅ FIXED
                 .authorizeHttpRequests(auth -> auth
+                        // --- Public ---
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/api/courses/basic",
-                                "/uploads/*"
+                                "/api/certificates/verify/**",
+                                "/uploads/**",
+                                "/actuator/health",
+                                "/actuator/health/**",
+                                "/error"
                         ).permitAll()
+
+                        // --- Writes that a normal logged-in USER may perform ---
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/contacts",
+                                "/api/chatbot/generate",
+                                "/api/quizzes/attempts").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/progress/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/certificates/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/users/update-name").authenticated()
+
+                        // --- Admin-only user management (listing exposes accounts) ---
+                        .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+
+                        // --- All other content mutations are ADMIN-only ---
+                        .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
+
+                        // --- Everything else (reads) just needs authentication ---
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->

@@ -313,11 +313,27 @@ public class CourseService {
                         course.getDuration(),
                         course.getStudents(),
                         course.getRating(),
-                        baseUrl + "/uploads/" + course.getImage(),
+                        buildImageUrl(course.getImage()),
                         course.getInstructor(),
                         course.getPrice()
                 ))
                 .toList();
+    }
+
+    /**
+     * Builds a HOST-RELATIVE image URL (e.g. {@code /uploads/foo.png}) so course
+     * covers load from whatever origin serves the app, rather than a hardcoded
+     * host. Values that are already absolute (http/https) or already rooted are
+     * returned unchanged.
+     */
+    private String buildImageUrl(String image) {
+        if (image == null || image.isBlank()) {
+            return null;
+        }
+        if (image.startsWith("http://") || image.startsWith("https://") || image.startsWith("/")) {
+            return image;
+        }
+        return "/uploads/" + image;
     }
 
 }
