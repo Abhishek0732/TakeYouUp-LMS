@@ -20,6 +20,7 @@ interface Props {
   onEdit?: (row: any) => void;
   onDelete?: (row: any) => Promise<void> | void;
   onBulkDelete?: (rows: any[]) => Promise<void> | void;
+  rowActions?: (row: any) => React.ReactNode;
   filters?: React.ReactNode;
   filterState?: any;
   searchPlaceholder?: string;
@@ -29,9 +30,10 @@ const cell = "px-4 py-3 text-sm align-top";
 
 export default function DataGrid({
   title, columns, idKey = "id", fetchPage, reloadToken = 0,
-  createLabel, onCreate, onEdit, onDelete, onBulkDelete,
+  createLabel, onCreate, onEdit, onDelete, onBulkDelete, rowActions,
   filters, filterState, searchPlaceholder = "Search…",
 }: Props) {
+  const hasActions = !!(onEdit || onDelete || rowActions);
   const [rows, setRows] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -128,15 +130,15 @@ export default function DataGrid({
               {columns.map((c) => (
                 <th key={c.key} className={cell + " text-left font-semibold"} style={{ width: c.width }}>{c.label}</th>
               ))}
-              {(onEdit || onDelete) && <th className={cell + " text-right"}>Actions</th>}
+              {hasActions && <th className={cell + " text-right"}>Actions</th>}
             </tr>
           </thead>
           <tbody>
             {loading && (
-              <tr><td className={cell + " opacity-60"} colSpan={columns.length + 2}>Loading…</td></tr>
+              <tr><td className={cell + " opacity-60"} colSpan={columns.length + (hasActions ? 2 : 1)}>Loading…</td></tr>
             )}
             {!loading && rows.length === 0 && (
-              <tr><td className={cell + " opacity-60"} colSpan={columns.length + 2}>No records found.</td></tr>
+              <tr><td className={cell + " opacity-60"} colSpan={columns.length + (hasActions ? 2 : 1)}>No records found.</td></tr>
             )}
             {!loading && rows.map((row) => (
               <tr key={row[idKey]} className="border-t" style={{ borderColor: "hsl(var(--border))" }}>
@@ -146,9 +148,10 @@ export default function DataGrid({
                 {columns.map((c) => (
                   <td key={c.key} className={cell}>{c.render ? c.render(row) : String(row[c.key] ?? "")}</td>
                 ))}
-                {(onEdit || onDelete) && (
+                {hasActions && (
                   <td className={cell}>
                     <div className="flex items-center justify-end gap-3">
+                      {rowActions && rowActions(row)}
                       {onEdit && (
                         <button className="opacity-70 hover:opacity-100" title="Edit" onClick={() => onEdit(row)}>
                           <Pencil className="h-4 w-4" />

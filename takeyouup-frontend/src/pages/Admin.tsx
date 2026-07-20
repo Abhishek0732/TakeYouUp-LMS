@@ -3,11 +3,12 @@ import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   LayoutDashboard, BookOpen, ListChecks, Code2, Tags, Server, Gauge,
-  FolderTree, Users as UsersIcon,
+  FolderTree, Users as UsersIcon, Layers,
 } from "lucide-react";
 import api from "@/api/axios";
 import DataGrid, { Column } from "@/components/admin/DataGrid";
 import EntityModal, { Field } from "@/components/admin/EntityModal";
+import CourseContent from "@/components/admin/CourseContent";
 
 // ---------------------------------------------------------------- helpers
 const clientPager = (loader: () => Promise<any[]>, searchKeys: string[]) =>
@@ -39,6 +40,7 @@ interface ResourceConfig {
   update?: (row: any, v: any) => Promise<any>;
   remove?: (row: any) => Promise<any>;
   renderFilters?: (state: any, setState: (s: any) => void) => React.ReactNode;
+  rowActions?: (row: any) => React.ReactNode;
 }
 
 function ResourceView({ config }: { config: ResourceConfig }) {
@@ -86,6 +88,7 @@ function ResourceView({ config }: { config: ResourceConfig }) {
         onEdit={config.update ? (row) => { setEditing(row); setModalOpen(true); } : undefined}
         onDelete={config.remove ? onDelete : undefined}
         onBulkDelete={config.remove ? onBulkDelete : undefined}
+        rowActions={config.rowActions}
         filterState={filterState}
         filters={config.renderFilters ? config.renderFilters(filterState, setFilterState) : undefined}
       />
@@ -201,6 +204,7 @@ export default function Admin() {
   const role = localStorage.getItem("role");
   const token = localStorage.getItem("token");
   const [active, setActive] = useState("dashboard");
+  const [manageCourse, setManageCourse] = useState<any>(null);
   const [lookups, setLookups] = useState<{ topics: any[]; platforms: any[]; difficulties: any[] }>({ topics: [], platforms: [], difficulties: [] });
 
   useEffect(() => {
@@ -242,6 +246,12 @@ export default function Admin() {
         return api.patch(`/courses/${row.id}`, fd);
       },
       remove: (row) => api.delete(`/courses/${row.id}`),
+      rowActions: (row) => (
+        <button title="Manage content (modules & lessons)" className="text-orange-500 flex items-center gap-1 text-sm"
+          onClick={() => setManageCourse(row)}>
+          <Layers className="h-4 w-4" /> Content
+        </button>
+      ),
     },
     questions: {
       title: "DSA Questions",
@@ -370,7 +380,7 @@ export default function Admin() {
           <div key={grp.section} className="mb-5">
             <p className="text-[10px] uppercase tracking-wider opacity-40 px-2 mb-1">{grp.section}</p>
             {grp.items.map((it) => (
-              <button key={it.key} onClick={() => setActive(it.key)}
+              <button key={it.key} onClick={() => { setActive(it.key); setManageCourse(null); }}
                 className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm mb-0.5 transition-colors ${
                   active === it.key ? "bg-orange-500 text-white" : "hover:bg-muted"}`}>
                 <it.icon className="h-4 w-4" /> {it.label}
@@ -384,7 +394,9 @@ export default function Admin() {
       <main className="flex-1 p-6 md:p-8 overflow-x-hidden">
         {active === "dashboard" && <Dashboard />}
         {active === "quizzes" && <QuizzesView />}
-        {configs[active] && <ResourceView key={active} config={configs[active]} />}
+        {active === "courses" && manageCourse
+          ? <CourseContent course={manageCourse} onBack={() => setManageCourse(null)} />
+          : (configs[active] && <ResourceView key={active} config={configs[active]} />)}
       </main>
     </div>
   );
