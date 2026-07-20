@@ -106,22 +106,21 @@ public class QuizService {
             quiz.setCourseId(quiz.getCourseId());
         }
 
-        List<QuestionDTO> existingQuestions = new ArrayList<>();
-
-        if (quiz.getQuestionsJson() != null) {
-            existingQuestions = objectMapper.readValue(
-                    quiz.getQuestionsJson(),
-                    new TypeReference<List<QuestionDTO>>() {}
-            );
+        // Replace the quiz's questions with exactly what the client sent — the
+        // editor submits the full desired set (including any deletions). Only
+        // fall back to the existing questions if the request omits them entirely.
+        List<QuestionDTO> questions = request.getQuestions();
+        if (questions == null) {
+            questions = new ArrayList<>();
+            if (quiz.getQuestionsJson() != null) {
+                questions = objectMapper.readValue(
+                        quiz.getQuestionsJson(),
+                        new TypeReference<List<QuestionDTO>>() {}
+                );
+            }
         }
 
-        // 2. Add new questions
-        if (request.getQuestions() != null && !request.getQuestions().isEmpty()) {
-            existingQuestions.addAll(request.getQuestions());
-        }
-
-        // 3. Convert back to JSON
-        String json = objectMapper.writeValueAsString(existingQuestions);
+        String json = objectMapper.writeValueAsString(questions);
         quiz.setQuestionsJson(json);
 
         Quiz updated = quizRepository.save(quiz);
@@ -130,7 +129,7 @@ public class QuizService {
                 updated.getId(),
                 updated.getTitle(),
                 updated.getCourseId(),
-                request.getQuestions()
+                questions
         );
     }
 
