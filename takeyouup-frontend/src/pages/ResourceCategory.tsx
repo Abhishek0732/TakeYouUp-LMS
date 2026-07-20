@@ -8,9 +8,8 @@ import {
   Layers3,
   CheckCircle2,
 } from "lucide-react";
-import { findResourceCategory } from "@/data/resources";
+import { getCategory } from "@/api/resources";
 import { useEffect, useState } from "react";
-import api from "@/api/axios";
 import { useNavigate } from "react-router-dom";
 import { useProgress } from "@/context/ProgressContext";
 
@@ -23,15 +22,22 @@ const difficultyStyles: Record<string, string> = {
 const ResourceCategory = () => {
   const { categorySlug } = useParams();
   const navigate = useNavigate();
-  const category = findResourceCategory(categorySlug);
+  const [category, setCategory] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const { isCompleted } = useProgress();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
+      return;
     }
-  }, [navigate]);
+    setLoading(true);
+    getCategory(categorySlug!)
+      .then((c) => setCategory(c))
+      .catch(() => setCategory(null))
+      .finally(() => setLoading(false));
+  }, [navigate, categorySlug]);
 
   useEffect(() => {
     if (category) {
@@ -39,6 +45,9 @@ const ResourceCategory = () => {
     }
   }, [category]);
 
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center opacity-60">Loading…</div>;
+  }
   if (!category) {
     return <Navigate to="/resources" replace />;
   }

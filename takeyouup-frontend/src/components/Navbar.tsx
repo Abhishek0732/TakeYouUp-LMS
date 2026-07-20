@@ -17,7 +17,7 @@ import {
   Target,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { resourceCategories } from "@/data/resources";
+import { getCategories } from "@/api/resources";
 
 const resourceIcons: Record<string, any> = {
   "quantitative-aptitude": BrainCircuit,
@@ -33,6 +33,12 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileRes, setMobileRes] = useState(false);
+  const [resourceCategories, setResourceCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!user) { setResourceCategories([]); return; }
+    getCategories().then(setResourceCategories).catch(() => setResourceCategories([]));
+  }, [user]);
   const [scrolled, setScrolled] = useState(false);
   const [dropOpen, setDropOpen] = useState(false);
   const [resOpen, setResOpen] = useState(false);

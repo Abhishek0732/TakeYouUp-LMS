@@ -8,9 +8,8 @@ import {
   Sparkles,
   Target,
 } from "lucide-react";
-import { resourceCategories } from "@/data/resources";
-import { useEffect } from "react";
-import api from "@/api/axios";
+import { useEffect, useState } from "react";
+import { getCategories } from "@/api/resources";
 import { useNavigate } from "react-router-dom";
 
 const iconMap = {
@@ -22,13 +21,16 @@ const iconMap = {
 
 const Resources = () => {
   const navigate = useNavigate();
+  const [resourceCategories, setResourceCategories] = useState<any[]>([]);
 
   useEffect(() => {
     document.title = "Resources | TakeYouUp - Master Programming & Build Your Future";
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
+      return;
     }
+    getCategories().then(setResourceCategories).catch(() => setResourceCategories([]));
   }, [navigate]);
 
   return (

@@ -1,13 +1,23 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, CheckCircle2, RotateCcw, XCircle } from "lucide-react";
-import { findResourceTopic } from "@/data/resources";
+import { getTopic } from "@/api/resources";
 import { useProgress } from "@/context/ProgressContext";
 
 const ResourceTopic = () => {
   const { categorySlug, topicSlug } = useParams();
-  const { category, topic } = findResourceTopic(categorySlug, topicSlug);
+  const [data, setData] = useState<{ category: any; topic: any }>({ category: null, topic: null });
+  const [loading, setLoading] = useState(true);
+  const { category, topic } = data;
   const { isCompleted, toggleProgress } = useProgress();
+
+  useEffect(() => {
+    setLoading(true);
+    getTopic(categorySlug!, topicSlug!)
+      .then(setData)
+      .catch(() => setData({ category: null, topic: null }))
+      .finally(() => setLoading(false));
+  }, [categorySlug, topicSlug]);
 
   useEffect(() => {
     if (topic) {
@@ -26,6 +36,9 @@ const ResourceTopic = () => {
     return ((showSummary ? topic.questions.length : currentQuestion + 1) / topic.questions.length) * 100;
   }, [currentQuestion, showSummary, topic]);
 
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center opacity-60">Loading…</div>;
+  }
   if (!category || !topic) {
     return <Navigate to="/resources" replace />;
   }
