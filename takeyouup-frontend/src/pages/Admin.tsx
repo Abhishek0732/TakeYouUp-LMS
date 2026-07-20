@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import api from "@/api/axios";
@@ -9,6 +9,18 @@ const inputCls =
   "w-full rounded-lg border px-3 py-2 text-sm bg-transparent";
 const btnCls =
   "rounded-lg px-4 py-2 text-sm font-semibold text-white";
+
+// Native <select> option popups don't inherit the dark theme, so give the
+// select + options explicit theme colors (readable in light and dark).
+const selectStyle: React.CSSProperties = {
+  background: "hsl(var(--card))",
+  color: "hsl(var(--foreground))",
+};
+const Opt = ({ value, children }: { value: string; children: React.ReactNode }) => (
+  <option value={value} style={{ background: "hsl(var(--card))", color: "hsl(var(--foreground))" }}>
+    {children}
+  </option>
+);
 
 export default function Admin() {
   const role = localStorage.getItem("role");
@@ -174,19 +186,19 @@ function QuestionsPanel() {
         <input className={inputCls} placeholder="URL (e.g. https://leetcode.com/…)"
           value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} />
 
-        <select className={inputCls} value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })}>
-          <option value="">Select a topic…</option>
-          {topics.map((t) => <option key={t.id} value={t.name}>{t.name}</option>)}
+        <select className={inputCls} style={selectStyle} value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })}>
+          <Opt value="">Select a topic…</Opt>
+          {topics.map((t) => <Opt key={t.id} value={t.name}>{t.name}</Opt>)}
         </select>
 
-        <select className={inputCls} value={form.platform} onChange={(e) => setForm({ ...form, platform: e.target.value })}>
-          <option value="">Platform (optional)…</option>
-          {platforms.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
+        <select className={inputCls} style={selectStyle} value={form.platform} onChange={(e) => setForm({ ...form, platform: e.target.value })}>
+          <Opt value="">Platform (optional)…</Opt>
+          {platforms.map((p) => <Opt key={p.id} value={p.name}>{p.name}</Opt>)}
         </select>
 
-        <select className={inputCls} value={form.difficulty} onChange={(e) => setForm({ ...form, difficulty: e.target.value })}>
-          <option value="">Difficulty (optional)…</option>
-          {difficulties.map((d) => <option key={d.id} value={d.level}>{d.level}</option>)}
+        <select className={inputCls} style={selectStyle} value={form.difficulty} onChange={(e) => setForm({ ...form, difficulty: e.target.value })}>
+          <Opt value="">Difficulty (optional)…</Opt>
+          {difficulties.map((d) => <Opt key={d.id} value={d.level}>{d.level}</Opt>)}
         </select>
       </div>
       <p className="text-xs opacity-60 mb-3">
@@ -239,9 +251,9 @@ function QuizzesPanel() {
 
   return (
     <Section title="Quizzes">
-      <select className={inputCls + " mb-4"} value={courseId} onChange={(e) => setCourseId(e.target.value)}>
-        <option value="">Select a course…</option>
-        {courses.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
+      <select className={inputCls + " mb-4"} style={selectStyle} value={courseId} onChange={(e) => setCourseId(e.target.value)}>
+        <Opt value="">Select a course…</Opt>
+        {courses.map((c) => <Opt key={c.id} value={String(c.id)}>{c.title}</Opt>)}
       </select>
       {courseId && (
         <>
