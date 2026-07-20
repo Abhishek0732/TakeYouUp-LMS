@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import takeyouup.example.takeyouup.dto.dsa.QuestionDTO;
 import takeyouup.example.takeyouup.dto.dsa.QuestionRequest;
 import takeyouup.example.takeyouup.dto.dsa.QuestionResponse;
+import takeyouup.example.takeyouup.exception.ResourceNotFoundException;
 import takeyouup.example.takeyouup.model.dsa.Difficulty;
 import takeyouup.example.takeyouup.model.dsa.Platform;
 import takeyouup.example.takeyouup.model.dsa.Question;
@@ -58,9 +59,10 @@ public class QuestionService {
         res.setId(q.getId());
         res.setTitle(q.getTitle());
         res.setUrl(q.getUrl());
-        res.setTopic(q.getTopic().getName());
-        res.setDifficulty(q.getDifficulty().getLevel());
-        res.setPlatform(q.getPlatform().getName());
+        // topic is required; platform/difficulty are optional and may be null
+        res.setTopic(q.getTopic() != null ? q.getTopic().getName() : null);
+        res.setDifficulty(q.getDifficulty() != null ? q.getDifficulty().getLevel() : null);
+        res.setPlatform(q.getPlatform() != null ? q.getPlatform().getName() : null);
 
         return res;
     }
@@ -103,19 +105,60 @@ public class QuestionService {
 
     public Question addQuestion(QuestionRequest request) {
 
-        Topic topic = topicRepository.findByName(request.getTopic());
-        Platform platform = platformRepository.findByName(request.getPlatform());
-        Difficulty difficulty = difficultyRepository.findByLevel(request.getDifficulty());
-
         Question question = new Question();
 
         question.setTitle(request.getTitle());
         question.setUrl(request.getUrl());
-        question.setTopic(topic);
-        question.setPlatform(platform);
-        question.setDifficulty(difficulty);
+        question.setTopic(resolveTopic(request.getTopic()));
+        question.setPlatform(resolvePlatform(request.getPlatform()));
+        question.setDifficulty(resolveDifficulty(request.getDifficulty()));
 
         return questionRepository.save(question);
+    }
+
+    // --- get-or-create helpers so admins can add questions with new
+    //     topics/platforms/difficulties without a separate setup step ---
+
+    /** Topic is required; created on the fly if it doesn't exist yet. */
+    private Topic resolveTopic(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Topic is required");
+        }
+        Topic topic = topicRepository.findByName(name.trim());
+        if (topic == null) {
+            Topic created = new Topic();
+            created.setName(name.trim());
+            topic = topicRepository.save(created);
+        }
+        return topic;
+    }
+
+    /** Platform is optional; created if a new non-blank name is supplied. */
+    private Platform resolvePlatform(String name) {
+        if (name == null || name.isBlank()) {
+            return null;
+        }
+        Platform platform = platformRepository.findByName(name.trim());
+        if (platform == null) {
+            Platform created = new Platform();
+            created.setName(name.trim());
+            platform = platformRepository.save(created);
+        }
+        return platform;
+    }
+
+    /** Difficulty is optional; created if a new non-blank level is supplied. */
+    private Difficulty resolveDifficulty(String level) {
+        if (level == null || level.isBlank()) {
+            return null;
+        }
+        Difficulty difficulty = difficultyRepository.findByLevel(level.trim());
+        if (difficulty == null) {
+            Difficulty created = new Difficulty();
+            created.setLevel(level.trim());
+            difficulty = difficultyRepository.save(created);
+        }
+        return difficulty;
     }
 
     public List<Question> addBulkQuestions(List<QuestionRequest> requests) {
@@ -124,17 +167,13 @@ public class QuestionService {
 
         for (QuestionRequest request : requests) {
 
-            Topic topic = topicRepository.findByName(request.getTopic());
-            Platform platform = platformRepository.findByName(request.getPlatform());
-            Difficulty difficulty = difficultyRepository.findByLevel(request.getDifficulty());
-
             Question q = new Question();
 
             q.setTitle(request.getTitle());
             q.setUrl(request.getUrl());
-            q.setTopic(topic);
-            q.setPlatform(platform);
-            q.setDifficulty(difficulty);
+            q.setTopic(resolveTopic(request.getTopic()));
+            q.setPlatform(resolvePlatform(request.getPlatform()));
+            q.setDifficulty(resolveDifficulty(request.getDifficulty()));
 
             questions.add(q);
         }
@@ -145,17 +184,13 @@ public class QuestionService {
     public Question updateQuestion(Long id, QuestionRequest request) {
 
         Question question = questionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Question not found"));
-
-        Topic topic = topicRepository.findByName(request.getTopic());
-        Platform platform = platformRepository.findByName(request.getPlatform());
-        Difficulty difficulty = difficultyRepository.findByLevel(request.getDifficulty());
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
 
         question.setTitle(request.getTitle());
         question.setUrl(request.getUrl());
-        question.setTopic(topic);
-        question.setPlatform(platform);
-        question.setDifficulty(difficulty);
+        question.setTopic(resolveTopic(request.getTopic()));
+        question.setPlatform(resolvePlatform(request.getPlatform()));
+        question.setDifficulty(resolveDifficulty(request.getDifficulty()));
 
         return questionRepository.save(question);
     }

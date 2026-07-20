@@ -139,35 +139,67 @@ function TopicsPanel() {
 
 // -------------------------------------------------------------- Questions
 function QuestionsPanel() {
-  const [form, setForm] = useState<any>({ title: "", url: "", topic: "Arrays", platform: "LeetCode", difficulty: "Easy" });
+  const [form, setForm] = useState<any>({ title: "", url: "", topic: "", platform: "", difficulty: "" });
+  const [topics, setTopics] = useState<any[]>([]);
+  const [platforms, setPlatforms] = useState<any[]>([]);
+  const [difficulties, setDifficulties] = useState<any[]>([]);
   const [recent, setRecent] = useState<any[]>([]);
 
-  const load = () => api.get("/questions", { params: { size: 10 } }).then((r) => setRecent(r.data.content || [])).catch(() => {});
-  useEffect(() => { load(); }, []);
+  const loadRecent = () =>
+    api.get("/questions", { params: { size: 10 } }).then((r) => setRecent(r.data.content || [])).catch(() => {});
+
+  // Load the dropdown options (topics/platforms/difficulties you've created)
+  useEffect(() => {
+    api.get("/topics").then((r) => setTopics(r.data)).catch(() => {});
+    api.get("/platforms").then((r) => setPlatforms(r.data)).catch(() => {});
+    api.get("/difficulties").then((r) => setDifficulties(r.data)).catch(() => {});
+    loadRecent();
+  }, []);
 
   const add = async () => {
+    if (!form.topic) { toast.error("Please pick a topic"); return; }
     try {
       await api.post("/questions", form);
       toast.success("Question added");
       setForm({ ...form, title: "", url: "" });
-      load();
+      loadRecent();
     } catch (e: any) { toast.error(e.response?.data?.message || "Failed"); }
   };
 
   return (
     <Section title="Add DSA Question">
       <div className="grid md:grid-cols-2 gap-3 mb-4">
-        {["title", "url", "topic", "platform", "difficulty"].map((f) => (
-          <input key={f} className={inputCls} placeholder={f}
-            value={form[f]} onChange={(e) => setForm({ ...form, [f]: e.target.value })} />
-        ))}
+        <input className={inputCls} placeholder="Title"
+          value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+        <input className={inputCls} placeholder="URL (e.g. https://leetcode.com/…)"
+          value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} />
+
+        <select className={inputCls} value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })}>
+          <option value="">Select a topic…</option>
+          {topics.map((t) => <option key={t.id} value={t.name}>{t.name}</option>)}
+        </select>
+
+        <select className={inputCls} value={form.platform} onChange={(e) => setForm({ ...form, platform: e.target.value })}>
+          <option value="">Platform (optional)…</option>
+          {platforms.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
+        </select>
+
+        <select className={inputCls} value={form.difficulty} onChange={(e) => setForm({ ...form, difficulty: e.target.value })}>
+          <option value="">Difficulty (optional)…</option>
+          {difficulties.map((d) => <option key={d.id} value={d.level}>{d.level}</option>)}
+        </select>
       </div>
+      <p className="text-xs opacity-60 mb-3">
+        Don't see your topic? Add it in the <strong>Topics</strong> tab, then it appears here.
+      </p>
       <button className={btnCls + " bg-orange-500 mb-6"} onClick={add}>Add question</button>
+
+      <h3 className="text-sm font-semibold mb-2 opacity-70">Recently added</h3>
       <ul className="divide-y">
         {recent.map((q) => (
           <li key={q.id} className="py-2 text-sm flex justify-between">
             <span>{q.title}</span>
-            <span className="opacity-50">{q.topic} · {q.difficulty}</span>
+            <span className="opacity-50">{q.topic}{q.difficulty ? ` · ${q.difficulty}` : ""}</span>
           </li>
         ))}
       </ul>
