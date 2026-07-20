@@ -194,4 +194,11 @@ public class QuestionService {
 
         return questionRepository.save(question);
     }
+
+    public void deleteQuestion(Long id) {
+        if (!questionRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Question not found");
+        }
+        questionRepository.deleteById(id);
+    }
 }

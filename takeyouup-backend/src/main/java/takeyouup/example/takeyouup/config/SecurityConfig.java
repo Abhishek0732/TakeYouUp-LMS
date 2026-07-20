@@ -48,6 +48,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/certificates/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/users/update-name").authenticated()
 
+                        // --- Admin-only user management (listing exposes accounts) ---
+                        .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+
                         // --- All other content mutations are ADMIN-only ---
                         .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")

@@ -31,4 +31,18 @@ public class DifficultyService {
 
         return difficultyRepository.findAll();
     }
+
+    public Difficulty updateDifficulty(Long id, String level) {
+        Difficulty difficulty = difficultyRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Difficulty not found"));
+        difficulty.setLevel(level);
+        return difficultyRepository.save(difficulty);
+    }
+
+    public void deleteDifficulty(Long id) {
+        if (!difficultyRepository.existsById(id)) {
+            throw new RuntimeException("Difficulty not found");
+        }
+        difficultyRepository.deleteById(id);
+    }
 }

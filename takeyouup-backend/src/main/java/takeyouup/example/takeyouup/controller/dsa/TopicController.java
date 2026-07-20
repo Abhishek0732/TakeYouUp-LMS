@@ -35,4 +35,9 @@ public class TopicController {
 
         return topicService.updateTopic(id, body.get("name"));
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteTopic(@PathVariable Long id) {
+        topicService.deleteTopic(id);
+    }
 }

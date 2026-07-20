@@ -91,4 +91,9 @@ public class QuestionController {
 
         return questionService.updateQuestion(id, request);
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteQuestion(@PathVariable Long id) {
+        questionService.deleteQuestion(id);
+    }
 }

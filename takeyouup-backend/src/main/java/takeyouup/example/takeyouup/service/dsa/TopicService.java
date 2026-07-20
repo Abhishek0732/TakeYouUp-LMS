@@ -41,4 +41,11 @@ public class TopicService {
 
         return topicRepository.save(topic);
     }
+
+    public void deleteTopic(Long id) {
+        if (!topicRepository.existsById(id)) {
+            throw new RuntimeException("Topic not found");
+        }
+        topicRepository.deleteById(id);
+    }
 }
