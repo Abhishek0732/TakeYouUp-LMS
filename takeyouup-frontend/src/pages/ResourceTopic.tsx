@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, CheckCircle2, RotateCcw, XCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Lock, RotateCcw, XCircle } from "lucide-react";
 import { getTopic } from "@/api/resources";
 import { useProgress } from "@/context/ProgressContext";
 import { useAuth } from "@/context/AuthContext";
@@ -274,5 +274,47 @@ const ResourceTopic = () => {
     </div>
   );
 };
+
+/**
+ * Shown to visitors who open a topic. Browsing the catalogue is public; the
+ * practice questions are not, so explain that and send them to sign in with a
+ * return path rather than silently bouncing them to the login screen.
+ */
+function SignInGate({ categorySlug, topicSlug }: { categorySlug?: string; topicSlug?: string }) {
+  const target = `/resources/${categorySlug}/${topicSlug}`;
+
+  return (
+    <div className="mx-auto flex min-h-[70vh] max-w-xl flex-col items-center justify-center px-4 text-center">
+      <div className="rounded-2xl p-4" style={{ background: "rgba(255,77,28,0.12)" }}>
+        <Lock className="h-7 w-7" style={{ color: "#ff4d1c" }} />
+      </div>
+
+      <h1 className="mt-6 text-2xl font-bold" style={{ fontFamily: "'Syne', sans-serif" }}>
+        Sign in to start practising
+      </h1>
+      <p className="mt-3 text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+        Browsing the resource hub is open to everyone. Answering questions — and having your
+        progress and scores saved — needs a free account.
+      </p>
+
+      <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+        <Link to="/login" state={{ from: { pathname: target } }} className="btn-orange"
+          style={{ borderRadius: 12, textDecoration: "none" }}>
+          Sign in <ArrowRight className="h-4 w-4" />
+        </Link>
+        <Link to="/signup" className="rounded-xl border px-5 py-3 text-sm font-semibold"
+          style={{ color: "hsl(var(--foreground))", textDecoration: "none" }}>
+          Create a free account
+        </Link>
+      </div>
+
+      <Link to={`/resources/${categorySlug}`}
+        className="mt-8 inline-flex items-center gap-2 text-sm font-semibold"
+        style={{ color: "#ff4d1c", textDecoration: "none" }}>
+        <ArrowLeft className="h-4 w-4" /> Back to topics
+      </Link>
+    </div>
+  );
+}
 
 export default ResourceTopic;
