@@ -20,7 +20,7 @@ const prefersReducedMotion = () =>
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 /**
- * Types out "Code. Compile. Succeed." on load.
+ * Types out "Code. Compile. Succeed." on load, full stops included.
  *
  * Every line keeps its box whether or not it has been typed yet, so the hero
  * never reflows as characters arrive — a headline that grows line by line would
@@ -37,7 +37,6 @@ const TypedHeadline = () => {
   const [typed, setTyped] = useState<number[]>(() =>
     prefersReducedMotion() ? LINES.map((l) => l.length) : LINES.map(() => 0)
   );
-  const [done, setDone] = useState(() => prefersReducedMotion());
 
   useEffect(() => {
     if (prefersReducedMotion()) return;
@@ -47,10 +46,7 @@ const TypedHeadline = () => {
     let timer: number;
 
     const step = () => {
-      if (line >= LINES.length) {
-        setDone(true);
-        return;
-      }
+      if (line >= LINES.length) return;   // every line fully typed
 
       char++;
       setTyped((prev) => {
@@ -71,32 +67,24 @@ const TypedHeadline = () => {
     return () => window.clearTimeout(timer);
   }, []);
 
-  const activeLine = typed.findIndex((count, i) => count < LINES[i].length);
-
   return (
     <span aria-hidden="true">
-      {LINES.map((line, i) => {
-        const isLast = i === LINES.length - 1;
-        const showCursor = done ? isLast : activeLine === i;
-
-        return (
-          <span
-            key={line}
-            style={{
-              display: "block",
-              // Reserve the full line box up front — this is what stops the
-              // page jumping as each line appears.
-              minHeight: "1.04em",
-              whiteSpace: "pre",
-            }}
-          >
-            <span style={isLast ? GRADIENT : undefined}>
-              {line.slice(0, typed[i])}
-            </span>
-            {showCursor && <span className="type-caret" />}
+      {LINES.map((line, i) => (
+        <span
+          key={line}
+          style={{
+            display: "block",
+            // Reserve the full line box up front — this is what stops the page
+            // jumping as each line appears.
+            minHeight: "1.04em",
+            whiteSpace: "pre",
+          }}
+        >
+          <span style={i === LINES.length - 1 ? GRADIENT : undefined}>
+            {line.slice(0, typed[i])}
           </span>
-        );
-      })}
+        </span>
+      ))}
     </span>
   );
 };
