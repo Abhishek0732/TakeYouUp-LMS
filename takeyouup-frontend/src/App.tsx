@@ -109,9 +109,16 @@ const App = () => (
                     path="/resources/:categorySlug"
                     element={<ResourceCategory />}
                   />
+                  {/* Browsing categories and topics is public; the practice
+                      questions need an account, gated like every other
+                      protected page so visitors land on the real login form. */}
                   <Route
                     path="/resources/:categorySlug/:topicSlug"
-                    element={<ResourceTopic />}
+                    element={
+                      <ProtectedRoute>
+                        <ResourceTopic />
+                      </ProtectedRoute>
+                    }
                   />
                   <Route path="/online-compiler" element={<CodeEditor />} />
                   <Route
