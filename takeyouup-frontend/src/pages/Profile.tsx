@@ -73,8 +73,10 @@ const Profile = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
         <StatGrid me={me} loading={isLoading} />
 
-        {/* Tabs */}
-        <div className="flex gap-1 overflow-x-auto mb-6" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
+        {/* Tabs — the underline lives on the wrapper so the scrolling row
+            itself has nothing to overflow vertically. */}
+        <div className="mb-6" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
+        <div className="flex gap-1 scroll-x">
           {tabs.map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className="flex items-center gap-2 whitespace-nowrap px-4 py-3 text-sm"
@@ -88,6 +90,7 @@ const Profile = () => {
               <t.icon className="h-4 w-4" /> {t.label}
             </button>
           ))}
+        </div>
         </div>
 
         {isLoading && <Loading />}

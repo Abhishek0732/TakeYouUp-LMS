@@ -333,3 +333,17 @@
   border: 1px solid rgba(255,184,0,0.25);
   color: #f59e0b;
 }
+
+/* Horizontally scrollable strip (tab bars, chip rows).
+   Setting overflow-x alone makes the browser compute overflow-y as `auto`,
+   which surfaces a stray vertical scrollbar for even 1px of overflow — so
+   pin overflow-y explicitly and keep the horizontal bar out of the layout. */
+.scroll-x {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* legacy Edge */
+}
+.scroll-x::-webkit-scrollbar {
+  display: none;                  /* Chrome, Safari */
+}
