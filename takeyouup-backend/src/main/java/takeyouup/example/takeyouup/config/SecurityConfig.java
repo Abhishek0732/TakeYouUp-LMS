@@ -1,9 +1,12 @@
 package takeyouup.example.takeyouup.config;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -13,6 +16,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 
 @Configuration
 @RequiredArgsConstructor
@@ -59,12 +66,34 @@ public class SecurityConfig {
                         // --- Everything else (reads) just needs authentication ---
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(ex -> ex
+                        // 401 = "your token is missing or expired" — the client
+                        // refreshes and retries. 403 = "you are signed in but not
+                        // allowed", which no refresh can fix.
+                        .authenticationEntryPoint((req, res, e) ->
+                                writeError(res, HttpServletResponse.SC_UNAUTHORIZED,
+                                        "Unauthorized", "Authentication required or token expired", req))
+                        .accessDeniedHandler((req, res, e) ->
+                                writeError(res, HttpServletResponse.SC_FORBIDDEN,
+                                        "Forbidden", "You do not have permission to perform this action", req))
+                )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /** Same JSON shape GlobalExceptionHandler uses, so clients parse one format. */
+    private static void writeError(HttpServletResponse response, int status, String error,
+                                   String message, HttpServletRequest request) throws IOException {
+        response.setStatus(status);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.getWriter().write(String.format(
+                "{\"timestamp\":\"%s\",\"status\":%d,\"error\":\"%s\",\"message\":\"%s\",\"path\":\"%s\"}",
+                Instant.now(), status, error, message, request.getRequestURI()));
     }
 
     @Bean

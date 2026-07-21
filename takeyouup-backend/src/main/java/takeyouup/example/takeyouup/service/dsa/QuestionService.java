@@ -5,8 +5,11 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import takeyouup.example.takeyouup.dto.dsa.QuestionDTO;
 import takeyouup.example.takeyouup.dto.dsa.QuestionRequest;
+import takeyouup.example.takeyouup.dto.dsa.QuestionProgressResponse;
 import takeyouup.example.takeyouup.dto.dsa.QuestionResponse;
 import takeyouup.example.takeyouup.exception.ResourceNotFoundException;
+import takeyouup.example.takeyouup.model.User;
+import takeyouup.example.takeyouup.service.UserService;
 import takeyouup.example.takeyouup.model.dsa.Difficulty;
 import takeyouup.example.takeyouup.model.dsa.Platform;
 import takeyouup.example.takeyouup.model.dsa.Question;
@@ -17,7 +20,11 @@ import takeyouup.example.takeyouup.repository.dsa.QuestionRepository;
 import takeyouup.example.takeyouup.repository.dsa.TopicRepository;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +34,70 @@ public class QuestionService {
     private final TopicRepository topicRepository;
     private final PlatformRepository platformRepository;
     private final DifficultyRepository difficultyRepository;
+    private final UserService userService;
+
+    /** Canonical ordering so clients always render Easy → Medium → Hard. */
+    private static final List<String> DIFFICULTY_ORDER = List.of("easy", "medium", "hard");
+
+    private static int difficultyRank(String level) {
+        int index = DIFFICULTY_ORDER.indexOf(level.toLowerCase());
+        // Anything the catalogue adds later sorts after the three known levels.
+        return index == -1 ? DIFFICULTY_ORDER.size() : index;
+    }
+
+    /**
+     * Difficulty breakdown for the current topic/search filter, used by the
+     * summary cards on the problems page. Returned as a level -> count map with
+     * every level the catalogue knows about, so a bucket with no matches shows
+     * a real zero instead of disappearing.
+     */
+    public Map<String, Long> countByDifficulty(String topic, String search) {
+        String topicFilter = (topic == null || topic.isBlank()) ? null : topic;
+        String searchFilter = (search == null || search.isBlank()) ? null : search;
+
+        Map<String, Long> counts = new LinkedHashMap<>();
+        difficultyRepository.findAll().stream()
+                .map(Difficulty::getLevel)
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparingInt(QuestionService::difficultyRank).thenComparing(l -> l))
+                .forEach(level -> counts.put(level, 0L));
+        for (Object[] row : questionRepository.countByDifficulty(topicFilter, searchFilter)) {
+            if (row[0] != null) {
+                counts.put((String) row[0], ((Number) row[1]).longValue());
+            }
+        }
+        return counts;
+    }
+
+    /**
+     * Solved-vs-total breakdown for the signed-in user. Two grouped queries, no
+     * per-question round trips, so it stays flat as the catalogue grows.
+     */
+    public QuestionProgressResponse getProgressForCurrentUser() {
+        User user = userService.getCurrentUser();
+
+        Map<String, Long> totals = countByDifficulty(null, null);
+        Map<String, Long> solvedByLevel = new LinkedHashMap<>();
+        for (Object[] row : questionRepository.countSolvedByDifficulty(user.getId())) {
+            if (row[0] != null) {
+                solvedByLevel.put((String) row[0], ((Number) row[1]).longValue());
+            }
+        }
+
+        Map<String, QuestionProgressResponse.Bucket> buckets = new LinkedHashMap<>();
+        long total = 0;
+        long solved = 0;
+        for (Map.Entry<String, Long> entry : totals.entrySet()) {
+            long levelTotal = entry.getValue();
+            long levelSolved = Math.min(solvedByLevel.getOrDefault(entry.getKey(), 0L), levelTotal);
+            buckets.put(entry.getKey(), new QuestionProgressResponse.Bucket(levelTotal, levelSolved));
+            total += levelTotal;
+            solved += levelSolved;
+        }
+
+        int percent = total == 0 ? 0 : (int) Math.round((solved * 100.0) / total);
+        return new QuestionProgressResponse(total, solved, percent, buckets);
+    }
 
     public Page<QuestionResponse> getQuestions(
             int page,
