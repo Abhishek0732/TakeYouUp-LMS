@@ -16,6 +16,7 @@ import CourseCover from "@/components/CourseCover";
 import ContinueLearning from "@/components/home/ContinueLearning";
 import Faq from "@/components/home/Faq";
 import { CardGridSkeleton } from "@/components/Skeletons";
+import { useResume } from "@/hooks/useResume";
 import { useEffect, useRef } from "react";
 
 const Home = () => {
@@ -108,6 +109,8 @@ const Home = () => {
     },
   ];
 
+  const { hasProgress, target: resumeTarget } = useResume();
+
   const { courses, loading, error } = useCourses();
   const courseList = Array.isArray(courses) ? courses : [];
   // Only fall back to the sample cards if the API actually failed. Showing
@@ -125,8 +128,6 @@ const Home = () => {
 
   return (
     <div ref={revealRef}>
-      <ContinueLearning />
-
       {/* ═══════════════════ HERO ═══════════════════ */}
       <section
         className="relative min-h-screen flex items-center overflow-hidden noise-overlay"
@@ -235,8 +236,8 @@ const Home = () => {
                 className="animate-fade-up anim-d3 flex gap-3 flex-wrap"
                 style={{ marginBottom: "3rem" }}
               >
-                <Link to="/courses" className="btn-orange">
-                  Explore Courses{" "}
+                <Link to={hasProgress ? resumeTarget : "/courses"} className="btn-orange">
+                  {hasProgress ? "Continue learning" : "Explore Courses"}{" "}
                   <ArrowRight style={{ width: 16, height: 16 }} />
                 </Link>
                 <Link
@@ -782,6 +783,7 @@ const Home = () => {
       </section>
 
       <Faq />
+      <ContinueLearning />
 
       {/* ═══════════════════ CTA ═══════════════════ */}
       <section
