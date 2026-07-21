@@ -54,6 +54,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/progress/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/certificates/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/users/update-name").authenticated()
+                        // Changing your own password is a PUT, so it must be
+                        // allowed before the blanket admin-only PUT rule below.
+                        .requestMatchers(HttpMethod.PUT, "/api/users/me/password").authenticated()
 
                         // --- Admin-only user management (listing exposes accounts) ---
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")

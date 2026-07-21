@@ -7,6 +7,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import takeyouup.example.takeyouup.enums.Role;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -36,6 +37,17 @@ public class User implements UserDetails {
 
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified;
+
+    /** Drives "Member since" on the profile. Stamped on first persist. */
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    void stampCreatedAt() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

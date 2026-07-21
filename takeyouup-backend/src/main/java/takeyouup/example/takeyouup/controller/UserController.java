@@ -5,10 +5,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import takeyouup.example.takeyouup.dto.ChangePasswordRequest;
+import takeyouup.example.takeyouup.dto.MeResponse;
 import takeyouup.example.takeyouup.dto.UpdateNameRequest;
 import takeyouup.example.takeyouup.dto.UpdateRoleRequest;
 import takeyouup.example.takeyouup.dto.UserSummaryResponse;
 import takeyouup.example.takeyouup.model.User;
+import takeyouup.example.takeyouup.service.ProfileService;
 import takeyouup.example.takeyouup.service.UserService;
 
 import java.util.List;
@@ -20,11 +23,28 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final ProfileService profileService;
 
     /** Admin-only listing (never exposes password hashes). */
     @GetMapping
     public List<UserSummaryResponse> getAllUsers() {
         return userService.getAllUsers().stream().map(this::toSummary).toList();
+    }
+
+    /** Profile page payload: identity, headline stats and course progress. */
+    @GetMapping("/me")
+    public MeResponse me() {
+        return profileService.getCurrentUserProfile();
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<?> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request,
+            Authentication authentication) {
+
+        userService.changePassword(
+                authentication.getName(), request.getCurrentPassword(), request.getNewPassword());
+        return ResponseEntity.ok(java.util.Map.of("message", "Password updated."));
     }
 
     @PutMapping("/update-name")
