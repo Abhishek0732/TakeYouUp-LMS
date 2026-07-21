@@ -17,6 +17,7 @@ import ContinueLearning from "@/components/home/ContinueLearning";
 import Faq from "@/components/home/Faq";
 import { CardGridSkeleton } from "@/components/Skeletons";
 import { useResume } from "@/hooks/useResume";
+import TypedHeadline from "@/components/home/TypedHeadline";
 import { useEffect, useRef } from "react";
 
 const Home = () => {
@@ -188,6 +189,7 @@ const Home = () => {
 
               {/* Headline */}
               <h1
+                aria-label="Code. Compile. Succeed."
                 className="animate-fade-up anim-d1"
                 style={{
                   fontFamily: "'Syne', sans-serif",
@@ -199,21 +201,7 @@ const Home = () => {
                   marginBottom: "1.5rem",
                 }}
               >
-                Code.
-                <br />
-                Compile.
-                <br />
-                <span
-                  style={{
-                    background:
-                      "linear-gradient(135deg, #ff4d1c 0%, #ffb800 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                >
-                  Succeed.
-                </span>
+                <TypedHeadline />
               </h1>
 
               {/* Sub */}

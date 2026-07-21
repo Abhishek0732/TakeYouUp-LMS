@@ -401,3 +401,25 @@
   border-radius: 999px;
 }
 .scroll-y::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.5); }
+
+/* Blinking caret for the typed hero headline. Inline-block with a fixed width
+   so it never nudges the text it follows. */
+.type-caret {
+  display: inline-block;
+  width: 0.06em;
+  min-width: 3px;
+  height: 0.82em;
+  margin-left: 0.06em;
+  vertical-align: baseline;
+  background: #ff4d1c;
+  animation: caret-blink 1s step-end infinite;
+}
+
+@keyframes caret-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .type-caret { animation: none; }
+}
