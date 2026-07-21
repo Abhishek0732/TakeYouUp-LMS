@@ -339,16 +339,14 @@ const InterviewPrepDetail = () => {
                   {course.modules.reduce((acc: number, m: any) => acc + m.lessons.length, 0)} topics
                 </p>
               </div>
-              {/* maxHeight, not height: the panel sizes to its list and only
-                      starts scrolling once the lessons outgrow the viewport. A fixed
-                      height left a tall empty gap under short courses. */}
-                  <ScrollArea style={{ maxHeight: "calc(100vh - 260px)" }}>
+              {/* max-height + overflow-y: shrinks to a short list, scrolls a long one. */}
+              <div className="scroll-y" style={{ maxHeight: "calc(100vh - 260px)" }}>
                 <div style={{ padding: "0 12px 16px" }}>
                   {course.modules.map((module: any, mIdx: number) => (
                     <div key={mIdx} style={{ marginBottom: 8 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: "hsl(var(--muted))", borderRadius: 8, marginBottom: 4 }}>
                         <FileText style={{ width: 13, height: 13, color: "#ff4d1c", flexShrink: 0 }} />
-                        <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 12 }}>{module.title}</span>
+                        <span title={module.title} style={{ fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 12, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{module.title}</span>
                       </div>
                       {module.lessons.map((lesson: any, lIdx: number) => {
                         const isActive = selectedLesson.moduleIndex === mIdx && selectedLesson.lessonIndex === lIdx;
@@ -357,19 +355,20 @@ const InterviewPrepDetail = () => {
                             style={{
                               width: "100%", textAlign: "left", padding: "8px 10px", borderRadius: 8, border: "none", cursor: "pointer",
                               display: "flex", alignItems: "center", gap: 6, fontSize: 12, transition: "all 0.15s",
+                              overflow: "hidden",
                               fontFamily: "'DM Sans', sans-serif", marginBottom: 2,
                               background: isActive ? "#ff4d1c" : "transparent",
                               color: isActive ? "white" : "hsl(var(--muted-foreground))",
                             }}>
                             <ChevronRight style={{ width: 11, height: 11, flexShrink: 0, transform: isActive ? "rotate(90deg)" : "none", transition: "transform 0.15s" }} />
-                            <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lesson.title}</span>
+                            <span title={lesson.title} style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lesson.title}</span>
                           </button>
                         );
                       })}
                     </div>
                   ))}
                 </div>
-              </ScrollArea>
+              </div>
             </div>
           </div>
 

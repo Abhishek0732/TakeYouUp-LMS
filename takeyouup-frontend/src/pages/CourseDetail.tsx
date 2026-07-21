@@ -1,6 +1,5 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, CheckCircle2, FileText, ChevronRight, BrainCircuit, Clock, Users, Star } from "lucide-react";
@@ -142,16 +141,16 @@ const CourseDetail = () => {
                       {course.modules.reduce((acc: number, m: any) => acc + m.lessons.length, 0)} lessons
                     </p>
                   </div>
-                  {/* maxHeight, not height: the panel sizes to its list and only
-                      starts scrolling once the lessons outgrow the viewport. A fixed
-                      height left a tall empty gap under short courses. */}
-                  <ScrollArea style={{ maxHeight: "calc(100vh - 260px)" }}>
+                  {/* max-height + overflow-y: shrinks to a short list, scrolls a
+                      long one. (Radix ScrollArea clipped instead of scrolling here,
+                      because its viewport is height:100% inside an auto-height root.) */}
+                  <div className="scroll-y" style={{ maxHeight: "calc(100vh - 260px)" }}>
                     <div style={{ padding: "0 12px 16px" }}>
                       {course.modules.map((module: any, mIdx: number) => (
                         <div key={mIdx} style={{ marginBottom: 8 }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: "hsl(var(--muted))", borderRadius: 8, marginBottom: 4 }}>
                             <FileText style={{ width: 13, height: 13, color: "#ff4d1c", flexShrink: 0 }} />
-                            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 12 }}>{module.title}</span>
+                            <span title={module.title} style={{ fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 12, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{module.title}</span>
                           </div>
                           {module.lessons.map((lesson: any, lIdx: number) => {
                             const isActive = selectedLesson.moduleIndex === mIdx && selectedLesson.lessonIndex === lIdx;
@@ -161,13 +160,14 @@ const CourseDetail = () => {
                                 style={{
                                   width: "100%", textAlign: "left", padding: "8px 10px", borderRadius: 8, border: "none", cursor: "pointer",
                                   display: "flex", alignItems: "center", gap: 6, fontSize: 12, transition: "all 0.15s",
+                                  overflow: "hidden",
                                   fontFamily: "'DM Sans', sans-serif",
                                   background: isActive ? "#ff4d1c" : "transparent",
                                   color: isActive ? "white" : "hsl(var(--muted-foreground))",
                                   marginBottom: 2,
                                 }}>
                                 <ChevronRight style={{ width: 11, height: 11, flexShrink: 0, transform: isActive ? "rotate(90deg)" : "none", transition: "transform 0.15s" }} />
-                                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lesson.title}</span>
+                                <span title={lesson.title} style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lesson.title}</span>
                                 {isDone && <CheckCircle2 style={{ width: 12, height: 12, color: isActive ? "white" : "#22c55e", flexShrink: 0 }} />}
                               </button>
                             );
@@ -175,7 +175,7 @@ const CourseDetail = () => {
                         </div>
                       ))}
                     </div>
-                  </ScrollArea>
+                  </div>
                 </div>
               </div>
 

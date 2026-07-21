@@ -382,3 +382,22 @@
 @media (prefers-reduced-motion: reduce) {
   .skeleton::after { animation: none; }
 }
+
+/* Vertically scrollable panel that still shrinks to short content.
+   A plain block with max-height + overflow-y does this correctly; Radix
+   ScrollArea does not, because its viewport is height:100% and an auto-height
+   root makes that resolve to auto — the content then overflows the root and is
+   silently clipped with no scrollbar. */
+.scroll-y {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+.scroll-y::-webkit-scrollbar { width: 8px; }
+.scroll-y::-webkit-scrollbar-track { background: transparent; }
+.scroll-y::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 999px;
+}
+.scroll-y::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.5); }
