@@ -15,7 +15,19 @@ public record QuestionProgressResponse(
         long total,
         long solved,
         int percent,
-        Map<String, Bucket> byDifficulty
+        Map<String, Bucket> byDifficulty,
+        Streak streak
 ) {
     public record Bucket(long total, long solved) {}
+
+    /**
+     * Daily solving streak.
+     *
+     * @param current    consecutive days up to today (or yesterday, so the
+     *                   streak survives until the day is actually missed)
+     * @param longest    best run ever recorded
+     * @param solvedToday whether anything was solved today
+     * @param lastDays   most recent 14 days, oldest first, true = active
+     */
+    public record Streak(int current, int longest, boolean solvedToday, java.util.List<Boolean> lastDays) {}
 }

@@ -63,11 +63,20 @@ export const fetchQuestionStats = async ({ topic, search }: { topic?: string; se
   return (data || {}) as Record<string, number>;
 };
 
+export interface QuestionStreak {
+  current: number;
+  longest: number;
+  solvedToday: boolean;
+  /** Last 14 days, oldest first — true means at least one solve that day. */
+  lastDays: boolean[];
+}
+
 export interface QuestionProgress {
   total: number;
   solved: number;
   percent: number;
   byDifficulty: Record<string, { total: number; solved: number }>;
+  streak: QuestionStreak;
 }
 
 /** How many problems the signed-in user has marked solved, overall and per level. */

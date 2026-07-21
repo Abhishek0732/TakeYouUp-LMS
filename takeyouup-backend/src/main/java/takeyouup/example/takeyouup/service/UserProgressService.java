@@ -13,6 +13,7 @@ import takeyouup.example.takeyouup.repository.CourseRepository;
 import takeyouup.example.takeyouup.repository.LessonRepository;
 import takeyouup.example.takeyouup.repository.UserProgressRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -85,6 +86,10 @@ public class UserProgressService {
                     .completed(true)
                     .build();
         }
+
+        // Stamp the moment it was completed; clearing it on un-complete keeps a
+        // toggled-off item from propping up the streak.
+        progress.setCompletedAt(progress.isCompleted() ? LocalDateTime.now() : null);
 
         UserProgress saved = progressRepository.save(progress);
 

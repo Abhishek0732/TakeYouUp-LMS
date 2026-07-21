@@ -16,6 +16,7 @@ import {
   Target,
   CheckCircle2,
   Circle,
+  Check,
 } from "lucide-react";
 import leetcodeLogo from "@/assets/leetcode-logo.png";
 import gfgLogo from "@/assets/gfg-logo.png";
@@ -24,9 +25,9 @@ import {
   fetchQuestions,
   fetchTopics,
   fetchDifficulties,
-  fetchQuestionStats,
   fetchQuestionProgress,
   type QuestionProgress,
+  type QuestionStreak,
 } from "@/services/questionService";
 import { useProgress } from "@/context/ProgressContext";
 
@@ -162,16 +163,6 @@ const CodingQuestions = () => {
   const topics: Topic[] = topicsData ?? [];
   const difficulties: Difficulty[] = difficultiesData ?? FALLBACK_DIFFICULTIES;
 
-  // Counts across the whole filtered set — the page only holds 10 rows, so
-  // counting `questions` here would just report the current page.
-  const { data: statsData } = useQuery({
-    queryKey: ["questionStats", selectedTopic === "All" ? null : selectedTopic, searchQuery],
-    queryFn: () => fetchQuestionStats({
-      topic: selectedTopic === "All" ? undefined : selectedTopic,
-      search: searchQuery,
-    }),
-  });
-
   const { data: progress } = useQuery({
     queryKey: ["questionProgress"],
     queryFn: fetchQuestionProgress,
@@ -184,8 +175,6 @@ const CodingQuestions = () => {
   const handleFilterChange = useCallback((setter: () => void) => {
     setter(); setCurrentPage(1);
   }, []);
-
-  const counts = statsData ?? {};
 
   // ---- solved tracking ----
   const queryClient = useQueryClient();
@@ -367,28 +356,6 @@ const CodingQuestions = () => {
 
         {/* Your progress */}
         <ProgressTracker progress={progress} />
-
-        {/* Difficulty stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3" style={{ gap: 12, marginBottom: 20 }}>
-          {difficulties.map((d) => (
-            <div
-              key={d}
-              style={{
-                background: "hsl(var(--card))", border: "1px solid hsl(var(--border))",
-                borderRadius: 12, padding: "10px 16px",
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-              }}
-            >
-              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(var(--muted-foreground))" }}>{d}</span>
-              <span
-                className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${difficultyClass(d)}`}
-                style={{ fontFamily: "'DM Mono', monospace" }}
-              >
-                {counts[d] ?? 0}
-              </span>
-            </div>
-          ))}
-        </div>
 
         {/* Filters card */}
         <div
@@ -630,70 +597,164 @@ const CodingQuestions = () => {
 };
 
 /* ═══════════════ progress tracker ═══════════════ */
+
+/** Segment of the ring: one arc per difficulty, sized by that level's share. */
+interface Segment { level: string; total: number; solved: number; color: string; }
+
 function ProgressTracker({ progress }: { progress?: QuestionProgress }) {
   if (!progress || progress.total === 0) return null;
 
-  const { solved, total, percent, byDifficulty } = progress;
-  const levels = Object.entries(byDifficulty || {});
+  const { solved, total, byDifficulty, streak } = progress;
+  const segments: Segment[] = Object.entries(byDifficulty || {}).map(([level, b]) => ({
+    level, total: b.total, solved: b.solved, color: difficultyAccent(level),
+  }));
 
   return (
-    <div
-      style={{
-        background: "hsl(var(--card))", border: "1px solid hsl(var(--border))",
-        borderRadius: 16, padding: "18px 20px", marginBottom: 20,
-      }}
-    >
-      <div className="flex flex-wrap items-end justify-between gap-3 mb-3">
-        <div>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#ff4d1c", marginBottom: 4 }}>
-            Your progress
-          </div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "1.35rem" }}>
-            {solved} <span style={{ color: "hsl(var(--muted-foreground))", fontWeight: 500 }}>of {total} solved</span>
-          </div>
-        </div>
-        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 22, fontWeight: 500, color: percent === 100 ? "#22c55e" : "#ff4d1c" }}>
-          {percent}%
-        </div>
-      </div>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3" style={{ marginBottom: 20 }}>
+      {/* Ring + per-difficulty breakdown */}
+      <div className="lg:col-span-2 flex flex-wrap items-center gap-6"
+        style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 16, padding: "20px 24px" }}>
+        <ProgressRing segments={segments} solved={solved} total={total} />
 
-      {/* overall bar */}
-      <div style={{ height: 8, borderRadius: 999, background: "hsl(var(--muted))", overflow: "hidden", marginBottom: 14 }}>
-        <div
-          style={{
-            width: `${percent}%`, height: "100%", borderRadius: 999,
-            background: "linear-gradient(90deg, #ff4d1c, #ffb800)",
-            transition: "width 0.35s ease",
-          }}
-        />
-      </div>
-
-      {/* per-difficulty bars */}
-      <div className="grid grid-cols-1 sm:grid-cols-3" style={{ gap: 12 }}>
-        {levels.map(([level, bucket]) => {
-          const pct = bucket.total === 0 ? 0 : Math.round((bucket.solved / bucket.total) * 100);
-          const accent = difficultyAccent(level);
-          return (
-            <div key={level}>
-              <div className="flex items-center justify-between mb-1.5">
-                <span style={{ fontSize: 12, color: "hsl(var(--muted-foreground))", fontFamily: "'DM Sans', sans-serif" }}>{level}</span>
-                <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: accent }}>
-                  {bucket.solved}/{bucket.total}
-                </span>
+        <div className="flex-1 grid gap-2" style={{ minWidth: 190 }}>
+          {segments.map((s) => (
+            <div key={s.level}
+              style={{
+                background: "hsl(var(--muted))", borderRadius: 10, padding: "8px 14px",
+                borderLeft: `3px solid ${s.color}`,
+              }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: s.color, fontFamily: "'DM Sans', sans-serif" }}>
+                {s.level}
               </div>
-              <div style={{ height: 5, borderRadius: 999, background: "hsl(var(--muted))", overflow: "hidden" }}>
-                <div style={{ width: `${pct}%`, height: "100%", borderRadius: 999, background: accent, transition: "width 0.35s ease" }} />
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 14 }}>
+                {s.solved}<span style={{ color: "hsl(var(--muted-foreground))" }}>/{s.total}</span>
               </div>
             </div>
-          );
-        })}
+          ))}
+        </div>
       </div>
 
-      {solved === 0 && (
-        <p style={{ marginTop: 12, fontSize: 12, color: "hsl(var(--muted-foreground))", fontFamily: "'DM Sans', sans-serif" }}>
-          Mark a problem solved with the circle on the right of each row to start tracking.
-        </p>
-      )}
+      <StreakCard streak={streak} />
+    </div>
+  );
+}
+
+/**
+ * Donut where each difficulty owns a slice of the circumference proportional to
+ * how many problems it holds, and fills its slice by how many are solved — so
+ * the ring reads as overall progress and per-level progress at once.
+ */
+function ProgressRing({ segments, solved, total }: { segments: Segment[]; solved: number; total: number }) {
+  const size = 148;
+  const stroke = 11;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const gap = segments.length > 1 ? 5 : 0;   // breathing room between arcs
+  const usable = circumference - gap * segments.length;
+
+  let offset = 0;
+  const arcs = segments.map((s) => {
+    const share = total === 0 ? 0 : (s.total / total) * usable;
+    const filled = s.total === 0 ? 0 : (s.solved / s.total) * share;
+    const arc = { ...s, share, filled, offset };
+    offset += share + gap;
+    return arc;
+  });
+
+  return (
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+        {arcs.map((a) => (
+          <g key={a.level}>
+            {/* unsolved remainder */}
+            <circle
+              cx={size / 2} cy={size / 2} r={radius} fill="none"
+              stroke="hsl(var(--muted))" strokeWidth={stroke} strokeLinecap="round"
+              strokeDasharray={`${a.share} ${circumference - a.share}`}
+              strokeDashoffset={-a.offset}
+            />
+            {/* solved portion */}
+            {a.filled > 0 && (
+              <circle
+                cx={size / 2} cy={size / 2} r={radius} fill="none"
+                stroke={a.color} strokeWidth={stroke} strokeLinecap="round"
+                strokeDasharray={`${a.filled} ${circumference - a.filled}`}
+                strokeDashoffset={-a.offset}
+                style={{ transition: "stroke-dasharray 0.5s ease" }}
+              />
+            )}
+          </g>
+        ))}
+      </svg>
+
+      <div style={{
+        position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center", gap: 2,
+      }}>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 26, lineHeight: 1 }}>
+          {solved}
+          <span style={{ fontSize: 13, fontWeight: 500, color: "hsl(var(--muted-foreground))" }}>/{total}</span>
+        </div>
+        <div className="flex items-center gap-1" style={{ fontSize: 12, color: "#22c55e" }}>
+          <Check className="h-3 w-3" /> Solved
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Daily solving streak, with a strip of the last two weeks. */
+function StreakCard({ streak }: { streak?: QuestionStreak }) {
+  const current = streak?.current ?? 0;
+  const longest = streak?.longest ?? 0;
+  const days = streak?.lastDays ?? [];
+  const hot = current > 0;
+
+  return (
+    <div style={{
+      background: "hsl(var(--card))", border: "1px solid hsl(var(--border))",
+      borderRadius: 16, padding: "20px 24px",
+      display: "flex", flexDirection: "column", justifyContent: "center",
+    }}>
+      <div className="flex items-center gap-2 mb-3">
+        <Flame className="h-4 w-4" style={{ color: hot ? "#ff4d1c" : "hsl(var(--muted-foreground))" }} />
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "hsl(var(--muted-foreground))" }}>
+          Streak
+        </span>
+      </div>
+
+      <div className="flex items-baseline gap-2">
+        <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 30, lineHeight: 1, color: hot ? "#ff4d1c" : "hsl(var(--foreground))" }}>
+          {current}
+        </span>
+        <span style={{ fontSize: 13, color: "hsl(var(--muted-foreground))" }}>
+          {current === 1 ? "day" : "days"}
+        </span>
+      </div>
+
+      <p style={{ fontSize: 11, color: "hsl(var(--muted-foreground))", marginTop: 4 }}>
+        {streak?.solvedToday
+          ? "Solved today — keep it going."
+          : current > 0
+            ? "Solve one today to extend it."
+            : "Solve a problem to start a streak."}
+      </p>
+
+      {/* last 14 days */}
+      <div className="flex items-center gap-1 mt-4">
+        {days.map((active, i) => (
+          <div key={i} title={active ? "Active" : "No solves"}
+            style={{
+              flex: 1, height: 18, borderRadius: 4,
+              background: active ? "#ff4d1c" : "hsl(var(--muted))",
+              opacity: active ? 1 : 0.7,
+            }} />
+        ))}
+      </div>
+      <div className="flex items-center justify-between mt-2" style={{ fontSize: 10, color: "hsl(var(--muted-foreground))", fontFamily: "'DM Mono', monospace" }}>
+        <span>14 days ago</span>
+        <span>Best: {longest}</span>
+      </div>
     </div>
   );
 }

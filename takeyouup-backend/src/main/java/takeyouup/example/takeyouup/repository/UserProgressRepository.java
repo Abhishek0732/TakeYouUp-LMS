@@ -27,6 +27,20 @@ public interface UserProgressRepository extends JpaRepository<UserProgress, Long
     List<String> findCompletedItemIds(@Param("user") User user, @Param("itemType") String itemType);
 
     long countByUserAndItemTypeAndCompletedTrue(User user, String itemType);
+
+    /**
+     * Distinct days on which this user completed items of a type, newest first.
+     * One grouped read — the streak is then walked in memory over a handful of
+     * dates rather than over every progress row.
+     */
+    @Query(value = """
+        SELECT DISTINCT DATE_FORMAT(completed_at, '%Y-%m-%d')
+        FROM user_progress
+        WHERE user_id = :userId AND item_type = :itemType
+          AND completed = 1 AND completed_at IS NOT NULL
+        ORDER BY 1 DESC
+    """, nativeQuery = true)
+    List<String> findSolveDates(@Param("userId") Long userId, @Param("itemType") String itemType);
     Optional<UserProgress> findByUserAndItemTypeAndItemId(User user, String itemType, String itemId);
 
     /** Counts completed items for a user within a set of ids — used by course summaries. */
