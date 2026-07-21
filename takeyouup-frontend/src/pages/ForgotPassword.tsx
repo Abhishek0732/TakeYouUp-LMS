@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Mail, CheckCircle2 } from "lucide-react";
 import AuthCard, { authInputStyle } from "@/components/AuthCard";
 import { requestPasswordReset } from "@/api/auth";
+import { apiErrorMessage } from "@/api/errors";
 
 const ForgotPassword = () => {
   useEffect(() => { document.title = "Forgot password | TakeYouUp"; }, []);
@@ -20,7 +21,7 @@ const ForgotPassword = () => {
       await requestPasswordReset(email);
       setSent(true);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Something went wrong. Try again shortly.");
+      setError(apiErrorMessage(err, "Something went wrong. Try again shortly."));
     } finally {
       setLoading(false);
     }

@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Code2, Eye, EyeOff, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Code2, Eye, EyeOff, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { registerUser } from "@/api/auth";
+import { apiErrorMessage, fieldErrorsOf, FieldErrors } from "@/api/errors";
+
+/** Mirrors the server rule on RegisterRequest.password — keep the two in step. */
+const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+const PASSWORD_HINT = "Password must be at least 8 characters and include a letter and a number.";
 
 const Signup = () => {
   useEffect(() => {
@@ -14,13 +19,31 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+
+    // Check the server's password rules here too, so the reason is instant
+    // instead of arriving as a failed request.
+    const localErrors: FieldErrors = {};
+    if (!PASSWORD_RULE.test(formData.password)) {
+      localErrors.password = PASSWORD_HINT;
+    }
     if (formData.password !== formData.confirmPassword) {
-      toast({ title: "Passwords do not match", variant: "destructive" });
+      localErrors.confirmPassword = "The two passwords don't match.";
+    }
+    if (Object.keys(localErrors).length) {
+      setErrors(localErrors);
+      toast({
+        title: "Check the highlighted fields",
+        description: Object.values(localErrors).join(" "),
+        variant: "destructive",
+      });
       return;
     }
+
     try {
       setLoading(true);
       await registerUser(formData.name, formData.email, formData.password);
@@ -30,12 +53,12 @@ const Signup = () => {
       });
       navigate("/login");
     } catch (error: any) {
-      const data = error.response?.data;
-      // Bean-validation failures come back as { field: message } rather than { message }.
-      const detail = data?.message
-        || (data && typeof data === "object" ? (Object.values(data)[0] as string) : null)
-        || "Something went wrong";
-      toast({ title: "Signup Failed", description: detail, variant: "destructive" });
+      setErrors(fieldErrorsOf(error));
+      toast({
+        title: "Signup Failed",
+        description: apiErrorMessage(error),
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -54,6 +77,10 @@ const Signup = () => {
   const blurStyle = (e: React.FocusEvent<HTMLInputElement>) => {
     e.target.style.borderColor = "hsl(var(--border))"; e.target.style.boxShadow = "none";
   };
+
+  /** Clear a field's error as soon as the user starts fixing it. */
+  const clearError = (key: string) =>
+    setErrors((prev) => (prev[key] ? { ...prev, [key]: undefined as any } : prev));
 
   const perks = ["Access all courses instantly", "Community support included", "Track your progress"];
 
@@ -90,10 +117,12 @@ const Signup = () => {
           ].map(({ label, key, type, placeholder }) => (
             <div key={key}>
               <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>{label}</label>
-              <input type={type} placeholder={placeholder} style={inputStyle}
+              <input type={type} placeholder={placeholder}
+                style={errors[key] ? { ...inputStyle, borderColor: "#ef4444" } : inputStyle}
                 value={formData[key as keyof typeof formData]}
-                onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+                onChange={(e) => { setFormData({ ...formData, [key]: e.target.value }); clearError(key); }}
                 required onFocus={focusStyle} onBlur={blurStyle} />
+              <FieldError message={errors[key]} />
             </div>
           ))}
 
@@ -105,14 +134,20 @@ const Signup = () => {
               <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>{label}</label>
               <div className="relative">
                 <input type={show ? "text" : "password"} placeholder={placeholder}
-                  style={{ ...inputStyle, paddingRight: "44px" }}
+                  style={{ ...inputStyle, paddingRight: "44px", ...(errors[key] ? { borderColor: "#ef4444" } : {}) }}
                   value={formData[key as keyof typeof formData]}
-                  onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+                  onChange={(e) => { setFormData({ ...formData, [key]: e.target.value }); clearError(key); }}
                   required onFocus={focusStyle} onBlur={blurStyle} />
                 <button type="button" onClick={toggle} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-70" style={{ background: "none", border: "none", cursor: "pointer" }}>
                   {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              <FieldError message={errors[key]} />
+              {key === "password" && !errors[key] && (
+                <p className="mt-1.5 text-[11px]" style={{ color: "hsl(var(--muted-foreground))" }}>
+                  {PASSWORD_HINT}
+                </p>
+              )}
             </div>
           ))}
 
@@ -129,5 +164,14 @@ const Signup = () => {
     </div>
   );
 };
+
+/** Inline validation message shown under the offending input. */
+const FieldError = ({ message }: { message?: string }) =>
+  message ? (
+    <p className="mt-1.5 flex items-start gap-1.5 text-[11px]" style={{ color: "#ef4444" }}>
+      <AlertCircle className="h-3 w-3 flex-shrink-0" style={{ marginTop: 1 }} />
+      {message}
+    </p>
+  ) : null;
 
 export default Signup;

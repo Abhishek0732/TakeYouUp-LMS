@@ -3,6 +3,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Code2, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { loginUser } from "@/api/auth";
+import { apiErrorMessage } from "@/api/errors";
 import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
@@ -31,7 +32,7 @@ const Login = () => {
       toast({ title: "Login Successful", description: "Welcome to TakeYouUp!" });
       navigate(from, { replace: true });
     } catch (error: any) {
-      toast({ title: "Login Failed", description: error.response?.data?.message || "Something went wrong", variant: "destructive" });
+      toast({ title: "Login Failed", description: apiErrorMessage(error), variant: "destructive" });
     } finally {
       setLoading(false);
     }

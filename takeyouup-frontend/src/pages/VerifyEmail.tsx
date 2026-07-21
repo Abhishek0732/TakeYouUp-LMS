@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle2, XCircle, Loader2, ArrowRight, Mail } from "lucide-react";
 import AuthCard, { authInputStyle } from "@/components/AuthCard";
 import { verifyEmail, resendVerification } from "@/api/auth";
+import { apiErrorMessage } from "@/api/errors";
 
 type State = "checking" | "done" | "failed";
 
@@ -35,7 +36,7 @@ const VerifyEmail = () => {
       })
       .catch((err) => {
         setState("failed");
-        setMessage(err.response?.data?.message || "We couldn't verify this link.");
+        setMessage(apiErrorMessage(err, "We couldn't verify this link."));
       });
   }, [token]);
 
@@ -46,7 +47,7 @@ const VerifyEmail = () => {
       const res = await resendVerification(email);
       setResent(res.message || "Check your inbox for a fresh link.");
     } catch (err: any) {
-      setResent(err.response?.data?.message || "Could not send the email. Try again shortly.");
+      setResent(apiErrorMessage(err, "Could not send the email. Try again shortly."));
     } finally {
       setResending(false);
     }

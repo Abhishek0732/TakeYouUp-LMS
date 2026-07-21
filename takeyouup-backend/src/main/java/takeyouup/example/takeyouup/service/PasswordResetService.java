@@ -31,7 +31,9 @@ public class PasswordResetService {
     private static final int LINK_VALID_MINUTES = 60;
     /** Cap on reset emails per account per hour, so nobody's inbox can be flooded. */
     private static final int MAX_REQUESTS_PER_HOUR = 5;
-    private static final int MIN_PASSWORD_LENGTH = 8;
+    /** Mirrors RegisterRequest so a reset can't bypass the signup policy. */
+    private static final java.util.regex.Pattern PASSWORD_RULE =
+            java.util.regex.Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d).{8,}$");
 
     private final PasswordResetTokenRepository tokenRepository;
     private final UserRepository userRepository;
@@ -75,9 +77,9 @@ public class PasswordResetService {
 
     @Transactional
     public void resetPassword(String tokenValue, String newPassword) {
-        if (newPassword == null || newPassword.trim().length() < MIN_PASSWORD_LENGTH) {
+        if (newPassword == null || !PASSWORD_RULE.matcher(newPassword).matches()) {
             throw new IllegalArgumentException(
-                    "Password must be at least " + MIN_PASSWORD_LENGTH + " characters long");
+                    "Password must be at least 8 characters and include a letter and a number");
         }
 
         PasswordResetToken token = loadUsableToken(tokenValue);

@@ -3,8 +3,10 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Loader2, XCircle, CheckCircle2, ArrowRight } from "lucide-react";
 import AuthCard, { authInputStyle } from "@/components/AuthCard";
 import { resetPassword, validateResetToken } from "@/api/auth";
+import { apiErrorMessage } from "@/api/errors";
 
-const MIN_LENGTH = 8;
+const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+const PASSWORD_HINT = "At least 8 characters, including a letter and a number.";
 
 /** Landing page for the link in the reset email: /reset-password?token=… */
 const ResetPassword = () => {
@@ -31,15 +33,15 @@ const ResetPassword = () => {
     // Validating up front avoids letting someone type a new password into a
     // form that was never going to work.
     validateResetToken(token)
-      .catch((err) => setLinkError(err.response?.data?.message || "This reset link is no longer valid."))
+      .catch((err) => setLinkError(apiErrorMessage(err, "This reset link is no longer valid.")))
       .finally(() => setChecking(false));
   }, [token]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (password.length < MIN_LENGTH) {
-      setError(`Password must be at least ${MIN_LENGTH} characters long.`);
+    if (!PASSWORD_RULE.test(password)) {
+      setError(PASSWORD_HINT);
       return;
     }
     if (password !== confirm) {
@@ -52,7 +54,7 @@ const ResetPassword = () => {
       setDone(true);
       window.setTimeout(() => navigate("/login", { replace: true }), 2200);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Could not reset the password. Request a new link.");
+      setError(apiErrorMessage(err, "Could not reset the password. Request a new link."));
     } finally {
       setSaving(false);
     }
@@ -126,7 +128,7 @@ const ResetPassword = () => {
   );
 
   return (
-    <AuthCard title="Choose a new password" subtitle={`At least ${MIN_LENGTH} characters.`}>
+    <AuthCard title="Choose a new password" subtitle={PASSWORD_HINT}>
       <form onSubmit={submit} className="space-y-4">
         {field("New password", password, setPassword)}
         {field("Confirm password", confirm, setConfirm)}
