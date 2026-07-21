@@ -4,12 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import takeyouup.example.takeyouup.dto.dsa.QuestionDTO;
+import takeyouup.example.takeyouup.dto.dsa.QuestionProgressResponse;
 import takeyouup.example.takeyouup.dto.dsa.QuestionRequest;
 import takeyouup.example.takeyouup.dto.dsa.QuestionResponse;
 import takeyouup.example.takeyouup.model.dsa.Question;
 import takeyouup.example.takeyouup.service.dsa.QuestionService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/questions")
@@ -28,6 +30,21 @@ public class QuestionController {
             @RequestParam(required = false) String search
     ) {
         return questionService.getQuestions(page, size, topic, difficulty, search);
+    }
+
+    /** Difficulty breakdown for the whole filtered set, not just the page. */
+    @GetMapping("/stats")
+    public Map<String, Long> getStats(
+            @RequestParam(required = false) String topic,
+            @RequestParam(required = false) String search
+    ) {
+        return questionService.countByDifficulty(topic, search);
+    }
+
+    /** Solved-vs-total for the signed-in user, overall and per difficulty. */
+    @GetMapping("/progress")
+    public QuestionProgressResponse getProgress() {
+        return questionService.getProgressForCurrentUser();
     }
 
     // Filter by topic

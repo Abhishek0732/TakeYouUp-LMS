@@ -1,6 +1,8 @@
 package takeyouup.example.takeyouup.model;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 import lombok.*;
 
 @Entity
@@ -30,4 +32,8 @@ public class UserProgress {
 
     @Column(nullable = false)
     private boolean completed = false;
+
+    /** When it was last marked complete — drives the daily streak. */
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
 }

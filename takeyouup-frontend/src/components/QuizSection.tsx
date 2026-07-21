@@ -12,11 +12,18 @@ import {
 import { useState, useEffect } from "react";
 import api from "@/api/axios";
 import { Skeleton } from "@/components/ui/skeleton";
+import CodeBlock from "@/components/CodeBlock";
+import RichContent, { InlineMarkdown } from "@/components/RichContent";
 
 interface Question {
   question: string;
   options: string[];
   correct: number;
+  /** Optional code sample shown between the question and the options. */
+  codeSnippet?: string | null;
+  codeLanguage?: string | null;
+  /** Revealed once the learner picks an answer. */
+  explanation?: string | null;
 }
 
 interface QuizTopic {
@@ -284,10 +291,17 @@ const QuizSection = ({ courseId }: QuizSectionProps) => {
             <Card className="border-border">
               <CardHeader>
                 <CardTitle className="text-lg leading-relaxed">
-                  {question.question}
+                  <InlineMarkdown text={question.question} />
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
+                {question.codeSnippet?.trim() && (
+                  <CodeBlock
+                    code={question.codeSnippet}
+                    language={question.codeLanguage || "plaintext"}
+                    className="!mt-0"
+                  />
+                )}
                 {question.options.map((option, i) => {
                   const isSelected = selectedOption === i;
                   const isCorrect = i === question.correct;
@@ -319,7 +333,9 @@ const QuizSection = ({ courseId }: QuizSectionProps) => {
                       >
                         {String.fromCharCode(65 + i)}
                       </span>
-                      <span className="flex-1">{option}</span>
+                      <span className="flex-1">
+                        <InlineMarkdown text={option} />
+                      </span>
                       {showFeedback && isCorrect && (
                         <CheckCircle2 className="h-5 w-5 text-green-500" />
                       )}
@@ -329,6 +345,15 @@ const QuizSection = ({ courseId }: QuizSectionProps) => {
                     </button>
                   );
                 })}
+
+                {selectedOption !== null && question.explanation?.trim() && (
+                  <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-primary">
+                      Explanation
+                    </p>
+                    <RichContent text={question.explanation} compact />
+                  </div>
+                )}
               </CardContent>
             </Card>
 

@@ -13,6 +13,9 @@ public interface TopicConceptRepository extends JpaRepository<TopicConcept, UUID
 
     List<TopicConcept> findByTopicIdOrderBySortOrderAsc(UUID topicId);
 
+    /** Concepts for many topics at once — avoids a query per topic in listings. */
+    List<TopicConcept> findByTopicIdInOrderByTopicIdAscSortOrderAsc(List<UUID> topicIds);
+
 //    List<TopicConcept> findByCategoryIdOrderBySortOrderAsc(UUID categoryId);
 
     @Modifying

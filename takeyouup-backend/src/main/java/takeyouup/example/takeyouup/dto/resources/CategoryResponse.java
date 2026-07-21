@@ -17,7 +17,15 @@ public class CategoryResponse {
     private String description;
     private String heroText;
     private String accent;
-    private List<TopicResponse> topics;
+    /**
+     * Topic SUMMARIES — titles, concepts and question counts.
+     *
+     * Deliberately not TopicResponse: this endpoint is public, and TopicResponse
+     * carries every question with its correctAnswerIndex and explanation. The
+     * questions are served by the authenticated
+     * /api/resources/categories/{c}/topics/{t} endpoint instead.
+     */
+    private List<TopicSummaryResponse> topics;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

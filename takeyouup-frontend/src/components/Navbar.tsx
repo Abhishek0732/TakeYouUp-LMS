@@ -36,9 +36,10 @@ const Navbar = () => {
   const [resourceCategories, setResourceCategories] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!user) { setResourceCategories([]); return; }
+    // The catalogue is public, so the menu fills in for visitors too — it used
+    // to bail out when signed out, leaving the dropdown empty.
     getCategories().then(setResourceCategories).catch(() => setResourceCategories([]));
-  }, [user]);
+  }, []);
   const [scrolled, setScrolled] = useState(false);
   const [dropOpen, setDropOpen] = useState(false);
   const [resOpen, setResOpen] = useState(false);

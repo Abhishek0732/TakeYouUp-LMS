@@ -59,7 +59,7 @@ const InterviewPrep = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         {/* Filter */}
-        <div className="flex items-center gap-3 mb-10 overflow-x-auto pb-2 reveal in-view">
+        <div className="flex items-center gap-3 mb-10 scroll-x pb-2 reveal in-view">
           <Zap className="h-4 w-4 flex-shrink-0" style={{ color: "#ff4d1c" }} />
           <div className="flex gap-2 flex-shrink-0">
             {categories.map((cat) => (

@@ -1,5 +1,6 @@
 package takeyouup.example.takeyouup.config;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,7 +42,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         jwtToken = authHeader.substring(7);
 
-        username = jwtService.extractUsername(jwtToken);
+        try {
+            username = jwtService.extractUsername(jwtToken);
+        } catch (JwtException | IllegalArgumentException e) {
+            // Expired, malformed or badly signed token: stay anonymous and let
+            // the entry point answer 401, so the client can refresh and retry.
+            // Throwing here would surface as a 500 and break that flow.
+            logger.debug("Rejected JWT: " + e.getMessage());
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 

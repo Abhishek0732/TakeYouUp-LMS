@@ -333,3 +333,72 @@
   border: 1px solid rgba(255,184,0,0.25);
   color: #f59e0b;
 }
+
+/* Horizontally scrollable strip (tab bars, chip rows).
+   Setting overflow-x alone makes the browser compute overflow-y as `auto`,
+   which surfaces a stray vertical scrollbar for even 1px of overflow — so
+   pin overflow-y explicitly and keep the horizontal bar out of the layout. */
+.scroll-x {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* legacy Edge */
+}
+.scroll-x::-webkit-scrollbar {
+  display: none;                  /* Chrome, Safari */
+}
+
+/* ---------------------------------------------------------------------------
+   Skeleton shimmer — a gradient sweep instead of a spinner or "Loading…".
+   Placeholders keep the page's real layout, so nothing jumps when data lands.
+   --------------------------------------------------------------------------- */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: hsl(var(--muted));
+  border-radius: 8px;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--foreground) / 0.07) 45%,
+    hsl(var(--foreground) / 0.07) 55%,
+    transparent
+  );
+  animation: skeleton-sweep 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-sweep {
+  100% { transform: translateX(100%); }
+}
+
+/* Respect users who ask the OS for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after { animation: none; }
+}
+
+/* Vertically scrollable panel that still shrinks to short content.
+   A plain block with max-height + overflow-y does this correctly; Radix
+   ScrollArea does not, because its viewport is height:100% and an auto-height
+   root makes that resolve to auto — the content then overflows the root and is
+   silently clipped with no scrollbar. */
+.scroll-y {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+.scroll-y::-webkit-scrollbar { width: 8px; }
+.scroll-y::-webkit-scrollbar-track { background: transparent; }
+.scroll-y::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 999px;
+}
+.scroll-y::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.5); }
+

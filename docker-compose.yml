@@ -47,10 +47,15 @@ services:
       # Falls back to the bundled demo key when .env leaves GEMINI_API_KEY blank.
       GEMINI_API_KEY: ${GEMINI_API_KEY:-AIzaSyANL8sqF5bCHMB1nTiTTxhwXsmqf_3j910}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3-flash-preview}
-      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
-      MAIL_PORT: ${MAIL_PORT:-587}
+      # Mail defaults to the bundled Mailpit test inbox (open the UI to read
+      # every message the app sends). Set MAIL_HOST/MAIL_USERNAME/MAIL_PASSWORD
+      # in .env and real SMTP takes over automatically — auth and STARTTLS are
+      # switched on as soon as a username is present.
+      MAIL_HOST: ${MAIL_HOST:-mailpit}
+      MAIL_PORT: ${MAIL_PORT:-1025}
       MAIL_USERNAME: ${MAIL_USERNAME:-}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@takeyouup.local}
       # Relative dir — WebConfig resolves it under the working dir (/app),
       # matching the mounted volume at /app/uploads. Must NOT be absolute,
       # or WebConfig would build a doubled path (/app//app/uploads).
@@ -93,6 +98,22 @@ services:
       - db
     ports:
       - "${ADMINER_HOST_PORT:-8083}:8080"
+    networks:
+      - takeyouup
+
+  # Local test inbox: catches every email the app sends so verification and
+  # password-reset links can be opened without a real SMTP account.
+  # Web UI: http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: takeyouup-mailpit
+    restart: unless-stopped
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    ports:
+      - "${MAILPIT_UI_PORT:-8025}:8025"
     networks:
       - takeyouup
 

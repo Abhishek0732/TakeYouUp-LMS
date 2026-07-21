@@ -7,6 +7,8 @@ import takeyouup.example.takeyouup.model.dsa.Question;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     Page<Question> findByTopic_Name(String topic, Pageable pageable);
@@ -17,11 +19,17 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     Page<Question> findByTitleContainingIgnoreCase(String keyword, Pageable pageable);
 
+    /*
+     * No LOWER() anywhere on purpose. The schema is utf8mb4_0900_ai_ci, which
+     * already compares case-insensitively, so wrapping the columns in LOWER()
+     * bought nothing and made idx_topics_name / idx_difficulties_level unusable
+     * — every filtered page became a full scan of questions ⋈ topics.
+     */
     @Query("""
         SELECT q FROM Question q
-        WHERE (:topic IS NULL OR LOWER(q.topic.name) = LOWER(:topic))
-        AND (:difficulty IS NULL OR LOWER(q.difficulty.level) = LOWER(:difficulty))
-        AND (:search IS NULL OR LOWER(q.title) LIKE LOWER(CONCAT('%', :search, '%')))
+        WHERE (:topic IS NULL OR q.topic.name = :topic)
+        AND (:difficulty IS NULL OR q.difficulty.level = :difficulty)
+        AND (:search IS NULL OR q.title LIKE CONCAT('%', :search, '%'))
     """)
     Page<Question> findQuestions(
             @Param("topic") String topic,
@@ -29,4 +37,46 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
             @Param("search") String search,
             Pageable pageable
     );
+
+    /**
+     * Counts per difficulty for the whole filtered set — the difficulty filter
+     * itself is deliberately excluded so the summary cards keep showing every
+     * bucket while one of them is selected.
+     */
+    @Query("""
+        SELECT q.difficulty.level, COUNT(q) FROM Question q
+        WHERE (:topic IS NULL OR q.topic.name = :topic)
+        AND (:search IS NULL OR q.title LIKE CONCAT('%', :search, '%'))
+        GROUP BY q.difficulty.level
+    """)
+    List<Object[]> countByDifficulty(
+            @Param("topic") String topic,
+            @Param("search") String search
+    );
+
+    /**
+     * Unfiltered breakdown — an index-only scan of idx_questions_difficulty,
+     * versus the OR-null predicates above which defeat the index.
+     */
+    @Query("SELECT q.difficulty.level, COUNT(q) FROM Question q GROUP BY q.difficulty.level")
+    List<Object[]> countByDifficultyAll();
+
+    /**
+     * How many questions the given user has marked solved, grouped by difficulty.
+     *
+     * user_progress is generic (item_type + item_id VARCHAR), so the join casts
+     * the id back to a number — comparing on questions.id keeps the primary key
+     * index in play, and item_type filters out lesson rows.
+     */
+    @Query(value = """
+        SELECT d.level, COUNT(*)
+        FROM user_progress p
+        JOIN questions q ON q.id = CAST(p.item_id AS UNSIGNED)
+        JOIN difficulties d ON d.id = q.difficulty_id
+        WHERE p.user_id = :userId
+          AND p.item_type = 'QUESTION'
+          AND p.completed = 1
+        GROUP BY d.level
+        """, nativeQuery = true)
+    List<Object[]> countSolvedByDifficulty(@Param("userId") Long userId);
 }

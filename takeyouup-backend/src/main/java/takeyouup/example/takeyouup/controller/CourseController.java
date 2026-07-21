@@ -3,6 +3,7 @@ package takeyouup.example.takeyouup.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,6 +15,7 @@ import takeyouup.example.takeyouup.model.Lesson;
 import takeyouup.example.takeyouup.service.CourseService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -25,10 +27,36 @@ public class CourseController {
     @Autowired
     private CourseService courseService;
 
-    @PostMapping
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Course> createCourse(@RequestBody Course course) {
         Course createdCourse = courseService.addCourse(course);
         return new ResponseEntity<>(createdCourse, HttpStatus.CREATED);
+    }
+
+    /**
+     * Create a course together with its cover image in one multipart request:
+     * part {@code course} carries the JSON, part {@code image} the file.
+     */
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> createCourseWithImage(
+            @RequestPart("course") String courseJson,
+            @RequestPart(value = "image", required = false) MultipartFile file) {
+        try {
+            Course course = objectMapper.readValue(courseJson, Course.class);
+            Course created = courseService.addCourse(course);
+            if (file != null && !file.isEmpty()) {
+                created = courseService.setCourseImage(created.getId(), file);
+            }
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error creating course: " + e.getMessage());
+        }
     }
 
     @PatchMapping("/{courseId}")
@@ -37,15 +65,45 @@ public class CourseController {
             @RequestPart("course") String courseJson,
             @RequestPart(value = "image", required = false) MultipartFile file ) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            Course updatedCourseData = mapper.readValue(courseJson, Course.class);
+            Course updatedCourseData = objectMapper.readValue(courseJson, Course.class);
             Course updatedCourse = courseService.updateCourse(courseId, updatedCourseData, file);
             return ResponseEntity.ok(updatedCourse);
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error updating course: " + e.getMessage());
+        }
+    }
+
+    /** Upload or replace just the cover image of an existing course. */
+    @PostMapping("/{courseId}/image")
+    public ResponseEntity<?> uploadCourseImage(
+            @PathVariable Long courseId,
+            @RequestPart("image") MultipartFile file) {
+        try {
+            Course course = courseService.setCourseImage(courseId, file);
+            return ResponseEntity.ok(Map.of("image", course.getImageUrl()));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error uploading image: " + e.getMessage());
+        }
+    }
+
+    /** Remove the cover image so the course falls back to its placeholder. */
+    @DeleteMapping("/{courseId}/image")
+    public ResponseEntity<?> deleteCourseImage(@PathVariable Long courseId) {
+        try {
+            courseService.removeCourseImage(courseId);
+            return ResponseEntity.noContent().build();
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
@@ -171,8 +229,11 @@ public class CourseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Course>> getAllCourses() {
-        List<Course> courses = courseService.getAllCourses();
+    public ResponseEntity<List<CourseSummaryDTO>> getAllCourses() {
+        // Summary DTOs, not entities. Returning Course here serialised
+        // modules -> lessons -> keyPoints for the entire catalogue, dragging
+        // every LONGTEXT lesson body into one response.
+        List<CourseSummaryDTO> courses = courseService.getAllCoursesBasic();
         return ResponseEntity.ok(courses);
     }
 

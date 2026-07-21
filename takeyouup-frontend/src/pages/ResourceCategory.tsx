@@ -12,6 +12,7 @@ import { getCategory } from "@/api/resources";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProgress } from "@/context/ProgressContext";
+import { HeroSkeleton, ListSkeleton } from "@/components/Skeletons";
 
 const difficultyStyles: Record<string, string> = {
   Beginner: "pill-green",
@@ -27,17 +28,12 @@ const ResourceCategory = () => {
   const { isCompleted } = useProgress();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
     setLoading(true);
     getCategory(categorySlug!)
       .then((c) => setCategory(c))
       .catch(() => setCategory(null))
       .finally(() => setLoading(false));
-  }, [navigate, categorySlug]);
+  }, [categorySlug]);
 
   useEffect(() => {
     if (category) {
@@ -46,7 +42,14 @@ const ResourceCategory = () => {
   }, [category]);
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center opacity-60">Loading…</div>;
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <HeroSkeleton />
+        <div className="mt-10">
+          <ListSkeleton count={6} height={92} />
+        </div>
+      </div>
+    );
   }
   if (!category) {
     return <Navigate to="/resources" replace />;

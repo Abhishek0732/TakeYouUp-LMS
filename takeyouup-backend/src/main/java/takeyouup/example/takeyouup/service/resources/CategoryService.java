@@ -11,10 +11,14 @@ import takeyouup.example.takeyouup.dto.resources.CategorySummaryResponse;
 import takeyouup.example.takeyouup.exception.ResourceNotFoundException;
 import takeyouup.example.takeyouup.mapper.ResourceMapper;
 import takeyouup.example.takeyouup.model.resources.ResourceTopic;
+import takeyouup.example.takeyouup.model.resources.TopicConcept;
 import takeyouup.example.takeyouup.repository.resources.*;
 import takeyouup.example.takeyouup.model.resources.ResourceCategory;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -34,40 +38,84 @@ public class CategoryService {
                 .map(mapper::toCategorySummary).toList();
     }
 
+    /**
+     * Public catalogue listing. Costs four queries regardless of how many
+     * questions exist: categories, their topics, one grouped COUNT and one
+     * batched concept read. Reading {@code topic.getQuestions()} here instead
+     * would load every question body in the database just to count them.
+     */
     @Transactional(readOnly = true)
     public List<CategorySummaryResponse> getAllCategories() {
         var categories = categoryRepo.findAll();
+        if (categories.isEmpty()) {
+            return List.of();
+        }
+
+        List<ResourceTopic> allTopics = new ArrayList<>();
         for (ResourceCategory category : categories) {
             var topics = topicRepo.findByCategoryIdOrderBySortOrderAsc(category.getId());
             category.getTopics().clear();
             category.getTopics().addAll(topics);
+            allTopics.addAll(topics);
         }
-        return categories.stream().map(mapper::toCategorySummary).toList();
+
+        List<UUID> topicIds = allTopics.stream().map(ResourceTopic::getId).toList();
+        if (topicIds.isEmpty()) {
+            return categories.stream()
+                    .map(c -> mapper.toCategorySummary(c, Map.of(), Map.of()))
+                    .toList();
+        }
+
+        Map<UUID, Integer> questionCounts = new HashMap<>();
+        for (Object[] row : questionRepo.countByTopicIds(topicIds)) {
+            questionCounts.put((UUID) row[0], ((Number) row[1]).intValue());
+        }
+
+        Map<UUID, List<String>> conceptsByTopic = new HashMap<>();
+        for (TopicConcept concept : conceptRepo.findByTopicIdInOrderByTopicIdAscSortOrderAsc(topicIds)) {
+            conceptsByTopic
+                    .computeIfAbsent(concept.getTopic().getId(), k -> new ArrayList<>())
+                    .add(concept.getName());
+        }
+
+        return categories.stream()
+                .map(c -> mapper.toCategorySummary(c, questionCounts, conceptsByTopic))
+                .toList();
     }
 
+    /**
+     * Public category page: the topic list with counts, and no question bodies.
+     *
+     * This used to load every question (with options) of every topic just to
+     * render a list of topic cards — both a needless read of the whole MCQ set
+     * and, now that the endpoint is public, a leak of the correct answers.
+     * The questions live behind the authenticated topic endpoint.
+     */
     @Transactional(readOnly = true)
     public CategoryResponse getCategoryBySlug(String slug) {
         var category = categoryRepo.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + slug));
 
-        // load topics separately
         var topics = topicRepo.findByCategoryIdOrderBySortOrderAsc(category.getId());
-
-        // for each topic load questions + options separately
-        for (ResourceTopic topic : topics) {
-            var questions = questionRepo.findByTopicIdWithOptions(topic.getId());
-            topic.getQuestions().clear();
-            topic.getQuestions().addAll(questions);
-
-            var concepts = conceptRepo.findByTopicIdOrderBySortOrderAsc(topic.getId());
-            topic.getConcepts().clear();
-            topic.getConcepts().addAll(concepts);
-        }
-
         category.getTopics().clear();
         category.getTopics().addAll(topics);
 
-        return mapper.toCategoryResponse(category);
+        List<UUID> topicIds = topics.stream().map(ResourceTopic::getId).toList();
+        Map<UUID, Integer> questionCounts = new HashMap<>();
+        Map<UUID, List<String>> conceptsByTopic = new HashMap<>();
+
+        if (!topicIds.isEmpty()) {
+            for (Object[] row : questionRepo.countByTopicIds(topicIds)) {
+                questionCounts.put((UUID) row[0], ((Number) row[1]).intValue());
+            }
+            for (TopicConcept concept : conceptRepo.findByTopicIdInOrderByTopicIdAscSortOrderAsc(topicIds)) {
+                conceptsByTopic
+                        .computeIfAbsent(concept.getTopic().getId(), k -> new ArrayList<>())
+                        .add(concept.getName());
+            }
+        }
+
+        return mapper.toCategoryResponse(category, questionCounts, conceptsByTopic);
     }
 
     public CategorySummaryResponse createCategory(CategoryRequest req) {

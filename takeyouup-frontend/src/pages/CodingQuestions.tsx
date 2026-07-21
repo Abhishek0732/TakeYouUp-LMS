@@ -14,18 +14,27 @@ import {
   Trophy,
   Zap,
   Target,
+  CheckCircle2,
+  Circle,
+  Check,
 } from "lucide-react";
 import leetcodeLogo from "@/assets/leetcode-logo.png";
 import gfgLogo from "@/assets/gfg-logo.png";
-import { useQuery } from "@tanstack/react-query";
-import { fetchQuestions } from "@/services/questionService";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  fetchQuestions,
+  fetchTopics,
+  fetchDifficulties,
+  fetchQuestionProgress,
+  type QuestionProgress,
+  type QuestionStreak,
+} from "@/services/questionService";
+import { useProgress } from "@/context/ProgressContext";
 
-type Difficulty = "Easy" | "Medium" | "Hard";
-type Platform = "LeetCode" | "GFG";
-type Topic =
-  | "Arrays" | "Strings" | "Linked List" | "Trees" | "Graphs"
-  | "Dynamic Programming" | "Stack & Queue" | "Binary Search"
-  | "Recursion" | "Hashing";
+/** Topics, difficulties and platforms all come from the DB — never hardcode them. */
+type Difficulty = string;
+type Platform = string;
+type Topic = string;
 
 interface CodingQuestion {
   id: number;
@@ -36,16 +45,22 @@ interface CodingQuestion {
   topic: Topic;
 }
 
-const topics: Topic[] = [
-  "Arrays", "Strings", "Linked List", "Trees", "Graphs",
-  "Dynamic Programming", "Stack & Queue", "Binary Search", "Recursion", "Hashing",
-];
-const difficulties: Difficulty[] = ["Easy", "Medium", "Hard"];
-const difficultyColor: Record<Difficulty, string> = {
-  Easy:   "bg-green-500/10 text-green-500 border-green-500/20",
-  Medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  Hard:   "bg-red-500/10 text-red-500 border-red-500/20",
+/** Only used until /api/difficulties responds, so the cards don't pop in empty. */
+const FALLBACK_DIFFICULTIES = ["Easy", "Medium", "Hard"];
+
+const DIFFICULTY_STYLES: Record<string, string> = {
+  easy:   "bg-green-500/10 text-green-500 border-green-500/20",
+  medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+  hard:   "bg-red-500/10 text-red-500 border-red-500/20",
 };
+const difficultyClass = (d: string) =>
+  DIFFICULTY_STYLES[(d || "").toLowerCase()] ?? "bg-muted text-muted-foreground border-border";
+
+const DIFFICULTY_ACCENTS: Record<string, string> = {
+  easy: "#22c55e", medium: "#f59e0b", hard: "#ef4444",
+};
+const difficultyAccent = (d: string) =>
+  DIFFICULTY_ACCENTS[(d || "").toLowerCase()] ?? "#94a3b8";
 
 /* ── POTD platform configs ── */
 const potdPlatforms = [
@@ -133,6 +148,26 @@ const CodingQuestions = () => {
     keepPreviousData: true,
   });
 
+  // Topics and difficulties are catalogue data — whatever an admin adds shows up
+  // here without a redeploy. Cached for the session; they change rarely.
+  const { data: topicsData } = useQuery({
+    queryKey: ["topics"],
+    queryFn: fetchTopics,
+    staleTime: 5 * 60 * 1000,
+  });
+  const { data: difficultiesData } = useQuery({
+    queryKey: ["difficulties"],
+    queryFn: fetchDifficulties,
+    staleTime: 5 * 60 * 1000,
+  });
+  const topics: Topic[] = topicsData ?? [];
+  const difficulties: Difficulty[] = difficultiesData ?? FALLBACK_DIFFICULTIES;
+
+  const { data: progress } = useQuery({
+    queryKey: ["questionProgress"],
+    queryFn: fetchQuestionProgress,
+  });
+
   const questions: CodingQuestion[] = data?.content || [];
   const totalPages = data?.totalPages || 0;
   const totalElements = data?.totalElements || 0;
@@ -141,11 +176,15 @@ const CodingQuestions = () => {
     setter(); setCurrentPage(1);
   }, []);
 
-  const counts = useMemo(() => ({
-    Easy:   questions.filter((q) => q.difficulty === "Easy").length,
-    Medium: questions.filter((q) => q.difficulty === "Medium").length,
-    Hard:   questions.filter((q) => q.difficulty === "Hard").length,
-  }), [questions]);
+  // ---- solved tracking ----
+  const queryClient = useQueryClient();
+  const { isCompleted, toggleProgress } = useProgress();
+
+  const toggleSolved = useCallback(async (questionId: number) => {
+    await toggleProgress("QUESTION", String(questionId));
+    // The summary lives on the server; refresh it once the toggle lands.
+    queryClient.invalidateQueries({ queryKey: ["questionProgress"] });
+  }, [toggleProgress, queryClient]);
 
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalElements);
@@ -315,27 +354,8 @@ const CodingQuestions = () => {
       {/* ══════════════ PROBLEMS TABLE ══════════════ */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
 
-        {/* Difficulty stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
-          {difficulties.map((d) => (
-            <div
-              key={d}
-              style={{
-                background: "hsl(var(--card))", border: "1px solid hsl(var(--border))",
-                borderRadius: 12, padding: "10px 16px",
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-              }}
-            >
-              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(var(--muted-foreground))" }}>{d}</span>
-              <span
-                className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${difficultyColor[d]}`}
-                style={{ fontFamily: "'DM Mono', monospace" }}
-              >
-                {counts[d]}
-              </span>
-            </div>
-          ))}
-        </div>
+        {/* Your progress */}
+        <ProgressTracker progress={progress} />
 
         {/* Filters card */}
         <div
@@ -345,10 +365,10 @@ const CodingQuestions = () => {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <Filter style={{ width: 14, height: 14, color: "hsl(var(--muted-foreground))" }} />
-              {(["All", ...difficulties] as const).map((d) => (
+              {["All", ...difficulties].map((d) => (
                 <button
                   key={d}
-                  onClick={() => handleFilterChange(() => setSelectedDifficulty(d as Difficulty | "All"))}
+                  onClick={() => handleFilterChange(() => setSelectedDifficulty(d))}
                   style={{
                     padding: "6px 14px", borderRadius: 999, fontSize: 12,
                     fontFamily: "'Syne', sans-serif", fontWeight: 600,
@@ -382,10 +402,10 @@ const CodingQuestions = () => {
             </div>
           </div>
 
-          {/* Row 2: topic filters */}
+          {/* Row 2: topic filters — sourced from /api/topics */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            {(["All Topics", ...topics] as const).map((t) => {
-              const val = t === "All Topics" ? "All" : t as Topic;
+            {["All Topics", ...topics].map((t) => {
+              const val = t === "All Topics" ? "All" : t;
               const active = selectedTopic === val;
               return (
                 <button
@@ -415,10 +435,11 @@ const CodingQuestions = () => {
             style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "hsl(var(--muted-foreground))" }}
           >
             <span className="col-span-1">#</span>
-            <span className="col-span-5">Title</span>
+            <span className="col-span-4">Title</span>
             <span className="col-span-2">Topic</span>
             <span className="col-span-2">Difficulty</span>
             <span className="col-span-2">Platform</span>
+            <span className="col-span-1 text-right">Solved</span>
           </div>
         )}
 
@@ -435,30 +456,23 @@ const CodingQuestions = () => {
           ) : (
             questions.map((q, i) => {
               const globalIndex = (currentPage - 1) * itemsPerPage + i;
+              const solved = isCompleted("QUESTION", String(q.id));
               return (
-                <a
-                  key={q.id}
-                  href={q.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group"
-                  style={{ textDecoration: "none", display: "block" }}
-                >
+                <div key={q.id} className="group">
                   <div
                     style={{
-                      background: "hsl(var(--card))", border: "1px solid hsl(var(--border))",
+                      background: solved ? "rgba(34,197,94,0.06)" : "hsl(var(--card))",
+                      border: `1px solid ${solved ? "rgba(34,197,94,0.28)" : "hsl(var(--border))"}`,
                       borderRadius: 12, padding: "10px 16px", transition: "all 0.18s",
                     }}
                     onMouseEnter={(e) => {
                       const el = e.currentTarget as HTMLElement;
                       el.style.borderColor = "rgba(255,77,28,0.4)";
-                      el.style.background = "hsl(var(--muted) / 0.4)";
                       el.style.transform = "translateY(-1px)";
                     }}
                     onMouseLeave={(e) => {
                       const el = e.currentTarget as HTMLElement;
-                      el.style.borderColor = "hsl(var(--border))";
-                      el.style.background = "hsl(var(--card))";
+                      el.style.borderColor = solved ? "rgba(34,197,94,0.28)" : "hsl(var(--border))";
                       el.style.transform = "translateY(0)";
                     }}
                   >
@@ -467,17 +481,21 @@ const CodingQuestions = () => {
                       <span className="col-span-1" style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "hsl(var(--muted-foreground))" }}>
                         {globalIndex + 1}
                       </span>
-                      <span className="col-span-5 flex items-center gap-2 group-hover:text-orange-500 transition-colors" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500 }}>
+                      <a
+                        href={q.url} target="_blank" rel="noopener noreferrer"
+                        className="col-span-4 flex items-center gap-2 hover:text-orange-500 transition-colors"
+                        style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, textDecoration: "none", color: "inherit" }}
+                      >
                         {q.title}
                         <ExternalLink style={{ width: 11, height: 11, opacity: 0, transition: "opacity 0.2s" }} className="group-hover:opacity-100" />
-                      </span>
+                      </a>
                       <span className="col-span-2">
                         <span style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))", fontSize: 11, padding: "3px 8px", borderRadius: 6, fontFamily: "'DM Mono', monospace" }}>
                           {q.topic}
                         </span>
                       </span>
                       <span className="col-span-2">
-                        <span className={`text-xs px-2.5 py-1 rounded-full border font-semibold ${difficultyColor[q.difficulty]}`} style={{ fontFamily: "'DM Mono', monospace" }}>
+                        <span className={`text-xs px-2.5 py-1 rounded-full border font-semibold ${difficultyClass(q.difficulty)}`} style={{ fontFamily: "'DM Mono', monospace" }}>
                           {q.difficulty}
                         </span>
                       </span>
@@ -488,29 +506,38 @@ const CodingQuestions = () => {
                         }
                         <span style={{ fontSize: 12, color: "hsl(var(--muted-foreground))", fontFamily: "'DM Mono', monospace" }}>{q.platform}</span>
                       </span>
+                      <span className="col-span-1 flex justify-end">
+                        <SolvedToggle solved={solved} onToggle={() => toggleSolved(q.id)} />
+                      </span>
                     </div>
 
                     {/* Mobile */}
                     <div className="md:hidden flex items-start justify-between gap-3">
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p className="group-hover:text-orange-500 transition-colors" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <a
+                          href={q.url} target="_blank" rel="noopener noreferrer"
+                          style={{ display: "block", fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: "none", color: "inherit" }}
+                        >
                           {q.title}
-                        </p>
+                        </a>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-                          <span className={`text-xs px-2 py-0.5 rounded-full border ${difficultyColor[q.difficulty]}`} style={{ fontFamily: "'DM Mono', monospace" }}>
+                          <span className={`text-xs px-2 py-0.5 rounded-full border ${difficultyClass(q.difficulty)}`} style={{ fontFamily: "'DM Mono', monospace" }}>
                             {q.difficulty}
                           </span>
                           <span style={{ fontSize: 11, color: "hsl(var(--muted-foreground))", fontFamily: "'DM Mono', monospace" }}>{q.topic}</span>
                         </div>
                       </div>
-                      <img
-                        src={q.platform === "LeetCode" ? leetcodeLogo : gfgLogo}
-                        alt={q.platform}
-                        style={{ width: 20, height: 20, borderRadius: 4, objectFit: "contain", flexShrink: 0 }}
-                      />
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <img
+                          src={q.platform === "LeetCode" ? leetcodeLogo : gfgLogo}
+                          alt={q.platform}
+                          style={{ width: 20, height: 20, borderRadius: 4, objectFit: "contain" }}
+                        />
+                        <SolvedToggle solved={solved} onToggle={() => toggleSolved(q.id)} />
+                      </div>
                     </div>
                   </div>
-                </a>
+                </div>
               );
             })
           )}
@@ -568,5 +595,201 @@ const CodingQuestions = () => {
     </div>
   );
 };
+
+/* ═══════════════ progress tracker ═══════════════ */
+
+/** Segment of the ring: one arc per difficulty, sized by that level's share. */
+interface Segment { level: string; total: number; solved: number; color: string; }
+
+function ProgressTracker({ progress }: { progress?: QuestionProgress }) {
+  if (!progress || progress.total === 0) return null;
+
+  const { solved, total, byDifficulty, streak } = progress;
+  const segments: Segment[] = Object.entries(byDifficulty || {}).map(([level, b]) => ({
+    level, total: b.total, solved: b.solved, color: difficultyAccent(level),
+  }));
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3" style={{ marginBottom: 20 }}>
+      {/* Ring + per-difficulty breakdown */}
+      <div className="lg:col-span-2 flex flex-wrap items-center gap-6"
+        style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 16, padding: "20px 24px" }}>
+        <ProgressRing segments={segments} solved={solved} total={total} />
+
+        <div className="flex-1 grid gap-2" style={{ minWidth: 190 }}>
+          {segments.map((s) => (
+            <div key={s.level}
+              style={{
+                background: "hsl(var(--muted))", borderRadius: 10, padding: "8px 14px",
+                borderLeft: `3px solid ${s.color}`,
+              }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: s.color, fontFamily: "'DM Sans', sans-serif" }}>
+                {s.level}
+              </div>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 14 }}>
+                {s.solved}<span style={{ color: "hsl(var(--muted-foreground))" }}>/{s.total}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <StreakCard streak={streak} />
+    </div>
+  );
+}
+
+/**
+ * Donut where each difficulty owns a slice of the circumference proportional to
+ * how many problems it holds, and fills its slice by how many are solved — so
+ * the ring reads as overall progress and per-level progress at once.
+ */
+function ProgressRing({ segments, solved, total }: { segments: Segment[]; solved: number; total: number }) {
+  const size = 148;
+  const stroke = 11;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const gap = segments.length > 1 ? 5 : 0;   // breathing room between arcs
+  const usable = circumference - gap * segments.length;
+
+  let offset = 0;
+  const arcs = segments.map((s) => {
+    const share = total === 0 ? 0 : (s.total / total) * usable;
+    const filled = s.total === 0 ? 0 : (s.solved / s.total) * share;
+    const arc = { ...s, share, filled, offset };
+    offset += share + gap;
+    return arc;
+  });
+
+  return (
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+        {arcs.map((a) => (
+          <g key={a.level}>
+            {/* unsolved remainder */}
+            <circle
+              cx={size / 2} cy={size / 2} r={radius} fill="none"
+              stroke="hsl(var(--muted))" strokeWidth={stroke} strokeLinecap="round"
+              strokeDasharray={`${a.share} ${circumference - a.share}`}
+              strokeDashoffset={-a.offset}
+            />
+            {/* solved portion */}
+            {a.filled > 0 && (
+              <circle
+                cx={size / 2} cy={size / 2} r={radius} fill="none"
+                stroke={a.color} strokeWidth={stroke} strokeLinecap="round"
+                strokeDasharray={`${a.filled} ${circumference - a.filled}`}
+                strokeDashoffset={-a.offset}
+                style={{ transition: "stroke-dasharray 0.5s ease" }}
+              />
+            )}
+          </g>
+        ))}
+      </svg>
+
+      <div style={{
+        position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center", gap: 2,
+      }}>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 26, lineHeight: 1 }}>
+          {solved}
+          <span style={{ fontSize: 13, fontWeight: 500, color: "hsl(var(--muted-foreground))" }}>/{total}</span>
+        </div>
+        <div className="flex items-center gap-1" style={{ fontSize: 12, color: "#22c55e" }}>
+          <Check className="h-3 w-3" /> Solved
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Daily solving streak, with a strip of the last two weeks. */
+function StreakCard({ streak }: { streak?: QuestionStreak }) {
+  const current = streak?.current ?? 0;
+  const longest = streak?.longest ?? 0;
+  const days = streak?.lastDays ?? [];
+  const hot = current > 0;
+
+  return (
+    <div style={{
+      background: "hsl(var(--card))", border: "1px solid hsl(var(--border))",
+      borderRadius: 16, padding: "20px 24px",
+      display: "flex", flexDirection: "column", justifyContent: "center",
+    }}>
+      <div className="flex items-center gap-2 mb-3">
+        <Flame className="h-4 w-4" style={{ color: hot ? "#ff4d1c" : "hsl(var(--muted-foreground))" }} />
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "hsl(var(--muted-foreground))" }}>
+          Streak
+        </span>
+      </div>
+
+      <div className="flex items-baseline gap-2">
+        <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 30, lineHeight: 1, color: hot ? "#ff4d1c" : "hsl(var(--foreground))" }}>
+          {current}
+        </span>
+        <span style={{ fontSize: 13, color: "hsl(var(--muted-foreground))" }}>
+          {current === 1 ? "day" : "days"}
+        </span>
+      </div>
+
+      <p style={{ fontSize: 11, color: "hsl(var(--muted-foreground))", marginTop: 4 }}>
+        {streak?.solvedToday
+          ? "Solved today — keep it going."
+          : current > 0
+            ? "Solve one today to extend it."
+            : "Solve a problem to start a streak."}
+      </p>
+
+      {/* last 14 days */}
+      <div className="flex items-center gap-1 mt-4">
+        {days.map((active, i) => (
+          <div key={i} title={active ? "Active" : "No solves"}
+            style={{
+              flex: 1, height: 18, borderRadius: 4,
+              background: active ? "#ff4d1c" : "hsl(var(--muted))",
+              opacity: active ? 1 : 0.7,
+            }} />
+        ))}
+      </div>
+      <div className="flex items-center justify-between mt-2" style={{ fontSize: 10, color: "hsl(var(--muted-foreground))", fontFamily: "'DM Mono', monospace" }}>
+        <span>14 days ago</span>
+        <span>Best: {longest}</span>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════ solved toggle ═══════════════ */
+function SolvedToggle({ solved, onToggle }: { solved: boolean; onToggle: () => void }) {
+  const [busy, setBusy] = useState(false);
+
+  const click = async (e: React.MouseEvent) => {
+    // The row links to the problem — don't follow it when ticking the box.
+    e.preventDefault();
+    e.stopPropagation();
+    if (busy) return;
+    setBusy(true);
+    try { await onToggle(); } finally { setBusy(false); }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={click}
+      disabled={busy}
+      title={solved ? "Mark as unsolved" : "Mark as solved"}
+      aria-pressed={solved}
+      style={{
+        background: "transparent", border: "none", cursor: busy ? "wait" : "pointer",
+        padding: 2, display: "flex", alignItems: "center", opacity: busy ? 0.5 : 1,
+        transition: "opacity 0.15s",
+      }}
+    >
+      {solved
+        ? <CheckCircle2 style={{ width: 19, height: 19, color: "#22c55e" }} />
+        : <Circle style={{ width: 19, height: 19, color: "hsl(var(--muted-foreground))", opacity: 0.5 }} />}
+    </button>
+  );
+}
 
 export default CodingQuestions;

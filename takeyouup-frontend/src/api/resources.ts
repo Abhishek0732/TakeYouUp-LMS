@@ -39,8 +39,19 @@ export const getCategories = () =>
 export const getCategory = (slug: string) =>
   api.get(`/resources/categories/${slug}`).then((r) => mapCategory(r.data));
 
+/**
+ * Topic with its questions.
+ *
+ * The category endpoint is public and deliberately carries no question bodies
+ * or answers, so the practice view fetches the topic directly — that endpoint
+ * requires a signed-in user.
+ */
 export const getTopic = async (categorySlug: string, topicSlug: string) => {
-  const category = await getCategory(categorySlug);
-  const topic = category.topics.find((t: any) => t.slug === topicSlug) || null;
+  const [category, topic] = await Promise.all([
+    getCategory(categorySlug),
+    api
+      .get(`/resources/categories/${categorySlug}/topics/${topicSlug}`)
+      .then((r) => mapTopic(r.data)),
+  ]);
   return { category, topic };
 };

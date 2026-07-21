@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Clock, Users, Star, Search, SlidersHorizontal } from "lucide-react";
 import { useCourses } from "@/context/CourseContext";
+import CourseCover from "@/components/CourseCover";
 
 const Courses = () => {
   useEffect(() => {
@@ -72,7 +73,7 @@ const Courses = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         {/* Filter bar */}
-        <div className="flex items-center gap-3 mb-10 overflow-x-auto pb-2 reveal in-view">
+        <div className="flex items-center gap-3 mb-10 scroll-x pb-2 reveal in-view">
           <SlidersHorizontal className="h-4 w-4 flex-shrink-0 opacity-40" />
           <div className="flex gap-2 flex-shrink-0">
             {categories.map((cat) => (
@@ -104,9 +105,9 @@ const Courses = () => {
             >
               {/* Image */}
               <div className="relative aspect-video overflow-hidden">
-                <img
+                <CourseCover
                   src={course.image}
-                  alt={course.title}
+                  title={course.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)" }} />

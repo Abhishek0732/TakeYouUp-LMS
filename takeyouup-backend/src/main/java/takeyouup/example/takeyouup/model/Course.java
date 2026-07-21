@@ -2,6 +2,7 @@ package takeyouup.example.takeyouup.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 import java.util.*;
@@ -117,6 +118,23 @@ public class Course {
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    /**
+     * HOST-RELATIVE cover URL (e.g. {@code /uploads/courses/x.png}) so the image
+     * loads from whatever origin serves the app. Read-only: clients send the
+     * stored {@code image} value (or a file), never this derived field.
+     */
+    @Transient
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    public String getImageUrl() {
+        if (image == null || image.isBlank()) {
+            return null;
+        }
+        if (image.startsWith("http://") || image.startsWith("https://") || image.startsWith("/")) {
+            return image;
+        }
+        return "/uploads/" + image;
     }
 
     public String getInstructor() {

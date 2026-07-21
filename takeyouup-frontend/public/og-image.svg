@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="TakeYouUp — master programming and build your future">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff4d1c"/>
+      <stop offset="100%" stop-color="#ffb800"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="80%" cy="15%" r="60%">
+      <stop offset="0%" stop-color="#ff4d1c" stop-opacity="0.38"/>
+      <stop offset="100%" stop-color="#ff4d1c" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M60 0H0V60" fill="none" stroke="#ffffff" stroke-opacity="0.05" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="630" fill="#0c0c0e"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <rect x="80" y="150" width="64" height="64" rx="16" fill="url(#brand)"/>
+  <text x="112" y="194" font-family="'DM Mono',monospace" font-size="26" fill="#fff"
+        text-anchor="middle" font-weight="700">&lt;/&gt;</text>
+
+  <text x="170" y="196" font-family="Syne,Verdana,sans-serif" font-size="40" font-weight="800" fill="#ffffff">
+    Take<tspan fill="#ff4d1c">You</tspan>Up
+  </text>
+
+  <text x="80" y="320" font-family="Syne,Verdana,sans-serif" font-size="82" font-weight="800" fill="#ffffff">Code. Compile.</text>
+  <text x="80" y="410" font-family="Syne,Verdana,sans-serif" font-size="82" font-weight="800" fill="url(#brand)">Succeed.</text>
+
+  <text x="80" y="478" font-family="Verdana,sans-serif" font-size="26" fill="#ffffff" fill-opacity="0.6">
+    DSA · Java · Python · Web · ML · System Design
+  </text>
+
+  <g font-family="'DM Mono',monospace" font-size="20" fill="#ffffff" fill-opacity="0.5">
+    <text x="80" y="546">Progress tracking</text>
+    <text x="330" y="546">Quizzes</text>
+    <text x="500" y="546">Practice problems</text>
+    <text x="760" y="546">Certificates</text>
+  </g>
+</svg>

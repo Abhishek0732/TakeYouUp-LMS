@@ -18,6 +18,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,7 +44,7 @@ class AuthServiceTest {
     @Test
     void registerRejectsDuplicateEmail() {
         when(userRepository.existsByEmail("dup@x.com")).thenReturn(true);
-        assertThrows(DuplicateResourceException.class, () -> authService.register(request("dup@x.com")));
+        assertThrows(DuplicateResourceException.class, () -> authService.register(request("dup@x.com"), "http://localhost:5174"));
         verify(userRepository, never()).save(any());
     }
 
@@ -54,12 +55,12 @@ class AuthServiceTest {
         when(jwtService.generateAccessToken(any(User.class))).thenReturn("access-token");
         when(jwtService.generateRefreshToken(any(User.class))).thenReturn("refresh-token");
 
-        AuthResponse res = authService.register(request("new@x.com"));
+        AuthResponse res = authService.register(request("new@x.com"), "http://localhost:5174");
 
         assertEquals("access-token", res.getToken());
         assertEquals("refresh-token", res.getRefreshToken());
         assertEquals(Role.USER.name(), res.getRole());
         verify(userRepository).save(any(User.class));
-        verify(emailVerificationService).createAndSend(any(User.class));
+        verify(emailVerificationService).createAndSend(any(User.class), eq("http://localhost:5174"));
     }
 }

@@ -1,11 +1,11 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, CheckCircle2, FileText, ChevronRight, BrainCircuit, Clock, Users, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import QuizSection from "@/components/QuizSection";
+import RichContent from "@/components/RichContent";
 import api from "@/api/axios";
 import dsaQuiz from "@/data/quizzes/dsaQuiz";
 import javaQuiz from "@/data/quizzes/javaQuiz";
@@ -23,8 +23,8 @@ const CourseDetail = () => {
   const { isCompleted, toggleProgress } = useProgress();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) { navigate("/login"); return; }
+    // No auth check here: the route is wrapped in ProtectedRoute, and checking
+    // localStorage directly would race the token refresh on a stale session.
     const fetchCourse = async () => {
       try {
         setLoading(true);
@@ -141,13 +141,16 @@ const CourseDetail = () => {
                       {course.modules.reduce((acc: number, m: any) => acc + m.lessons.length, 0)} lessons
                     </p>
                   </div>
-                  <ScrollArea style={{ height: "calc(100vh - 260px)" }}>
+                  {/* max-height + overflow-y: shrinks to a short list, scrolls a
+                      long one. (Radix ScrollArea clipped instead of scrolling here,
+                      because its viewport is height:100% inside an auto-height root.) */}
+                  <div className="scroll-y" style={{ maxHeight: "calc(100vh - 260px)" }}>
                     <div style={{ padding: "0 12px 16px" }}>
                       {course.modules.map((module: any, mIdx: number) => (
                         <div key={mIdx} style={{ marginBottom: 8 }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: "hsl(var(--muted))", borderRadius: 8, marginBottom: 4 }}>
                             <FileText style={{ width: 13, height: 13, color: "#ff4d1c", flexShrink: 0 }} />
-                            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 12 }}>{module.title}</span>
+                            <span title={module.title} style={{ fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 12, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{module.title}</span>
                           </div>
                           {module.lessons.map((lesson: any, lIdx: number) => {
                             const isActive = selectedLesson.moduleIndex === mIdx && selectedLesson.lessonIndex === lIdx;
@@ -157,13 +160,14 @@ const CourseDetail = () => {
                                 style={{
                                   width: "100%", textAlign: "left", padding: "8px 10px", borderRadius: 8, border: "none", cursor: "pointer",
                                   display: "flex", alignItems: "center", gap: 6, fontSize: 12, transition: "all 0.15s",
+                                  overflow: "hidden",
                                   fontFamily: "'DM Sans', sans-serif",
                                   background: isActive ? "#ff4d1c" : "transparent",
                                   color: isActive ? "white" : "hsl(var(--muted-foreground))",
                                   marginBottom: 2,
                                 }}>
                                 <ChevronRight style={{ width: 11, height: 11, flexShrink: 0, transform: isActive ? "rotate(90deg)" : "none", transition: "transform 0.15s" }} />
-                                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lesson.title}</span>
+                                <span title={lesson.title} style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lesson.title}</span>
                                 {isDone && <CheckCircle2 style={{ width: 12, height: 12, color: isActive ? "white" : "#22c55e", flexShrink: 0 }} />}
                               </button>
                             );
@@ -171,7 +175,7 @@ const CourseDetail = () => {
                         </div>
                       ))}
                     </div>
-                  </ScrollArea>
+                  </div>
                 </div>
               </div>
 
@@ -182,7 +186,9 @@ const CourseDetail = () => {
                     <div style={cardStyle}>
                       <div style={{ padding: "24px 28px" }}>
                         <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "1.4rem", marginBottom: 16 }}>{currentLesson.title}</h2>
-                        <p style={{ color: "hsl(var(--muted-foreground))", lineHeight: 1.75, fontSize: "0.95rem", marginBottom: 24 }}>{currentLesson.content}</p>
+                        <div style={{ marginBottom: 24 }}>
+                          <RichContent text={currentLesson.content} />
+                        </div>
                         {currentLesson.keyPoints?.length > 0 && (
                           <div>
                             <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "1rem", marginBottom: 14 }}>Key Learning Points</h3>
@@ -194,7 +200,7 @@ const CourseDetail = () => {
                                   </div>
                                   <div>
                                     <p style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: 2 }}>{point.point}</p>
-                                    {point.explanation && <p style={{ fontSize: "0.82rem", color: "hsl(var(--muted-foreground))", lineHeight: 1.6 }}>{point.explanation}</p>}
+                                    {point.explanation && <RichContent text={point.explanation} compact />}
                                   </div>
                                 </div>
                               ))}

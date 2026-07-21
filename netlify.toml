@@ -1,0 +1,42 @@
+# Netlify config for the TakeYouUp frontend.
+#
+# Netlify is used rather than Cloudflare Pages specifically because it can
+# proxy to an EXTERNAL origin (a 200 rewrite in [[redirects]]). That keeps the
+# browser talking to one origin, so the app's host-relative /api and /uploads
+# paths keep working exactly as they do behind nginx in Docker — and no CORS
+# configuration is needed anywhere.
+#
+# Set API_ORIGIN below to your Render URL before deploying.
+
+[build]
+  base = "takeyouup-frontend"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  # Empty on purpose: the app builds relative URLs and the proxy rules below
+  # forward them. Setting an absolute API URL here would reintroduce CORS.
+  VITE_API_URL = ""
+
+# ---- API + uploads proxied to the Render backend --------------------------
+# Replace https://takeyouup-api.onrender.com with your own service URL.
+[[redirects]]
+  from = "/api/*"
+  to = "https://takeyouup-api.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/uploads/*"
+  to = "https://takeyouup-api.onrender.com/uploads/:splat"
+  status = 200
+  force = true
+
+# ---- SPA fallback: must come last ----------------------------------------
+# Without this, deep links like /profile or /resources/verbal-reasoning 404 on
+# refresh, because only index.html exists on disk.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

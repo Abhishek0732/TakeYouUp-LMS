@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getCategories } from "@/api/resources";
+import { CardGridSkeleton } from "@/components/Skeletons";
 import { useNavigate } from "react-router-dom";
 
 const iconMap = {
@@ -22,16 +23,17 @@ const iconMap = {
 const Resources = () => {
   const navigate = useNavigate();
   const [resourceCategories, setResourceCategories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     document.title = "Resources | TakeYouUp - Master Programming & Build Your Future";
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-    getCategories().then(setResourceCategories).catch(() => setResourceCategories([]));
-  }, [navigate]);
+    // Browsing the catalogue is public — the sign-in gate lives on the topic
+    // page, where practising actually starts.
+    getCategories()
+      .then(setResourceCategories)
+      .catch(() => setResourceCategories([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -83,7 +85,8 @@ const Resources = () => {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {resourceCategories.map((category) => {
+          {loading && <CardGridSkeleton count={4} columns={2} media={false} />}
+          {!loading && resourceCategories.map((category) => {
             const Icon =
               iconMap[category.slug as keyof typeof iconMap] ?? BookOpen;
 

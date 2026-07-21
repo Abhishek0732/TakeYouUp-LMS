@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, CheckCircle2, RotateCcw, XCircle } from "lucide-react";
 import { getTopic } from "@/api/resources";
 import { useProgress } from "@/context/ProgressContext";
+import { DetailSkeleton } from "@/components/Skeletons";
 
 const ResourceTopic = () => {
   const { categorySlug, topicSlug } = useParams();
@@ -37,8 +38,13 @@ const ResourceTopic = () => {
   }, [currentQuestion, showSummary, topic]);
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center opacity-60">Loading…</div>;
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <DetailSkeleton />
+      </div>
+    );
   }
+
   if (!category || !topic) {
     return <Navigate to="/resources" replace />;
   }
