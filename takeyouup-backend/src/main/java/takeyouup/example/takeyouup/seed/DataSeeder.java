@@ -34,6 +34,7 @@ import takeyouup.example.takeyouup.repository.quiz.QuizRepository;
 import takeyouup.example.takeyouup.repository.resources.ResourceCategoryRepository;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -171,7 +172,40 @@ public class DataSeeder implements ApplicationRunner {
                 keyPoint("Worst case", "Big-O typically expresses the worst-case upper bound so you can reason about guarantees."));
         CourseModule dsaM2 = module(dsa, "Linear Structures");
         lesson(dsaM2, "Arrays & Strings", "arrays-and-strings", "15 min",
-                "Arrays store elements contiguously in memory giving O(1) random access. Strings are arrays of characters and share the same traversal patterns.",
+                """
+                Arrays store elements contiguously in memory, which gives **O(1) random access** by index.
+                Strings are arrays of characters and share the same traversal patterns.
+
+                ## Two pointers
+
+                Walk two indices toward each other to reverse an array in place — O(n) time, O(1) space.
+
+                ```java
+                void reverse(int[] arr) {
+                    int left = 0, right = arr.length - 1;
+                    while (left < right) {
+                        int tmp = arr[left];
+                        arr[left++] = arr[right];
+                        arr[right--] = tmp;
+                    }
+                }
+                ```
+
+                ## Sliding window
+
+                The same idea in Python, this time keeping a running window instead of shrinking one:
+
+                ```python
+                def max_sum_window(nums, k):
+                    window = sum(nums[:k])
+                    best = window
+                    for i in range(k, len(nums)):
+                        window += nums[i] - nums[i - k]   # add new, drop old
+                        best = max(best, window)
+                    return best
+                ```
+
+                Both patterns avoid the naive nested loop and bring an `O(n^2)` scan down to `O(n)`.""",
                 keyPoint("Two pointers", "A pair of indices moving through an array solves many subarray and palindrome problems in O(n)."),
                 keyPoint("Sliding window", "Maintain a moving range to answer 'best window' questions without re-scanning."));
         lesson(dsaM2, "Linked Lists", "linked-lists", "14 min",
@@ -188,8 +222,39 @@ public class DataSeeder implements ApplicationRunner {
                 "Abhishek Verma", "Free");
         CourseModule javaM1 = module(java, "Java Fundamentals");
         lesson(javaM1, "Variables & Data Types", "variables-and-data-types", "10 min",
-                "Java is statically typed: every variable has a declared type. Primitives (int, double, boolean) hold values directly; objects hold references.",
-                keyPoint("Primitives vs objects", "Primitives live on the stack; objects live on the heap and are accessed by reference."));
+                """
+                Java is **statically typed**: every variable has a declared type that is fixed at compile time.
+                Primitives (`int`, `double`, `boolean`) hold values directly; objects hold references.
+
+                ## Declaring variables
+
+                ```java
+                public class Variables {
+                    public static void main(String[] args) {
+                        int count = 42;              // 32-bit integer
+                        double price = 19.99;        // 64-bit floating point
+                        boolean active = true;       // true / false
+                        char grade = 'A';            // single character
+                        String name = "TakeYouUp";   // object, not a primitive
+
+                        System.out.println(name + " has " + count + " learners");
+                    }
+                }
+                ```
+
+                ## Type inference with `var`
+
+                Since Java 10 the compiler can infer a local variable's type — the variable is still
+                statically typed, you just write less.
+
+                ```java
+                var total = 0;                 // inferred as int
+                var names = new ArrayList<String>();  // inferred as ArrayList<String>
+                ```
+
+                > `var` works only for local variables with an initialiser — never for fields or method parameters.""",
+                keyPoint("Primitives vs objects", "Primitives live on the stack; objects live on the heap and are accessed by reference."),
+                keyPoint("Integer overflow", "`int` wraps around past 2,147,483,647 — use `long` for large counters."));
         lesson(javaM1, "Control Flow", "control-flow", "11 min",
                 "Control-flow statements decide which code runs: if/else, switch, for, while, and enhanced for-each loops.",
                 keyPoint("Enhanced for", "Use for-each to iterate collections cleanly when you do not need the index."));
@@ -211,8 +276,36 @@ public class DataSeeder implements ApplicationRunner {
                 "Python is a high-level, dynamically typed language famed for its readable syntax. Indentation defines code blocks instead of braces.",
                 keyPoint("Readable by design", "Python code often reads like pseudo-code, which shortens the path from idea to prototype."));
         lesson(pyM1, "Lists, Dicts & Sets", "lists-dicts-and-sets", "12 min",
-                "Python ships with powerful built-in collections: lists (ordered), dicts (key-value), and sets (unique elements).",
-                keyPoint("Comprehensions", "List and dict comprehensions build collections in a single expressive line."));
+                """
+                Python ships with three workhorse collections:
+
+                - **list** — ordered, mutable, allows duplicates
+                - **dict** — key/value pairs, insertion-ordered since 3.7
+                - **set** — unordered collection of unique values
+
+                ```python
+                scores = [88, 92, 75, 92]          # list
+                student = {"name": "Asha", "year": 2}   # dict
+                unique_scores = set(scores)        # {88, 92, 75}
+
+                scores.append(100)
+                student["year"] = 3
+                print(len(scores), student["name"], sorted(unique_scores))
+                ```
+
+                ## Comprehensions
+
+                A comprehension builds a new collection in one readable expression:
+
+                ```python
+                squares = [n * n for n in range(1, 6)]        # [1, 4, 9, 16, 25]
+                by_length = {w: len(w) for w in ["hi", "there"]}  # {'hi': 2, 'there': 5}
+                ```
+
+                Reach for a comprehension when you are *transforming* or *filtering*; use a plain
+                `for` loop when the body does real work with side effects.""",
+                keyPoint("Comprehensions", "List and dict comprehensions build collections in a single expressive line."),
+                keyPoint("Membership cost", "`x in my_set` is O(1) while `x in my_list` is O(n) — pick the right container."));
         saved.add(courseRepository.save(python));
 
         // ---- Course 4: Web Development ------------------------------------
@@ -285,7 +378,21 @@ public class DataSeeder implements ApplicationRunner {
                     mcq("A binary search runs in what time complexity on a sorted array?",
                             List.of("O(n)", "O(n log n)", "O(log n)", "O(1)"), 2),
                     mcq("Which technique detects a cycle in a linked list in O(1) space?",
-                            List.of("Hashing", "Fast & slow pointers", "Recursion", "Sorting"), 1)
+                            List.of("Hashing", "Fast & slow pointers", "Recursion", "Sorting"), 1),
+                    codeMcq("What is the time complexity of this function?",
+                            "java",
+                            """
+                            int sum(int[] arr) {
+                                int total = 0;
+                                for (int i = 0; i < arr.length; i++) {
+                                    for (int j = i; j < arr.length; j++) {
+                                        total += arr[j];
+                                    }
+                                }
+                                return total;
+                            }""",
+                            List.of("O(n)", "O(n log n)", "O(n^2)", "O(1)"), 2,
+                            "The inner loop runs n, n-1, n-2 … times, which sums to n(n+1)/2 — quadratic in n.")
             )));
         }
         if (javaId != null) {
@@ -295,7 +402,20 @@ public class DataSeeder implements ApplicationRunner {
                     mcq("What is the default value of an int field in Java?",
                             List.of("null", "0", "undefined", "-1"), 1),
                     mcq("Which collection does NOT allow duplicate elements?",
-                            List.of("List", "Set", "ArrayList", "LinkedList"), 1)
+                            List.of("List", "Set", "ArrayList", "LinkedList"), 1),
+                    codeMcq("What does this program print?",
+                            "java",
+                            """
+                            public class Main {
+                                public static void main(String[] args) {
+                                    String a = "take";
+                                    String b = "take";
+                                    System.out.println(a == b);
+                                    System.out.println(a.equals(b));
+                                }
+                            }""",
+                            List.of("true / true", "false / true", "true / false", "false / false"), 0,
+                            "Both literals come from the string pool, so `==` compares the same reference and `equals` compares equal content.")
             )));
         }
         if (pythonId != null) {
@@ -305,7 +425,15 @@ public class DataSeeder implements ApplicationRunner {
                     mcq("What does the len() function return for a string?",
                             List.of("The number of characters", "The memory size", "The last index", "The ASCII sum"), 0),
                     mcq("How do you start a single-line comment in Python?",
-                            List.of("//", "#", "--", "/*"), 1)
+                            List.of("//", "#", "--", "/*"), 1),
+                    codeMcq("What is the output of this snippet?",
+                            "python",
+                            """
+                            nums = [1, 2, 3, 4, 5]
+                            squares = [n * n for n in nums if n % 2 == 0]
+                            print(squares)""",
+                            List.of("[1, 4, 9, 16, 25]", "[4, 16]", "[2, 4]", "[1, 9, 25]"), 1,
+                            "The comprehension keeps only even numbers (2 and 4) and squares them, giving `[4, 16]`.")
             )));
         }
         log.info("Seeded quizzes for DSA, Java and Python courses.");
@@ -536,6 +664,22 @@ public class DataSeeder implements ApplicationRunner {
     /** Quiz question shape expected by QuizService: { question, options[], correct }. */
     private Map<String, Object> mcq(String question, List<String> options, int correct) {
         return Map.of("question", question, "options", options, "correct", correct);
+    }
+
+    /**
+     * Quiz question carrying a code sample, e.g. "what does this program print?".
+     * Serialises to { question, options[], correct, codeSnippet, codeLanguage, explanation }.
+     */
+    private Map<String, Object> codeMcq(String question, String codeLanguage, String codeSnippet,
+                                        List<String> options, int correct, String explanation) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("question", question);
+        m.put("options", options);
+        m.put("correct", correct);
+        m.put("codeSnippet", codeSnippet);
+        m.put("codeLanguage", codeLanguage);
+        m.put("explanation", explanation);
+        return m;
     }
 
     // ---- resources builders ----

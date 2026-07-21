@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Plus, Pencil, Trash2, X, ChevronDown, ChevronRight } from "lucide-react";
 import api from "@/api/axios";
 import EntityModal from "@/components/admin/EntityModal";
+import MarkdownEditor from "@/components/admin/MarkdownEditor";
 
 interface KeyPoint { id?: number; point: string; explanation: string; }
 interface Lesson { id?: number; title: string; slug?: string; duration?: string; content?: string; keyPoints?: KeyPoint[]; }
@@ -150,7 +151,7 @@ function LessonModal({ moduleId, lesson, onClose, onSave }: {
   const inp = "w-full rounded-lg border px-3 py-2 text-sm bg-transparent";
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={onClose}>
-      <div className="w-full max-w-xl rounded-2xl border p-6 max-h-[88vh] overflow-y-auto" style={{ background: "hsl(var(--card))" }} onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-3xl rounded-2xl border p-6 max-h-[88vh] overflow-y-auto" style={{ background: "hsl(var(--card))" }} onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold">{lesson ? "Edit lesson" : "New lesson"}</h2>
           <button onClick={onClose}><X className="h-5 w-5 opacity-60" /></button>
@@ -164,8 +165,15 @@ function LessonModal({ moduleId, lesson, onClose, onSave }: {
             <div><label className="block text-xs opacity-70 mb-1">Duration</label>
               <input className={inp} value={form.duration} onChange={(e) => set("duration", e.target.value)} placeholder="10 min" /></div>
           </div>
-          <div><label className="block text-xs opacity-70 mb-1">Content</label>
-            <textarea className={inp} rows={4} value={form.content} onChange={(e) => set("content", e.target.value)} /></div>
+          <div>
+            <label className="block text-xs opacity-70 mb-1">Content</label>
+            <MarkdownEditor
+              value={form.content || ""}
+              onChange={(v) => set("content", v)}
+              rows={12}
+              placeholder={"Explain the concept…\n\n```java\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello\");\n    }\n}\n```"}
+            />
+          </div>
 
           <div>
             <div className="flex items-center justify-between mb-1">

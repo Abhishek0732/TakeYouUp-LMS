@@ -17,7 +17,8 @@ public class Lesson {
     private String title;
     private String slug;
     private String duration;
-    @Column(length = 5000)
+    /** Markdown body — supports fenced code blocks (```java … ```). */
+    @Column(columnDefinition = "LONGTEXT")
     private String content;
 
     @ManyToOne

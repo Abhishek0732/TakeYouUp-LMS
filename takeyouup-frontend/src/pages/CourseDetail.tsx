@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, CheckCircle2, FileText, ChevronRight, BrainCircuit, Clock, Users, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import QuizSection from "@/components/QuizSection";
+import RichContent from "@/components/RichContent";
 import api from "@/api/axios";
 import dsaQuiz from "@/data/quizzes/dsaQuiz";
 import javaQuiz from "@/data/quizzes/javaQuiz";
@@ -182,7 +183,9 @@ const CourseDetail = () => {
                     <div style={cardStyle}>
                       <div style={{ padding: "24px 28px" }}>
                         <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "1.4rem", marginBottom: 16 }}>{currentLesson.title}</h2>
-                        <p style={{ color: "hsl(var(--muted-foreground))", lineHeight: 1.75, fontSize: "0.95rem", marginBottom: 24 }}>{currentLesson.content}</p>
+                        <div style={{ marginBottom: 24 }}>
+                          <RichContent text={currentLesson.content} />
+                        </div>
                         {currentLesson.keyPoints?.length > 0 && (
                           <div>
                             <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "1rem", marginBottom: 14 }}>Key Learning Points</h3>
@@ -194,7 +197,7 @@ const CourseDetail = () => {
                                   </div>
                                   <div>
                                     <p style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: 2 }}>{point.point}</p>
-                                    {point.explanation && <p style={{ fontSize: "0.82rem", color: "hsl(var(--muted-foreground))", lineHeight: 1.6 }}>{point.explanation}</p>}
+                                    {point.explanation && <RichContent text={point.explanation} compact />}
                                   </div>
                                 </div>
                               ))}
