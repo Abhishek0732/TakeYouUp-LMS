@@ -144,26 +144,28 @@ function ProfileHeader({ me, fallbackName, fallbackEmail, onSaved, onLogout }: {
     : null;
 
   return (
-    <div style={{ borderBottom: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
-      <div style={{ height: 110, background: "linear-gradient(120deg, #ff4d1c 0%, #ffb800 100%)", position: "relative", overflow: "hidden" }}>
-        <div className="bg-grid" style={{ position: "absolute", inset: 0, opacity: 0.25 }} />
-      </div>
+    <div className="bg-dots" style={{ borderBottom: "1px solid hsl(var(--border))", background: "hsl(var(--card))", position: "relative", overflow: "hidden" }}>
+      {/* Soft brand glow instead of a solid colour band — same treatment the
+          auth pages use, so the profile doesn't shout. */}
+      <div className="pointer-events-none" style={{
+        position: "absolute", top: -140, right: -80, width: 380, height: 380, borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(255,77,28,0.16), transparent 70%)", filter: "blur(70px)",
+      }} />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="flex flex-col sm:flex-row sm:items-end gap-4 pb-6" style={{ marginTop: -44 }}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 py-8">
           <div
             className="flex items-center justify-center flex-shrink-0"
             style={{
-              width: 92, height: 92, borderRadius: 22,
-              background: "linear-gradient(135deg, #1f1f24, #34343c)",
-              border: "4px solid hsl(var(--card))",
-              color: "#fff", fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 30,
+              width: 76, height: 76, borderRadius: 20,
+              background: "linear-gradient(135deg, #ff4d1c, #ffb800)",
+              color: "#fff", fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 26,
             }}
           >
             {initials(displayName)}
           </div>
 
-          <div className="flex-1 min-w-0 sm:pb-1">
+          <div className="flex-1 min-w-0">
             {editing ? (
               <div className="flex items-center gap-2 mb-1">
                 <input value={name} onChange={(e) => setName(e.target.value)} autoFocus
@@ -201,7 +203,7 @@ function ProfileHeader({ me, fallbackName, fallbackEmail, onSaved, onLogout }: {
             </div>
           </div>
 
-          <div className="flex gap-2 sm:pb-1">
+          <div className="flex gap-2">
             {me?.role === "ADMIN" && (
               <Link to="/admin" className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold"
                 style={{ color: "hsl(var(--foreground))", textDecoration: "none" }}>
