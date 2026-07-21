@@ -1,0 +1,82 @@
+# Render blueprint for the TakeYouUp API.
+#
+# Render's free web service gets 512 MB of RAM, and this app idles at ~500 MB
+# with default JVM settings — so the tuning below is not optional, it is what
+# makes it fit. See DEPLOYMENT.md for the full walkthrough.
+#
+# The database is NOT defined here: Render's free Postgres expires, and this
+# app is MySQL. Point SPRING_DATASOURCE_* at a free managed MySQL instead.
+
+services:
+  - type: web
+    name: takeyouup-api
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: takeyouup-backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SERVER_PORT
+        value: 8080
+
+      # ---- JVM sizing for a 512 MB container -------------------------------
+      # MaxRAMPercentage=55 leaves headroom for metaspace, thread stacks and
+      # the code cache, which live OUTSIDE the heap and are what actually push
+      # a "384 MB heap" container past 512 MB.
+      # SerialGC: G1 reserves region metadata that is pure overhead at this size.
+      # TieredStopAtLevel=1: less JIT memory and a faster cold start, which
+      # matters because free services sleep after 15 minutes idle.
+      - key: JAVA_OPTS
+        value: >-
+          -XX:MaxRAMPercentage=55.0
+          -XX:+UseSerialGC
+          -XX:MaxMetaspaceSize=128m
+          -XX:ReservedCodeCacheSize=64m
+          -XX:TieredStopAtLevel=1
+          -Xss512k
+
+      # ---- Fewer, smaller pools --------------------------------------------
+      # 20 connections and 200 Tomcat threads are sized for a real server; each
+      # idle thread still costs a stack.
+      - key: DB_POOL_MAX
+        value: "5"
+      - key: DB_POOL_MIN
+        value: "1"
+      - key: SERVER_TOMCAT_MAX_THREADS
+        value: "20"
+
+      # ---- Refuse to boot with the committed development secrets ------------
+      - key: APP_ENV
+        value: production
+
+      # ---- Set these in the Render dashboard, never in this file ------------
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true      # Render generates a strong random value
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      # The public URL of the frontend, used for emailed links when a request
+      # arrives without an Origin header.
+      - key: APP_FRONTEND_URL
+        sync: false
+
+      # Uploaded course covers live on the container filesystem, which Render's
+      # free plan does not persist across deploys. See DEPLOYMENT.md.
+      - key: FILE_UPLOAD_DIR
+        value: uploads
