@@ -12,6 +12,7 @@ import {
   Terminal,
 } from "lucide-react";
 import { useCourses } from "@/context/CourseContext";
+import CourseCover from "@/components/CourseCover";
 import { useEffect, useRef } from "react";
 
 const Home = () => {
@@ -515,9 +516,9 @@ const Home = () => {
                     overflow: "hidden",
                   }}
                 >
-                  <img
+                  <CourseCover
                     src={course.image}
-                    alt={course.title}
+                    title={course.title}
                     style={{
                       width: "100%",
                       height: "100%",

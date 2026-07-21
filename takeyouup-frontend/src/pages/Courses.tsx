@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Clock, Users, Star, Search, SlidersHorizontal } from "lucide-react";
 import { useCourses } from "@/context/CourseContext";
+import CourseCover from "@/components/CourseCover";
 
 const Courses = () => {
   useEffect(() => {
@@ -104,9 +105,9 @@ const Courses = () => {
             >
               {/* Image */}
               <div className="relative aspect-video overflow-hidden">
-                <img
+                <CourseCover
                   src={course.image}
-                  alt={course.title}
+                  title={course.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)" }} />

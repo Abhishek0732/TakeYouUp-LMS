@@ -11,25 +11,52 @@ import takeyouup.example.takeyouup.model.Lesson;
 import takeyouup.example.takeyouup.repository.CourseRepository;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class CourseService {
 
     private final CourseRepository courseRepository;
+    private final FileStorageService fileStorageService;
 
     @Value("${app.base-url}")
     private String baseUrl;
 
-    public CourseService(CourseRepository courseRepository) {
+    public CourseService(CourseRepository courseRepository, FileStorageService fileStorageService) {
         this.courseRepository = courseRepository;
+        this.fileStorageService = fileStorageService;
+    }
+
+    /** Sub-folder of the uploads root that holds course cover images. */
+    private static final String COURSE_IMAGE_FOLDER = "courses";
+
+    /**
+     * Replace a course's cover image. The previous upload is deleted so the
+     * volume does not accumulate orphans.
+     */
+    public Course setCourseImage(Long courseId, MultipartFile file) throws IOException {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new NoSuchElementException("Course not found with id " + courseId));
+
+        String previous = course.getImage();
+        course.setImage(fileStorageService.storeImage(file, COURSE_IMAGE_FOLDER));
+        Course saved = courseRepository.save(course);
+        fileStorageService.deleteQuietly(previous);
+        return saved;
+    }
+
+    /** Clear a course's cover image and delete the stored file. */
+    public Course removeCourseImage(Long courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new NoSuchElementException("Course not found with id " + courseId));
+
+        String previous = course.getImage();
+        course.setImage(null);
+        Course saved = courseRepository.save(course);
+        fileStorageService.deleteQuietly(previous);
+        return saved;
     }
 
     public Course addCourse(Course course) {
@@ -83,18 +110,10 @@ public class CourseService {
         if (updatedCourseData.getRating() != 0)
             existingCourse.setRating(updatedCourseData.getRating());
 
-        if(file != null && !file.isEmpty()) {
-            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-
-            Path uploadPath = Paths.get("uploads/");
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            Path filePath = uploadPath.resolve(fileName);
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-            existingCourse.setImage(fileName);
+        if (file != null && !file.isEmpty()) {
+            String previous = existingCourse.getImage();
+            existingCourse.setImage(fileStorageService.storeImage(file, COURSE_IMAGE_FOLDER));
+            fileStorageService.deleteQuietly(previous);
         }
 
         if (updatedCourseData.getInstructor() != null)
@@ -313,27 +332,11 @@ public class CourseService {
                         course.getDuration(),
                         course.getStudents(),
                         course.getRating(),
-                        buildImageUrl(course.getImage()),
+                        course.getImageUrl(),
                         course.getInstructor(),
                         course.getPrice()
                 ))
                 .toList();
-    }
-
-    /**
-     * Builds a HOST-RELATIVE image URL (e.g. {@code /uploads/foo.png}) so course
-     * covers load from whatever origin serves the app, rather than a hardcoded
-     * host. Values that are already absolute (http/https) or already rooted are
-     * returned unchanged.
-     */
-    private String buildImageUrl(String image) {
-        if (image == null || image.isBlank()) {
-            return null;
-        }
-        if (image.startsWith("http://") || image.startsWith("https://") || image.startsWith("/")) {
-            return image;
-        }
-        return "/uploads/" + image;
     }
 
 }

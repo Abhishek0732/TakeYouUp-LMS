@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   LayoutDashboard, BookOpen, ListChecks, Code2, Tags, Server, Gauge,
-  FolderTree, Users as UsersIcon, Layers,
+  FolderTree, Users as UsersIcon, Layers, Image as ImageIcon,
 } from "lucide-react";
 import api from "@/api/axios";
 import DataGrid, { Column } from "@/components/admin/DataGrid";
@@ -28,6 +28,16 @@ const yn = (v: any) => (
     style={{ background: v ? "rgba(34,197,94,0.15)" : "rgba(148,163,184,0.15)", color: v ? "#22c55e" : "#94a3b8" }}>
     {v ? "Yes" : "No"}
   </span>
+);
+
+/** Grid thumbnail for a course cover; `src` is host-relative (/uploads/…). */
+const CoverThumb = ({ src }: { src?: string | null }) => (
+  <div className="flex h-10 w-16 items-center justify-center overflow-hidden rounded-md border"
+    style={{ background: "hsl(var(--muted))" }}>
+    {src
+      ? <img src={src} alt="" loading="lazy" className="h-full w-full object-cover" />
+      : <ImageIcon className="h-3.5 w-3.5 opacity-40" />}
+  </div>
 );
 
 // ---------------------------------------------------------------- resource view
@@ -233,6 +243,7 @@ export default function Admin() {
       title: "Courses",
       createLabel: "Create Course",
       columns: [
+        { key: "image", label: "Cover", width: "90px", render: (r) => <CoverThumb src={r.image} /> },
         { key: "title", label: "Title" },
         { key: "slug", label: "Slug" },
         { key: "category", label: "Category" },
@@ -241,6 +252,7 @@ export default function Admin() {
         { key: "rating", label: "Rating" },
       ],
       fields: [
+        { name: "image", label: "Cover image", type: "image" },
         { name: "title", label: "Title", required: true },
         { name: "slug", label: "Slug", required: true, placeholder: "e.g. data-structures" },
         { name: "category", label: "Category", type: "select", options: ["Programming", "Development", "AI/ML"].map((v) => ({ value: v, label: v })) },
@@ -251,11 +263,23 @@ export default function Admin() {
         { name: "description", label: "Description", type: "textarea" },
       ],
       fetchPage: clientPager(() => api.get("/courses/basic").then((r) => r.data), ["title", "slug", "category", "level"]),
-      create: (v) => api.post("/courses", { ...v, students: 0, rating: 0 }),
-      update: (row, v) => {
+      create: (v) => {
+        // One multipart request so the cover is stored with the course itself.
+        const { imageFile, imageCleared, ...rest } = v;
         const fd = new FormData();
-        fd.append("course", new Blob([JSON.stringify({ ...row, ...v })], { type: "application/json" }));
-        return api.patch(`/courses/${row.id}`, fd);
+        fd.append("course", new Blob([JSON.stringify({ ...rest, image: null, students: 0, rating: 0 })],
+          { type: "application/json" }));
+        if (imageFile) fd.append("image", imageFile);
+        return api.post("/courses", fd);
+      },
+      update: async (row, v) => {
+        const { imageFile, imageCleared, ...rest } = v;
+        const fd = new FormData();
+        fd.append("course", new Blob([JSON.stringify({ ...row, ...rest })], { type: "application/json" }));
+        if (imageFile) fd.append("image", imageFile);
+        await api.patch(`/courses/${row.id}`, fd);
+        // Removing the cover is a separate call — PATCH only ever sets an image.
+        if (!imageFile && imageCleared) await api.delete(`/courses/${row.id}/image`);
       },
       remove: (row) => api.delete(`/courses/${row.id}`),
       rowActions: (row) => (
