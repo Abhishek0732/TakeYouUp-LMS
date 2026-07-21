@@ -3,7 +3,6 @@ package takeyouup.example.takeyouup.service;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,6 +14,7 @@ import takeyouup.example.takeyouup.dto.LoginRequest;
 import takeyouup.example.takeyouup.dto.RegisterRequest;
 import takeyouup.example.takeyouup.enums.Role;
 import takeyouup.example.takeyouup.exception.DuplicateResourceException;
+import takeyouup.example.takeyouup.exception.EmailNotVerifiedException;
 import takeyouup.example.takeyouup.exception.InvalidCredentialsException;
 import takeyouup.example.takeyouup.exception.ResourceNotFoundException;
 import takeyouup.example.takeyouup.model.User;
@@ -35,7 +35,7 @@ public class AuthService {
     private boolean requireVerifiedEmail;
 
     // ✅ Register User
-    public AuthResponse register(RegisterRequest request) {
+    public AuthResponse register(RegisterRequest request, String origin) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Email already registered");
@@ -50,13 +50,23 @@ public class AuthService {
                 .build();
 
         userRepository.save(user);
-        emailVerificationService.createAndSend(user);
+        emailVerificationService.createAndSend(user, origin);
 
         return buildAuthResponse(user);
     }
 
     public void verifyEmail(String token) {
         emailVerificationService.verify(token);
+    }
+
+    /**
+     * Sends a fresh verification link. Answers the same way for unknown and
+     * already-verified addresses so the endpoint can't confirm who has an
+     * account here.
+     */
+    public void resendVerification(String email, String origin) {
+        userRepository.findByEmail(email == null ? "" : email.trim())
+                .ifPresent(user -> emailVerificationService.createAndSend(user, origin));
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -81,7 +91,8 @@ public class AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (requireVerifiedEmail && !user.isEmailVerified()) {
-            throw new AccessDeniedException("Please verify your email before logging in.");
+            throw new EmailNotVerifiedException(
+                    "Please verify your email before logging in. Check your inbox for the link.");
         }
 
         return buildAuthResponse(user);
@@ -106,6 +117,7 @@ public class AuthService {
                 .name(user.getName())
                 .email(user.getEmail())
                 .role(user.getRole().name())
+                .emailVerified(user.isEmailVerified())
                 .build();
     }
 }

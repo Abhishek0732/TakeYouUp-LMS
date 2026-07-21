@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import VerifyEmailBanner from "./components/VerifyEmailBanner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Home from "./pages/Home";
@@ -19,6 +20,9 @@ import { CourseProvider } from "./context/CourseContext";
 import Chatbot from "@/components/Chatbot";
 import { AuthProvider } from "@/context/AuthContext";
 import Login from "./pages/Login";
+import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
 import Signup from "./pages/SignUp";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -45,11 +49,15 @@ const App = () => (
             <BrowserRouter>
               <div className="flex flex-col min-h-screen">
                 <Navbar />
+                <VerifyEmailBanner />
                 <main className="flex-1">
                   <Routes>
                   <Route path="/login" element={<Login />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/signup" element={<Signup />} />
+                  <Route path="/verify-email" element={<VerifyEmail />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/admin" element={<Admin />} />
                   <Route
                     path="/certificates"

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Code2, Eye, EyeOff, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { registerUser } from "@/api/auth";
 
 const Signup = () => {
   useEffect(() => {
@@ -13,7 +14,6 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
-  const API = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,24 +23,19 @@ const Signup = () => {
     }
     try {
       setLoading(true);
-      const res = await fetch(`${API}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: formData.name, email: formData.email, password: formData.password }),
+      await registerUser(formData.name, formData.email, formData.password);
+      toast({
+        title: "Account created",
+        description: `We've emailed a verification link to ${formData.email}. Confirm it to secure your account.`,
       });
-      const data = await res.json();
-      if (!res.ok) 
-        {
-           if (typeof data === "object" && !data.message) {
-            const firstError = Object.values(data)[0];
-            throw new Error(firstError as string);
-          }
-          throw new Error(data.message || "Signup failed");
-        }
-      toast({ title: "Account Created", description: "Welcome to TakeYouUp!" });
       navigate("/login");
     } catch (error: any) {
-      toast({ title: "Signup Failed", description: error.message || "Something went wrong", variant: "destructive" });
+      const data = error.response?.data;
+      // Bean-validation failures come back as { field: message } rather than { message }.
+      const detail = data?.message
+        || (data && typeof data === "object" ? (Object.values(data)[0] as string) : null)
+        || "Something went wrong";
+      toast({ title: "Signup Failed", description: detail, variant: "destructive" });
     } finally {
       setLoading(false);
     }

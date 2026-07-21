@@ -27,7 +27,7 @@ const Login = () => {
       localStorage.setItem("token", data.token);
       if (data.refreshToken) localStorage.setItem("refreshToken", data.refreshToken);
       if (data.role) localStorage.setItem("role", data.role);
-      login({ name: data.name, email: data.email, avatar: "https://i.pravatar.cc/40" });
+      login({ name: data.name, email: data.email, avatar: "https://i.pravatar.cc/40" }, data.emailVerified);
       toast({ title: "Login Successful", description: "Welcome to TakeYouUp!" });
       navigate(from, { replace: true });
     } catch (error: any) {
@@ -102,6 +102,13 @@ const Login = () => {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+          </div>
+
+          <div className="flex justify-end -mt-1">
+            <Link to="/forgot-password" className="text-xs font-semibold hover:underline"
+              style={{ color: "#ff4d1c" }}>
+              Forgot password?
+            </Link>
           </div>
 
           <button

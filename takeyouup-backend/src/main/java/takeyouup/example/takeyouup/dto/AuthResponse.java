@@ -13,4 +13,7 @@ public class AuthResponse {
     private String name;
     private String email;
     private String role;
+
+    /** Drives the "confirm your email" banner in the client. */
+    private boolean emailVerified;
 }

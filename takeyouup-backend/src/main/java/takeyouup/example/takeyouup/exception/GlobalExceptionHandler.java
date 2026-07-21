@@ -76,6 +76,20 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    // 400 — the request was well formed but the state it relies on is not usable
+    // (an expired or already-used verification / password-reset link). The
+    // message is user-facing on purpose so the page can explain what to do next.
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    // 403 — signed in with correct credentials but the address is unconfirmed
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<Map<String, Object>> handleUnverified(EmailNotVerifiedException ex) {
+        return build(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
     // 400/404/409 — legacy service throws (e.g. new RuntimeException("... not found"))
     // are mapped by message so we don't leak 500s while the codebase migrates
     // to the typed exceptions above.
