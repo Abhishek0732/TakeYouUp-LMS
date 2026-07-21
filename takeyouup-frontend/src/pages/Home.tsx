@@ -13,6 +13,9 @@ import {
 } from "lucide-react";
 import { useCourses } from "@/context/CourseContext";
 import CourseCover from "@/components/CourseCover";
+import ContinueLearning from "@/components/home/ContinueLearning";
+import Faq from "@/components/home/Faq";
+import { CardGridSkeleton } from "@/components/Skeletons";
 import { useEffect, useRef } from "react";
 
 const Home = () => {
@@ -107,10 +110,12 @@ const Home = () => {
 
   const { courses, loading, error } = useCourses();
   const courseList = Array.isArray(courses) ? courses : [];
-  const displayCourses =
-    loading || error || courseList.length === 0
-      ? staticCourses
-      : courseList.slice(0, 3);
+  // Only fall back to the sample cards if the API actually failed. Showing
+  // them while merely loading advertised courses that do not exist, and every
+  // click landed on a 404.
+  const displayCourses = courseList.length > 0
+    ? courseList.slice(0, 3)
+    : (error ? staticCourses : []);
 
   const levelPill = (level: string) => {
     if (level === "Beginner") return "pill-green";
@@ -120,6 +125,8 @@ const Home = () => {
 
   return (
     <div ref={revealRef}>
+      <ContinueLearning />
+
       {/* ═══════════════════ HERO ═══════════════════ */}
       <section
         className="relative min-h-screen flex items-center overflow-hidden noise-overlay"
@@ -498,6 +505,7 @@ const Home = () => {
               gap: 24,
             }}
           >
+            {loading && displayCourses.length === 0 && <CardGridSkeleton count={3} columns={3} />}
             {displayCourses.map((course: any, i: number) => (
               <div
                 key={course.id}
@@ -772,6 +780,8 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      <Faq />
 
       {/* ═══════════════════ CTA ═══════════════════ */}
       <section

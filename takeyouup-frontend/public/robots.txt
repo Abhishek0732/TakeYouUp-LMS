@@ -1,14 +1,15 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
 Allow: /
+
+# Signed-in areas hold no public content and only waste crawl budget.
+Disallow: /admin
+Disallow: /profile
+Disallow: /certificates
+Disallow: /login
+Disallow: /signup
+Disallow: /verify-email
+Disallow: /reset-password
+Disallow: /forgot-password
+
+# Add your deployed domain once you have one:
+# Sitemap: https://your-domain.example/sitemap.xml
