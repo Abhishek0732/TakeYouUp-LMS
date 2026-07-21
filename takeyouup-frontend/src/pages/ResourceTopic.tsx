@@ -3,6 +3,8 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, CheckCircle2, RotateCcw, XCircle } from "lucide-react";
 import { getTopic } from "@/api/resources";
 import { useProgress } from "@/context/ProgressContext";
+import { useAuth } from "@/context/AuthContext";
+import { DetailSkeleton } from "@/components/Skeletons";
 
 const ResourceTopic = () => {
   const { categorySlug, topicSlug } = useParams();
@@ -10,6 +12,8 @@ const ResourceTopic = () => {
   const [loading, setLoading] = useState(true);
   const { category, topic } = data;
   const { isCompleted, toggleProgress } = useProgress();
+  const { user } = useAuth();
+  const signedIn = !!user || !!localStorage.getItem("token");
 
   useEffect(() => {
     setLoading(true);
@@ -37,8 +41,21 @@ const ResourceTopic = () => {
   }, [currentQuestion, showSummary, topic]);
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center opacity-60">Loading…</div>;
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <DetailSkeleton />
+      </div>
+    );
   }
+
+  // Practice questions are the gated part of the catalogue: anyone can browse
+  // categories and topics, but answering (and having it tracked) needs an
+  // account. The topic fetch 401s for visitors, so ask them to sign in rather
+  // than bouncing them to a login page with no explanation.
+  if (!signedIn) {
+    return <SignInGate categorySlug={categorySlug} topicSlug={topicSlug} />;
+  }
+
   if (!category || !topic) {
     return <Navigate to="/resources" replace />;
   }

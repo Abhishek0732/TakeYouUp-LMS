@@ -2,16 +2,23 @@ import { useEffect, useState } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import api from "@/api/axios";
+import { CardGridSkeleton, ListSkeleton } from "@/components/Skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Certificates() {
   const token = localStorage.getItem("token");
   const [certs, setCerts] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const load = () => api.get("/certificates/mine").then((r) => setCerts(r.data)).catch(() => {});
   useEffect(() => {
-    load();
-    api.get("/courses/basic").then((r) => setCourses(r.data)).catch(() => {});
+    // Both feed the page; only drop the placeholders once each has answered,
+    // otherwise "no certificates yet" flashes before the real list arrives.
+    Promise.allSettled([
+      load(),
+      api.get("/courses/basic").then((r) => setCourses(r.data)),
+    ]).finally(() => setLoading(false));
   }, []);
 
   if (!token) return <Navigate to="/login" replace />;
@@ -31,7 +38,19 @@ export default function Certificates() {
       <p className="text-xs tracking-widest text-orange-500 font-mono mb-2">// ACHIEVEMENTS</p>
       <h1 className="text-3xl font-bold mb-8" style={{ fontFamily: "'Syne', sans-serif" }}>My Certificates</h1>
 
-      {certs.length === 0 && <p className="opacity-60 mb-8">No certificates yet — finish a course to earn one.</p>}
+      {loading && (
+        <div className="mb-10 space-y-6">
+          <div className="grid md:grid-cols-2 gap-4">
+            <Skeleton className="h-40 rounded-2xl" />
+            <Skeleton className="h-40 rounded-2xl" />
+          </div>
+          <ListSkeleton count={4} height={64} />
+        </div>
+      )}
+
+      {!loading && certs.length === 0 && (
+        <p className="opacity-60 mb-8">No certificates yet — finish a course to earn one.</p>
+      )}
 
       <div className="grid md:grid-cols-2 gap-4 mb-10">
         {certs.map((c) => (

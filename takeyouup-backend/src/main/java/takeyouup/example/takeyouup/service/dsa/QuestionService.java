@@ -61,7 +61,12 @@ public class QuestionService {
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparingInt(QuestionService::difficultyRank).thenComparing(l -> l))
                 .forEach(level -> counts.put(level, 0L));
-        for (Object[] row : questionRepository.countByDifficulty(topicFilter, searchFilter)) {
+        // With no filters the OR-null predicates would defeat the difficulty
+        // index; the dedicated query is a plain grouped scan.
+        List<Object[]> rows = (topicFilter == null && searchFilter == null)
+                ? questionRepository.countByDifficultyAll()
+                : questionRepository.countByDifficulty(topicFilter, searchFilter);
+        for (Object[] row : rows) {
             if (row[0] != null) {
                 counts.put((String) row[0], ((Number) row[1]).longValue());
             }

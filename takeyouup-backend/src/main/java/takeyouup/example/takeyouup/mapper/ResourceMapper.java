@@ -9,6 +9,9 @@ import takeyouup.example.takeyouup.model.resources.QuestionOption;
 import takeyouup.example.takeyouup.model.resources.TopicConcept;
 
 import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Component
 public class ResourceMapper {
@@ -29,12 +32,24 @@ public class ResourceMapper {
     }
 
     public TopicSummaryResponse toTopicSummary(ResourceTopic t) {
+        return toTopicSummary(t, t.getQuestions().size(),
+                t.getConcepts().stream().map(TopicConcept::getName).toList());
+    }
+
+    /**
+     * Summary built from pre-computed aggregates.
+     *
+     * Listings must use this: reading {@code t.getQuestions().size()} initialises
+     * the whole lazy collection, pulling every question body and explanation
+     * (TEXT columns) out of the database purely to count rows.
+     */
+    public TopicSummaryResponse toTopicSummary(ResourceTopic t, int questionCount, List<String> concepts) {
         return TopicSummaryResponse.builder()
                 .id(t.getId()).slug(t.getSlug()).title(t.getTitle()).summary(t.getSummary())
                 .difficulty(t.getDifficulty()).duration(t.getDuration())
-                .questionCount(t.getQuestions().size())   // ← changed
+                .questionCount(questionCount)
                 .sortOrder(t.getSortOrder())
-                .concepts(t.getConcepts().stream().map(TopicConcept::getName).toList())
+                .concepts(concepts)
                 .build();
     }
 
@@ -59,14 +74,34 @@ public class ResourceMapper {
                 .build();
     }
 
-    public CategoryResponse toCategoryResponse(ResourceCategory c) {
+    /** Listing variant — see {@link #toTopicSummary(ResourceTopic, int, List)}. */
+    public CategorySummaryResponse toCategorySummary(ResourceCategory c,
+                                                     Map<UUID, Integer> questionCounts,
+                                                     Map<UUID, List<String>> conceptsByTopic) {
+        return CategorySummaryResponse.builder()
+                .id(c.getId()).slug(c.getSlug()).title(c.getTitle()).shortTitle(c.getShortTitle())
+                .description(c.getDescription()).heroText(c.getHeroText()).accent(c.getAccent())
+                .topicCount(c.getTopics().size())
+                .topics(c.getTopics().stream()
+                        .map(t -> toTopicSummary(t,
+                                questionCounts.getOrDefault(t.getId(), 0),
+                                conceptsByTopic.getOrDefault(t.getId(), List.of())))
+                        .toList())
+                .build();
+    }
+
+    public CategoryResponse toCategoryResponse(ResourceCategory c,
+                                               Map<UUID, Integer> questionCounts,
+                                               Map<UUID, List<String>> conceptsByTopic) {
         return CategoryResponse.builder()
                 .id(c.getId()).slug(c.getSlug()).title(c.getTitle()).shortTitle(c.getShortTitle())
                 .description(c.getDescription()).heroText(c.getHeroText()).accent(c.getAccent())
                 .createdAt(c.getCreatedAt()).updatedAt(c.getUpdatedAt())
                 .topics(c.getTopics().stream()
                         .sorted(Comparator.comparingInt(ResourceTopic::getSortOrder))
-                        .map(this::toTopicResponse)
+                        .map(t -> toTopicSummary(t,
+                                questionCounts.getOrDefault(t.getId(), 0),
+                                conceptsByTopic.getOrDefault(t.getId(), List.of())))
                         .toList())
                 .build();
     }

@@ -12,4 +12,7 @@ public interface CertificateRepository extends JpaRepository<Certificate, UUID> 
     Optional<Certificate> findBySerialNo(String serialNo);
     Optional<Certificate> findByUserAndCourseId(User user, Long courseId);
     List<Certificate> findByUser(User user);
+
+    /** Profile stats only need the number — don't materialise the rows. */
+    long countByUser(User user);
 }

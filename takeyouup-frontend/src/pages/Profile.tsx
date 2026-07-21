@@ -16,6 +16,8 @@ import {
   type CourseProgress, type Me,
 } from "@/api/profile";
 import CourseCover from "@/components/CourseCover";
+import { Skeleton } from "@/components/ui/skeleton";
+import { StatsSkeleton } from "@/components/Skeletons";
 
 const ORANGE = "#ff4d1c";
 const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
@@ -104,8 +106,37 @@ const Profile = () => {
 };
 
 const Loading = () => (
-  <div className="flex items-center justify-center gap-3 py-16" style={{ color: "hsl(var(--muted-foreground))" }}>
-    <Loader2 className="h-5 w-5 animate-spin" /> Loading your progress…
+  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div className="lg:col-span-2 space-y-4">
+      <div style={{ ...card, padding: 20 }}>
+        <Skeleton className="h-5 w-40 mb-4" />
+        <div className="flex gap-4">
+          <Skeleton className="rounded-xl flex-shrink-0" style={{ width: 120, height: 72 }} />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-3 w-1/3" />
+            <Skeleton className="h-1.5 w-full rounded-full" />
+          </div>
+          <Skeleton className="h-9 w-24 rounded-lg" />
+        </div>
+      </div>
+      <div style={{ ...card, padding: 20 }}>
+        <Skeleton className="h-5 w-40 mb-4" />
+        <Skeleton className="h-2 w-full rounded-full mb-3" />
+        <Skeleton className="h-4 w-32" />
+      </div>
+    </div>
+    <div className="space-y-4">
+      <div style={{ ...card, padding: 20 }}>
+        <Skeleton className="h-5 w-32 mb-4" />
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="flex justify-between py-2">
+            <Skeleton className="h-3.5 w-32" />
+            <Skeleton className="h-3.5 w-8" />
+          </div>
+        ))}
+      </div>
+    </div>
   </div>
 );
 
@@ -246,13 +277,17 @@ function StatGrid({ me, loading }: { me?: Me; loading: boolean }) {
     { label: "Certificates", value: s?.certificates ?? 0, icon: Award, color: "#ffb800", note: undefined },
   ];
 
+  if (loading) {
+    return <div className="py-6"><StatsSkeleton /></div>;
+  }
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 py-6">
       {cards.map((c) => (
         <div key={c.label} style={{ ...card, padding: "16px 18px" }}>
           <c.icon className="h-4 w-4 mb-3" style={{ color: c.color }} />
           <div className="text-2xl font-bold" style={{ fontFamily: "'Syne', sans-serif" }}>
-            {loading ? "—" : c.value}
+            {c.value}
           </div>
           <div className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>{c.label}</div>
           {c.note && <div className="text-[11px] mt-0.5" style={{ color: c.color, fontFamily: "'DM Mono', monospace" }}>{c.note}</div>}
@@ -465,7 +500,16 @@ function RecentQuizzes() {
   });
 
   if (isLoading) {
-    return <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>Loading…</p>;
+    return (
+      <div className="space-y-2">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex items-center justify-between gap-2">
+            <Skeleton className="h-3.5 flex-1" />
+            <Skeleton className="h-5 w-12 rounded-full" />
+          </div>
+        ))}
+      </div>
+    );
   }
   if (!attempts?.length) {
     return <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>No quiz attempts yet.</p>;

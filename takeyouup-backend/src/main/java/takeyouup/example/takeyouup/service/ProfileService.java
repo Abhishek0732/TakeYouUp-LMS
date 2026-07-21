@@ -48,20 +48,12 @@ public class ProfileService {
     public MeResponse getCurrentUserProfile() {
         User user = userService.getCurrentUser();
 
-        // Lessons are tracked by slug in some places and id in others, so keep
-        // both keys and match on either.
-        Set<String> completed = new HashSet<>();
-        long problemsSolved = 0;
-        for (UserProgress p : progressRepository.findByUser(user)) {
-            if (!p.isCompleted()) {
-                continue;
-            }
-            if (LESSON.equals(p.getItemType())) {
-                completed.add(p.getItemId());
-            } else if (QUESTION.equals(p.getItemType())) {
-                problemsSolved++;
-            }
-        }
+        // Only the lesson ids are needed here, and the solved-problem tally is a
+        // COUNT — reading every progress row would scale with the user's whole
+        // practice history.
+        Set<String> completed = new HashSet<>(
+                progressRepository.findCompletedItemIds(user, LESSON));
+        long problemsSolved = progressRepository.countByUserAndItemTypeAndCompletedTrue(user, QUESTION);
 
         Map<Long, List<Object[]>> lessonsByCourse = new LinkedHashMap<>();
         for (Object[] row : lessonRepository.findAllLessonRows()) {
@@ -119,14 +111,13 @@ public class ProfileService {
         // Most-progressed first so "continue learning" is at the top.
         courses.sort((a, b) -> Integer.compare(b.percent(), a.percent()));
 
-        List<QuizAttempt> attempts = quizAttemptRepository.findByUserOrderByCreatedAtDesc(user);
-        int averageQuizScore = 0;
-        if (!attempts.isEmpty()) {
-            double sum = attempts.stream()
-                    .mapToDouble(a -> a.getTotal() == 0 ? 0 : (a.getScore() * 100.0) / a.getTotal())
-                    .sum();
-            averageQuizScore = (int) Math.round(sum / attempts.size());
-        }
+        // Count and mean come back as one aggregate row; loading every attempt
+        // just to average them grows with the user's history.
+        List<Object[]> quizRows = quizAttemptRepository.summariseForUser(user);
+        Object[] quizSummary = quizRows.isEmpty() ? null : quizRows.get(0);
+        long quizzesTaken = quizSummary == null ? 0 : ((Number) quizSummary[0]).longValue();
+        int averageQuizScore = quizSummary == null ? 0
+                : (int) Math.round(((Number) quizSummary[1]).doubleValue());
 
         MeResponse.Stats stats = new MeResponse.Stats(
                 lessonsDone,
@@ -134,9 +125,9 @@ public class ProfileService {
                 finished,
                 problemsSolved,
                 questionRepository.count(),
-                attempts.size(),
+                quizzesTaken,
                 averageQuizScore,
-                certificateRepository.findByUser(user).size()
+                certificateRepository.countByUser(user)
         );
 
         return new MeResponse(

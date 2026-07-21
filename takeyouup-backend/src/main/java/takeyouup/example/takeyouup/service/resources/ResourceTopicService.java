@@ -64,12 +64,10 @@ public class ResourceTopicService {
         topic.getConcepts().addAll(concepts);
 
         // load questions separately
-        var questions = questionRepo.findByTopicIdOrderBySortOrderAsc(topic.getId());
-        for (McqQuestion question : questions) {
-            var options = optionRepo.findByQuestionIdOrderByOptionIndexAsc(question.getId());
-            question.getOptions().clear();
-            question.getOptions().addAll(options);
-        }
+        // JOIN FETCH: one query for questions + options. Fetching options per
+        // question was 1 + N round trips, and batch fetching can't help because
+        // these were explicit repository calls rather than lazy proxies.
+        var questions = questionRepo.findByTopicIdWithOptions(topic.getId());
         topic.getQuestions().clear();
         topic.getQuestions().addAll(questions);
 
@@ -92,12 +90,10 @@ public class ResourceTopicService {
         topic.getConcepts().clear();
         topic.getConcepts().addAll(concepts);
 
-        var questions = questionRepo.findByTopicIdOrderBySortOrderAsc(topic.getId());
-        for (McqQuestion question : questions) {
-            var options = optionRepo.findByQuestionIdOrderByOptionIndexAsc(question.getId());
-            question.getOptions().clear();
-            question.getOptions().addAll(options);
-        }
+        // JOIN FETCH: one query for questions + options. Fetching options per
+        // question was 1 + N round trips, and batch fetching can't help because
+        // these were explicit repository calls rather than lazy proxies.
+        var questions = questionRepo.findByTopicIdWithOptions(topic.getId());
         topic.getQuestions().clear();
         topic.getQuestions().addAll(questions);
 

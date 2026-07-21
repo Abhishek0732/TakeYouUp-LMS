@@ -44,7 +44,7 @@ public class UserProgressService {
 
         int total = lessonIds.size();
         long completed = lessonIds.isEmpty() ? 0
-                : progressRepository.countByUserAndCompletedTrueAndItemIdIn(currentUser, lessonIds);
+                : progressRepository.countByUserAndItemTypeAndCompletedTrueAndItemIdIn(currentUser, "LESSON", lessonIds);
 
         int percent = total == 0 ? 0 : (int) Math.round((completed * 100.0) / total);
 

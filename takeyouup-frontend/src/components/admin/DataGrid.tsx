@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Search, Pencil, Trash2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { TableRowsSkeleton } from "@/components/Skeletons";
 
 export interface Column {
   key: string;
@@ -135,7 +136,7 @@ export default function DataGrid({
           </thead>
           <tbody>
             {loading && (
-              <tr><td className={cell + " opacity-60"} colSpan={columns.length + (hasActions ? 2 : 1)}>Loading…</td></tr>
+              <TableRowsSkeleton rows={size > 10 ? 10 : size} columns={columns.length + (hasActions ? 2 : 1)} />
             )}
             {!loading && rows.length === 0 && (
               <tr><td className={cell + " opacity-60"} colSpan={columns.length + (hasActions ? 2 : 1)}>No records found.</td></tr>

@@ -46,6 +46,17 @@ public class SecurityConfig {
                                 "/error"
                         ).permitAll()
 
+                        // --- Public browsing of the resource catalogue ---
+                        // Categories and their topic lists are readable by
+                        // anyone: visitors can see what is on offer before
+                        // signing up. These DTOs carry titles, concepts and
+                        // question COUNTS only — never the questions or
+                        // answers, which stay behind /api/resources/topics/**.
+                        // Scoped to GET so creating or editing a category is
+                        // still admin-only (the blanket rules further down).
+                        .requestMatchers(HttpMethod.GET, "/api/resources/categories").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/resources/categories/*").permitAll()
+
                         // --- Writes that a normal logged-in USER may perform ---
                         .requestMatchers(HttpMethod.POST,
                                 "/api/contacts",

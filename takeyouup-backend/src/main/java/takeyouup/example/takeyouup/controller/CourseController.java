@@ -229,8 +229,11 @@ public class CourseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Course>> getAllCourses() {
-        List<Course> courses = courseService.getAllCourses();
+    public ResponseEntity<List<CourseSummaryDTO>> getAllCourses() {
+        // Summary DTOs, not entities. Returning Course here serialised
+        // modules -> lessons -> keyPoints for the entire catalogue, dragging
+        // every LONGTEXT lesson body into one response.
+        List<CourseSummaryDTO> courses = courseService.getAllCoursesBasic();
         return ResponseEntity.ok(courses);
     }
 
