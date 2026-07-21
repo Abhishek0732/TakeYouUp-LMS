@@ -1,12 +1,34 @@
 import { useEffect, useState } from "react";
 
-const LINES = ["Code.", "Compile.", "Succeed."];
+export const LINES = ["Code.", "Compile.", "Succeed."];
 
 /** Per-character speed, and the beat between finishing one line and starting the next. */
 const CHAR_MS = 70;
 const LINE_PAUSE_MS = 260;
 /** Let the hero's fade-up settle before the first character lands. */
 const START_DELAY_MS = 400;
+
+const TOTAL_CHARS = LINES.reduce((n, l) => n + l.length, 0);
+
+/** Character index at which each line starts, e.g. [0, 5, 13]. */
+const LINE_STARTS = LINES.reduce<number[]>((acc, line, i) => {
+  acc.push(i === 0 ? 0 : acc[i - 1] + LINES[i - 1].length);
+  return acc;
+}, []);
+
+/** Counts at which a line has just been completed — where we pause. */
+const LINE_ENDS = new Set(LINE_STARTS.slice(1).concat(TOTAL_CHARS));
+
+/**
+ * How much of each line is visible once `count` characters have been typed.
+ * Pure, so the render is a function of one number and nothing can drift.
+ */
+export function slicesFor(count: number): string[] {
+  return LINES.map((line, i) => {
+    const typed = Math.min(Math.max(count - LINE_STARTS[i], 0), line.length);
+    return line.slice(0, typed);
+  });
+}
 
 const GRADIENT: React.CSSProperties = {
   background: "linear-gradient(135deg, #ff4d1c 0%, #ffb800 100%)",
@@ -22,56 +44,40 @@ const prefersReducedMotion = () =>
 /**
  * Types out "Code. Compile. Succeed." on load, full stops included.
  *
- * Every line keeps its box whether or not it has been typed yet, so the hero
- * never reflows as characters arrive — a headline that grows line by line would
- * shove the sub-heading, CTAs and stats down the page three times on every
- * visit.
+ * State is a single character count and the lines are derived from it. The
+ * previous version tracked a mutable line/char pair and mutated them straight
+ * after calling the state updater — React runs that updater later, by which
+ * point both had already moved on, so the character that completed each line
+ * was written to the wrong slot. Every line rendered one character short, which
+ * is why the full stops disappeared. A derived count cannot drift like that.
  *
- * The animation is decorative: the real text is on the <h1> as an aria-label,
- * and these spans are hidden from assistive tech so a screen reader announces
- * the headline once instead of on every keystroke.
+ * Every line keeps its box whether or not it has been typed, so the hero never
+ * reflows as characters arrive.
+ *
+ * The animation is decorative: the real text is on the <h1> as an aria-label
+ * and these spans are hidden from assistive tech, so a screen reader announces
+ * the headline once rather than on every keystroke.
  */
 const TypedHeadline = () => {
-  // Characters revealed on each line. Starts complete when the OS asks for
-  // reduced motion, so the effect is skipped rather than merely sped up.
-  const [typed, setTyped] = useState<number[]>(() =>
-    prefersReducedMotion() ? LINES.map((l) => l.length) : LINES.map(() => 0)
-  );
+  const [count, setCount] = useState(() => (prefersReducedMotion() ? TOTAL_CHARS : 0));
 
   useEffect(() => {
-    if (prefersReducedMotion()) return;
+    if (count >= TOTAL_CHARS) return;
 
-    let line = 0;
-    let char = 0;
-    let timer: number;
+    const delay =
+      count === 0 ? START_DELAY_MS : LINE_ENDS.has(count) ? LINE_PAUSE_MS : CHAR_MS;
 
-    const step = () => {
-      if (line >= LINES.length) return;   // every line fully typed
-
-      char++;
-      setTyped((prev) => {
-        const next = [...prev];
-        next[line] = char;
-        return next;
-      });
-
-      const finishedLine = char >= LINES[line].length;
-      if (finishedLine) {
-        line++;
-        char = 0;
-      }
-      timer = window.setTimeout(step, finishedLine ? LINE_PAUSE_MS : CHAR_MS);
-    };
-
-    timer = window.setTimeout(step, START_DELAY_MS);
+    const timer = window.setTimeout(() => setCount((c) => c + 1), delay);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [count]);
+
+  const slices = slicesFor(count);
 
   return (
     <span aria-hidden="true">
-      {LINES.map((line, i) => (
+      {slices.map((text, i) => (
         <span
-          key={line}
+          key={LINES[i]}
           style={{
             display: "block",
             // Reserve the full line box up front — this is what stops the page
@@ -80,9 +86,7 @@ const TypedHeadline = () => {
             whiteSpace: "pre",
           }}
         >
-          <span style={i === LINES.length - 1 ? GRADIENT : undefined}>
-            {line.slice(0, typed[i])}
-          </span>
+          <span style={i === LINES.length - 1 ? GRADIENT : undefined}>{text}</span>
         </span>
       ))}
     </span>
