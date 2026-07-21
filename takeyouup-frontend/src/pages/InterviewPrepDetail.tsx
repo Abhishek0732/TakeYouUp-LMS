@@ -339,7 +339,10 @@ const InterviewPrepDetail = () => {
                   {course.modules.reduce((acc: number, m: any) => acc + m.lessons.length, 0)} topics
                 </p>
               </div>
-              <ScrollArea style={{ height: "calc(100vh - 260px)" }}>
+              {/* maxHeight, not height: the panel sizes to its list and only
+                      starts scrolling once the lessons outgrow the viewport. A fixed
+                      height left a tall empty gap under short courses. */}
+                  <ScrollArea style={{ maxHeight: "calc(100vh - 260px)" }}>
                 <div style={{ padding: "0 12px 16px" }}>
                   {course.modules.map((module: any, mIdx: number) => (
                     <div key={mIdx} style={{ marginBottom: 8 }}>
