@@ -16,15 +16,45 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// De-duplicate concurrent refreshes: if several requests 401 at once, they all
-// await the same refresh call.
+// De-duplicate concurrent refreshes: if several requests 401 at once — or the
+// app boots and refreshes while a request is already in flight — they all await
+// the same call.
 let refreshing: Promise<string> | null = null;
 
-const clearSession = () => {
+export const clearSession = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("userName");
   localStorage.removeItem("role");
+  localStorage.removeItem("emailVerified");
+};
+
+/**
+ * Exchange the stored refresh token for a fresh access token.
+ *
+ * Rejects when there is no refresh token or the server refuses it — callers
+ * decide whether that means "sign out" or "carry on anonymously".
+ */
+export const refreshAccessToken = (): Promise<string> => {
+  const refreshToken = localStorage.getItem("refreshToken");
+  if (!refreshToken) {
+    return Promise.reject(new Error("No refresh token"));
+  }
+  if (!refreshing) {
+    refreshing = axios
+      .post(`${API}/api/auth/refresh`, { refreshToken })
+      .then((r) => {
+        localStorage.setItem("token", r.data.token);
+        if (r.data.refreshToken) {
+          localStorage.setItem("refreshToken", r.data.refreshToken);
+        }
+        return r.data.token as string;
+      })
+      .finally(() => {
+        refreshing = null;
+      });
+  }
+  return refreshing;
 };
 
 api.interceptors.response.use(
@@ -38,21 +68,7 @@ api.interceptors.response.use(
     if (status === 401 && !original._retry && refreshToken && !original.url?.includes("/auth/")) {
       original._retry = true;
       try {
-        if (!refreshing) {
-          refreshing = axios
-            .post(`${API}/api/auth/refresh`, { refreshToken })
-            .then((r) => {
-              localStorage.setItem("token", r.data.token);
-              if (r.data.refreshToken) {
-                localStorage.setItem("refreshToken", r.data.refreshToken);
-              }
-              return r.data.token as string;
-            })
-            .finally(() => {
-              refreshing = null;
-            });
-        }
-        const newToken = await refreshing;
+        const newToken = await refreshAccessToken();
         original.headers = original.headers || {};
         original.headers.Authorization = `Bearer ${newToken}`;
         return api(original);

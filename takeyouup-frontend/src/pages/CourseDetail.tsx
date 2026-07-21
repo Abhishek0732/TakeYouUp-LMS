@@ -23,8 +23,8 @@ const CourseDetail = () => {
   const { isCompleted, toggleProgress } = useProgress();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) { navigate("/login"); return; }
+    // No auth check here: the route is wrapped in ProtectedRoute, and checking
+    // localStorage directly would race the token refresh on a stale session.
     const fetchCourse = async () => {
       try {
         setLoading(true);

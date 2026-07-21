@@ -32,13 +32,15 @@ const card: React.CSSProperties = {
 };
 
 const Profile = () => {
-  const { user, logout, login, emailVerified, setEmailVerified } = useAuth();
+  const { user, logout, login, emailVerified, setEmailVerified, ready } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("overview");
 
   useEffect(() => { document.title = "My Profile | TakeYouUp"; }, []);
-  useEffect(() => { if (!user) navigate("/login"); }, [user, navigate]);
+  // Only once the session has been restored: `user` is null during the
+  // refresh that follows an expired access token.
+  useEffect(() => { if (ready && !user) navigate("/login"); }, [ready, user, navigate]);
 
   const { data: me, isLoading } = useQuery({
     queryKey: ["me"],
@@ -51,7 +53,7 @@ const Profile = () => {
     if (me && me.emailVerified !== emailVerified) setEmailVerified(me.emailVerified);
   }, [me]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!user) return null;
+  if (!ready || !user) return null;
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["me"] });
 
