@@ -1,8 +1,10 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
-import { Mail, MapPin, Phone, Send, MessageSquare } from "lucide-react"
+import { Mail, Send, MessageSquare } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import useSeo from "@/hooks/useSeo"
+import useSiteContent from "@/hooks/useSiteContent"
+import { contentIcon } from "@/lib/contentIcons"
 
 const Contact = () => {
   useSeo({
@@ -12,6 +14,7 @@ const Contact = () => {
   });
 
   const { toast } = useToast()
+  const { items, text } = useSiteContent()
   const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" })
   const [sending, setSending] = useState(false)
   const [signedIn] = useState(() => !!localStorage.getItem("token"))
@@ -40,16 +43,8 @@ const Contact = () => {
     }
   };
 
-  const contactInfo = [
-    { icon: Mail, title: "Email", info: "info@takeyouup.com", link: "mailto:info@takeyouup.com" },
-    { icon: Phone, title: "Phone", info: "+91 6387000732", link: "tel:+916387000732" },
-    { icon: MapPin, title: "Location", info: "India, UP", link: null },
-  ];
-
-  const faqs = [
-    { q: "How do I enroll in a course?", a: "Simply browse our courses, select the one you're interested in, and start learning." },
-    { q: "Can I access courses on mobile devices?", a: "Absolutely! Our platform is fully responsive and works on all devices including phones and tablets." },
-  ];
+  const contactDetails = items("CONTACT_INFO");
+  const faqs = items("CONTACT_FAQ");
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
@@ -87,7 +82,10 @@ const Contact = () => {
               Get In <span className="gradient-text">Touch</span>
             </h1>
             <p className="text-lg leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
-              Have questions about our courses? Want to collaborate? We'd love to hear from you.
+              {text(
+                "contact.hero.subtitle",
+                "Have questions about our courses? Want to collaborate? We'd love to hear from you.",
+              )}
             </p>
           </div>
         </div>
@@ -170,23 +168,26 @@ const Contact = () => {
 
           {/* Contact Info */}
           <div className="space-y-4">
-            {contactInfo.map((item, i) => (
+            {contactDetails.map((item) => {
+              const Icon = contentIcon(item.icon, Mail);
+              return (
               <div
-                key={i}
+                key={item.id}
                 className="card-lift rounded-2xl p-5 border flex items-start gap-4"
                 style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}
               >
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "rgba(255,77,28,0.1)" }}>
-                  <item.icon className="h-4.5 w-4.5" style={{ color: "#ff4d1c", width: 18, height: 18 }} />
+                  <Icon className="h-4.5 w-4.5" style={{ color: "#ff4d1c", width: 18, height: 18 }} />
                 </div>
                 <div>
                   <p className="text-xs font-semibold mb-1 uppercase tracking-wider" style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>{item.title}</p>
                   {item.link
-                    ? <a href={item.link} className="text-sm font-medium hover:text-orange-500 transition-colors">{item.info}</a>
-                    : <p className="text-sm font-medium">{item.info}</p>}
+                    ? <a href={item.link} className="text-sm font-medium hover:text-orange-500 transition-colors">{item.body}</a>
+                    : <p className="text-sm font-medium">{item.body}</p>}
                 </div>
               </div>
-            ))}
+              );
+            })}
 
             <div
               className="rounded-2xl p-6 text-center relative overflow-hidden"
@@ -199,6 +200,7 @@ const Contact = () => {
         </div>
 
         {/* FAQ */}
+        {faqs.length > 0 && (
         <div
           className="rounded-3xl p-8 border"
           style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}
@@ -207,16 +209,17 @@ const Contact = () => {
           <h2 className="text-2xl font-bold mb-6" style={{ fontFamily: "'Syne', sans-serif" }}>Frequently Asked Questions</h2>
           <div className="space-y-5">
             {faqs.map((faq, i) => (
-              <div key={i} className="border-b pb-5 last:border-0 last:pb-0" style={{ borderColor: "hsl(var(--border))" }}>
+              <div key={faq.id} className="border-b pb-5 last:border-0 last:pb-0" style={{ borderColor: "hsl(var(--border))" }}>
                 <h3 className="font-semibold mb-2 flex items-center gap-2" style={{ fontFamily: "'Syne', sans-serif" }}>
                   <span className="text-xs font-mono-custom" style={{ color: "#ff4d1c", fontFamily: "'DM Mono', monospace" }}>Q{i + 1}.</span>
-                  {faq.q}
+                  {faq.title}
                 </h3>
-                <p className="text-sm leading-relaxed pl-6" style={{ color: "hsl(var(--muted-foreground))" }}>{faq.a}</p>
+                <p className="text-sm leading-relaxed pl-6" style={{ color: "hsl(var(--muted-foreground))" }}>{faq.body}</p>
               </div>
             ))}
           </div>
         </div>
+        )}
       </div>
     </div>
   );

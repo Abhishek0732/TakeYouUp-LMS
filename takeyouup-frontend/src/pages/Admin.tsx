@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import {
   LayoutDashboard, BookOpen, ListChecks, Code2, Tags, Server, Gauge,
   FolderTree, Users as UsersIcon, Layers, Image as ImageIcon, Menu, X,
+  FileText, Type,
 } from "lucide-react";
 import api from "@/api/axios";
 import DataGrid, { Column } from "@/components/admin/DataGrid";
@@ -11,6 +12,8 @@ import EntityModal, { Field } from "@/components/admin/EntityModal";
 import CourseContent from "@/components/admin/CourseContent";
 import QuizEditor from "@/components/admin/QuizEditor";
 import ResourceCategoryContent from "@/components/admin/ResourceCategoryContent";
+import PageContent from "@/components/admin/PageContent";
+import PageText from "@/components/admin/PageText";
 import useSeo from "@/hooks/useSeo";
 
 // ---------------------------------------------------------------- helpers
@@ -232,6 +235,10 @@ const NAV: { section: string; items: NavItem[] }[] = [
     { key: "difficulties", label: "Difficulties", icon: Gauge },
   ] },
   { section: "Resources", items: [{ key: "categories", label: "Categories", icon: FolderTree }] },
+  { section: "Site copy", items: [
+    { key: "pageContent", label: "Page Content", icon: FileText },
+    { key: "pageText", label: "Page Text", icon: Type },
+  ] },
   { section: "People", items: [{ key: "users", label: "Users", icon: UsersIcon }] },
 ];
 
@@ -483,6 +490,8 @@ export default function Admin() {
         </button>
         {active === "dashboard" && <Dashboard />}
         {active === "quizzes" && <QuizzesView />}
+        {active === "pageContent" && <PageContent />}
+        {active === "pageText" && <PageText />}
         {active === "courses" && manageCourse
           ? <CourseContent course={manageCourse} onBack={() => setManageCourse(null)} />
           : active === "categories" && manageCategory

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom"
 import type { LucideIcon } from "lucide-react"
 import { Code2, Mail, ArrowUpRight } from "lucide-react"
+import useSiteContent from "@/hooks/useSiteContent"
 
 /**
  * Real social profiles, if there are any.
@@ -13,6 +14,9 @@ import { Code2, Mail, ArrowUpRight } from "lucide-react"
 const SOCIAL_LINKS: { icon: LucideIcon; href: string; label: string }[] = [];
 
 const Footer = () => {
+  const { text } = useSiteContent();
+  const email = text("footer.email", "info@takeyouup.com");
+
   const links = {
     Learn: [
       { name: "Courses", path: "/courses" },
@@ -53,8 +57,10 @@ const Footer = () => {
               </span>
             </Link>
             <p className="text-sm leading-relaxed max-w-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-              Structured programming courses with a built-in compiler, quizzes
-              and practice problems. Free to start.
+              {text(
+                "footer.tagline",
+                "Structured programming courses with a built-in compiler, quizzes and practice problems. Free to start.",
+              )}
             </p>
             {/* The GitHub / X / LinkedIn icons that were here all pointed at
                 href="#" and had no accessible name, so they were three dead,
@@ -118,12 +124,12 @@ const Footer = () => {
             © {new Date().getFullYear()} TakeYouUp. All rights reserved.
           </p>
           <a
-            href="mailto:info@takeyouup.com"
+            href={`mailto:${email}`}
             className="flex items-center gap-2 text-xs transition-colors hover:text-orange-500"
             style={{ color: "hsl(var(--muted-foreground))", fontFamily: "'DM Mono', monospace" }}
           >
             <Mail className="h-3.5 w-3.5" />
-            info@takeyouup.com
+            {email}
           </a>
         </div>
       </div>

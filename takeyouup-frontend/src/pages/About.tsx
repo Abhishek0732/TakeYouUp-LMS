@@ -1,10 +1,12 @@
-import { Target, Eye, Award, Code, BookOpen, GraduationCap } from "lucide-react";
+import { Award, Code, BookOpen, GraduationCap } from "lucide-react";
 import abhishek from "../assets/abhishek-photo.jpeg";
 import { useEffect, useRef } from "react";
 import CountUp from "react-countup";
 import { useQuery } from "@tanstack/react-query";
 import { fetchStats } from "@/api/stats";
 import useSeo from "@/hooks/useSeo";
+import useSiteContent from "@/hooks/useSiteContent";
+import { contentIcon } from "@/lib/contentIcons";
 
 const About = () => {
   useSeo({
@@ -41,23 +43,14 @@ const About = () => {
     { label: "Quiz Questions", value: platform?.quizQuestions, suffix: "", icon: Award },
   ];
 
-  const values = [
-    { icon: Target, title: "Our Mission", description: "To make quality programming education accessible to everyone, regardless of their background or location. We believe in empowering individuals through knowledge." },
-    { icon: Eye, title: "Our Vision", description: "To become the world's leading platform for learning programming, where students can transform their careers and achieve their dreams through technology." },
-    { icon: Award, title: "Our Values", description: "Excellence in education, commitment to student success, innovation in teaching methods, and building a supportive learning community." },
-  ];
-
-  // Each of these is a feature you can go and use right now, rather than a
-  // claim about staff or community that does not yet exist ("industry-expert
-  // instructors", "active community support and mentorship").
-  const whyReasons = [
-    "Structured courses that build in order, not scattered tutorials",
-    "A built-in compiler — run code without leaving the lesson",
-    "Quizzes at the end of each module to check what stuck",
-    "Curated practice problems with difficulty and topic filters",
-    "Progress saved lesson by lesson, so you can pick up where you left off",
-    "A verifiable certificate when you finish a course",
-  ];
+  // Admin-editable copy. The "why us" reasons are each a feature you can go and
+  // use right now, rather than a claim about staff or community that does not
+  // yet exist ("industry-expert instructors", "active community support and
+  // mentorship").
+  const { items, text } = useSiteContent();
+  const values = items("ABOUT_VALUE");
+  const whyReasons = items("ABOUT_REASON");
+  const story = items("ABOUT_STORY");
 
   return (
     <div ref={revealRef} style={{ minHeight: "100vh" }}>
@@ -71,8 +64,10 @@ const About = () => {
               About <span className="gradient-text">TakeYouUp</span>
             </h1>
             <p className="text-lg leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
-              We're on a mission to transform lives through quality programming education.
-              Learn from industry experts and join a community of passionate learners.
+              {text(
+                "about.hero.subtitle",
+                "We're on a mission to transform lives through quality programming education. Learn from industry experts and join a community of passionate learners.",
+              )}
             </p>
           </div>
         </div>
@@ -108,29 +103,35 @@ const About = () => {
         </div>
 
         {/* Mission / Vision / Values */}
+        {values.length > 0 && (
         <div>
           <div className="text-center mb-10 reveal">
             <div className="section-tag justify-center">Our Foundation</div>
             <h2 className="text-3xl font-bold" style={{ fontFamily: "'Syne', sans-serif" }}>What Drives Us</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {values.map((v, i) => (
+            {values.map((v, i) => {
+              const Icon = contentIcon(v.icon, Award);
+              return (
               <div
-                key={i}
+                key={v.id}
                 className={`reveal delay-${i + 1} card-lift rounded-2xl p-7 border group`}
                 style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}
               >
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-all" style={{ background: "hsl(var(--muted))" }}>
-                  <v.icon className="h-6 w-6" style={{ color: "#ff4d1c" }} />
+                  <Icon className="h-6 w-6" style={{ color: "#ff4d1c" }} />
                 </div>
                 <h3 className="text-lg font-bold mb-3" style={{ fontFamily: "'Syne', sans-serif" }}>{v.title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>{v.description}</p>
+                <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>{v.body}</p>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
+        )}
 
         {/* Our Story */}
+        {story.length > 0 && (
         <div className="reveal">
           <div
             className="rounded-3xl p-10 border relative overflow-hidden"
@@ -141,18 +142,19 @@ const About = () => {
               <div className="section-tag">Our History</div>
               <h2 className="text-2xl font-bold mb-5" style={{ fontFamily: "'Syne', sans-serif" }}>Our Story</h2>
               <div className="space-y-4 text-sm leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
-                {/* Rewritten to match reality. The previous copy claimed a 2020
+                {/* Kept honest deliberately. The original copy claimed a 2020
                     founding, "thousands of students worldwide" and plural
                     "founders … from top tech companies" — while the team section
                     directly below lists one person. Overstating the story is the
                     quickest way to make everything else on the page suspect. */}
-                <p>TakeYouUp started from a simple frustration: most programming material is either a wall of theory or a pile of disconnected tutorials, and neither gets you to the point where you can actually build something.</p>
-                <p>It is built and maintained by a working software engineer who wanted a place where the path is laid out end to end — read the lesson, run the code, take the quiz, solve the problems, and have your progress remembered so you can stop and come back without losing your place.</p>
-                <p>The catalogue covers programming fundamentals through to machine learning and system design, and it keeps growing. Everything is free to start, with no card required.</p>
+                {story.map((p) => (
+                  <p key={p.id}>{p.body}</p>
+                ))}
               </div>
             </div>
           </div>
         </div>
+        )}
 
         {/* Team */}
         <div>
@@ -166,11 +168,11 @@ const About = () => {
               style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}
             >
               <div className="aspect-square overflow-hidden">
-                <img src={abhishek} alt="Abhishek Kumar Verma" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <img src={abhishek} alt={text("about.team.name", "Abhishek Kumar Verma")} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
               </div>
               <div className="p-5">
-                <h3 className="font-bold mb-1" style={{ fontFamily: "'Syne', sans-serif" }}>Abhishek Kumar Verma</h3>
-                <span className="pill-orange text-xs">Founder & CEO</span>
+                <h3 className="font-bold mb-1" style={{ fontFamily: "'Syne', sans-serif" }}>{text("about.team.name", "Abhishek Kumar Verma")}</h3>
+                <span className="pill-orange text-xs">{text("about.team.role", "Founder & CEO")}</span>
                 <p className="mt-2 text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>Software Engineer</p>
               </div>
             </div>
@@ -178,6 +180,7 @@ const About = () => {
         </div>
 
         {/* Why Choose Us */}
+        {whyReasons.length > 0 && (
         <div
           className="reveal rounded-3xl p-10 relative overflow-hidden"
           style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
@@ -187,17 +190,18 @@ const About = () => {
             <div className="section-tag justify-center">Why Us</div>
             <h2 className="text-3xl font-bold text-center mb-8" style={{ fontFamily: "'Syne', sans-serif" }}>Why Choose TakeYouUp?</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
-              {whyReasons.map((reason, i) => (
-                <div key={i} className="flex items-start gap-3">
+              {whyReasons.map((reason) => (
+                <div key={reason.id} className="flex items-start gap-3">
                   <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: "rgba(255,77,28,0.15)" }}>
                     <div className="w-2 h-2 rounded-full" style={{ background: "#ff4d1c" }} />
                   </div>
-                  <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>{reason}</p>
+                  <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>{reason.title}</p>
                 </div>
               ))}
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

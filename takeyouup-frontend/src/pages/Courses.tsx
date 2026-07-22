@@ -6,6 +6,7 @@ import CourseCover from "@/components/CourseCover";
 import { CardGridSkeleton, ChipsSkeleton } from "@/components/Skeletons";
 import StateMessage from "@/components/StateMessage";
 import useSeo from "@/hooks/useSeo";
+import useSiteContent from "@/hooks/useSiteContent";
 
 const Courses = () => {
   useSeo({
@@ -17,6 +18,7 @@ const Courses = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const revealRef = useRef<HTMLDivElement>(null);
   const { courses, loading, error, refetch } = useCourses();
+  const { text } = useSiteContent();
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -60,8 +62,10 @@ const Courses = () => {
               Explore <span className="gradient-text">Courses</span>
             </h1>
             <p className="text-lg leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
-              Comprehensive courses designed to take you from beginner to expert.
-              Learn at your own pace with hands-on projects.
+              {text(
+                "courses.hero.subtitle",
+                "Comprehensive courses designed to take you from beginner to expert. Learn at your own pace with hands-on projects.",
+              )}
             </p>
           </div>
         </div>

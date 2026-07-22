@@ -2,9 +2,7 @@ import { Link } from "react-router-dom";
 import {
   ArrowRight,
   BookOpen,
-  Code,
   Users,
-  Zap,
   Star,
   Clock,
   ChevronRight,
@@ -23,6 +21,8 @@ import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchStats } from "@/api/stats";
 import useSeo from "@/hooks/useSeo";
+import useSiteContent from "@/hooks/useSiteContent";
+import { contentIcon } from "@/lib/contentIcons";
 
 const Home = () => {
   useSeo({
@@ -59,37 +59,14 @@ const Home = () => {
   }, []);
 
 
-  // Each of these describes something the platform actually does. The previous
-  // set leaned on claims about people who do not exist — "built by industry
-  // experts", "Expert Instructors: learn directly from engineers at top tech
-  // companies" — alongside "job-ready in record time", which promises an
-  // outcome nobody can guarantee.
-  const features = [
-    {
-      icon: BookOpen,
-      title: "Structured Paths",
-      description:
-        "Courses are ordered module by module, so you always know what comes next.",
-    },
-    {
-      icon: Code,
-      title: "Run Code In-Place",
-      description:
-        "A built-in compiler for 10+ languages — try what you just read without switching tabs.",
-    },
-    {
-      icon: Zap,
-      title: "Practice & Quizzes",
-      description:
-        "Curated problems with difficulty filters, plus a quiz at the end of each module.",
-    },
-    {
-      icon: Sparkles,
-      title: "Progress That Sticks",
-      description:
-        "Every lesson is tracked, so you can stop anywhere and pick up where you left off.",
-    },
-  ];
+  // Copy below is admin-editable. Each feature describes something the platform
+  // actually does. The previous set leaned on claims about people who do not
+  // exist — "built by industry experts", "Expert Instructors: learn directly
+  // from engineers at top tech companies" — alongside "job-ready in record
+  // time", which promises an outcome nobody can guarantee.
+  const { items, text } = useSiteContent();
+  const features = items("HOME_FEATURE");
+  const steps = items("HOME_STEP");
 
   const { hasProgress, target: resumeTarget } = useResume();
 
@@ -164,7 +141,7 @@ const Home = () => {
                 style={{ fontSize: 12 }}
               >
                 <Sparkles style={{ width: 13, height: 13 }} />
-                New courses dropping every week
+                {text("home.hero.badge", "New courses dropping every week")}
               </div>
 
               {/* Headline */}
@@ -195,8 +172,10 @@ const Home = () => {
                   marginBottom: "2.5rem",
                 }}
               >
-                Elevate your programming skills, solve real challenges, and
-                unlock a world of career possibilities — one commit at a time.
+                {text(
+                  "home.hero.subtitle",
+                  "Elevate your programming skills, solve real challenges, and unlock a world of career possibilities — one commit at a time.",
+                )}
               </p>
 
               {/* CTAs */}
@@ -361,12 +340,15 @@ const Home = () => {
       </section>
 
       {/* ═══════════════════ FEATURES ═══════════════════ */}
+      {features.length > 0 && (
       <section
         style={{ padding: "96px 0", background: "hsl(var(--muted) / 0.4)" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-14 reveal in-view">
-            <div className="section-tag justify-center">Why TakeYouUp</div>
+            <div className="section-tag justify-center">
+              {text("home.features.heading", "Why TakeYouUp")}
+            </div>
             <h2
               style={{
                 fontFamily: "'Syne', sans-serif",
@@ -387,9 +369,11 @@ const Home = () => {
               gap: 20,
             }}
           >
-            {features.map((f, i) => (
+            {features.map((f, i) => {
+              const Icon = contentIcon(f.icon, BookOpen);
+              return (
               <div
-                key={f.title}
+                key={f.id}
                 className={`reveal delay-${i + 1} card-lift rounded-2xl group`}
                 style={{
                   background: "hsl(var(--card))",
@@ -412,7 +396,7 @@ const Home = () => {
                     marginBottom: 18,
                   }}
                 >
-                  <f.icon style={{ width: 20, height: 20, color: "white" }} />
+                  <Icon style={{ width: 20, height: 20, color: "white" }} />
                 </div>
                 <h3
                   style={{
@@ -431,13 +415,15 @@ const Home = () => {
                     lineHeight: 1.65,
                   }}
                 >
-                  {f.description}
+                  {f.body}
                 </p>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
+      )}
 
       {/* ═══════════════════ COURSES ═══════════════════ */}
       <section
@@ -649,6 +635,7 @@ const Home = () => {
         </div>
       </section>
 
+      {steps.length > 0 && (
       <section
         style={{
           background: "hsl(var(--card))",
@@ -665,7 +652,9 @@ const Home = () => {
               happens when you start. Put real, attributable testimonials back
               here once there are learners willing to be quoted. */}
           <div className="text-center mb-12 reveal in-view">
-            <div className="section-tag justify-center">How it works</div>
+            <div className="section-tag justify-center">
+              {text("home.steps.heading", "How it works")}
+            </div>
             <h2
               style={{
                 fontFamily: "'Syne', sans-serif",
@@ -684,28 +673,11 @@ const Home = () => {
               gap: 20,
             }}
           >
-            {[
-              {
-                step: "01",
-                icon: BookOpen,
-                title: "Pick a track",
-                text: "Choose from structured courses in DSA, Java, Python, web development, machine learning and system design. Every one is free to start — no card required.",
-              },
-              {
-                step: "02",
-                icon: Code,
-                title: "Learn, then prove it",
-                text: "Work through lessons at your own pace, run code in the built-in compiler, and check yourself with a quiz at the end of each module.",
-              },
-              {
-                step: "03",
-                icon: Sparkles,
-                title: "Track and finish",
-                text: "Your progress is saved lesson by lesson, so you can always pick up where you left off. Finish a course and claim a verifiable certificate.",
-              },
-            ].map((s, i) => (
+            {steps.map((s, i) => {
+              const Icon = contentIcon(s.icon, BookOpen);
+              return (
               <div
-                key={s.step}
+                key={s.id}
                 className={`reveal delay-${i + 1}`}
                 style={{
                   background: "hsl(var(--background))",
@@ -734,7 +706,7 @@ const Home = () => {
                       flexShrink: 0,
                     }}
                   >
-                    <s.icon style={{ width: 18, height: 18, color: "#fff" }} />
+                    <Icon style={{ width: 18, height: 18, color: "#fff" }} />
                   </div>
                   <span
                     style={{
@@ -744,7 +716,7 @@ const Home = () => {
                       letterSpacing: "0.08em",
                     }}
                   >
-                    {s.step}
+                    {s.extra}
                   </span>
                 </div>
                 <h3
@@ -764,13 +736,15 @@ const Home = () => {
                     lineHeight: 1.7,
                   }}
                 >
-                  {s.text}
+                  {s.body}
                 </p>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
+      )}
 
       <Faq />
       <ContinueLearning />
@@ -808,8 +782,8 @@ const Home = () => {
             className="pill-orange mx-auto mb-7 w-fit animate-fade-up anim-d0"
             style={{ fontSize: 12 }}
           >
-            <Terminal style={{ width: 13, height: 13 }} /> Free to start — no
-            card required
+            <Terminal style={{ width: 13, height: 13 }} />{" "}
+            {text("home.cta.badge", "Free to start — no card required")}
           </div>
           <h2
             className="animate-fade-up anim-d1"

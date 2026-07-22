@@ -85,6 +85,17 @@ public class SecurityConfig {
                         // --- Admin-only user management (listing exposes accounts) ---
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
 
+                        // --- Editable site copy ---
+                        // The admin listing goes FIRST: it returns inactive rows
+                        // too, which are drafts the public has no business seeing.
+                        // Without this it would fall through to
+                        // anyRequest().authenticated() and any signed-in user
+                        // could read them.
+                        .requestMatchers(HttpMethod.GET, "/api/content/admin/**").hasRole("ADMIN")
+                        // The public read is what every marketing page calls on
+                        // first paint, so it must work signed out.
+                        .requestMatchers(HttpMethod.GET, "/api/content").permitAll()
+
                         // --- All other content mutations are ADMIN-only ---
                         .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
