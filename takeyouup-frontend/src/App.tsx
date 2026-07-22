@@ -11,6 +11,7 @@ import { CourseProvider } from "./context/CourseContext";
 import Chatbot from "@/components/Chatbot";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import CourseEntry from "./routes/CourseEntry";
 import { DetailSkeleton } from "@/components/Skeletons";
 import { lazy, Suspense } from "react";
 
@@ -98,15 +99,10 @@ const App = () => (
                       </CourseProvider>
                     }
                   />
-                  {/* <Route path="/:slug" element={<CourseDetail />} /> */}
-                  <Route
-                    path="/:courseSlug"
-                    element={
-                      <ProtectedRoute>
-                        <CourseDetail />
-                      </ProtectedRoute>
-                    }
-                  />
+                  {/* Public syllabus when signed out, full course when signed
+                      in — see CourseEntry. Also what makes an unknown top-level
+                      slug render the not-found page instead of the login form. */}
+                  <Route path="/:courseSlug" element={<CourseEntry />} />
                   <Route
                     path="/:courseSlug/:lessonSlug"
                     element={

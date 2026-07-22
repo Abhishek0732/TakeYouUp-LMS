@@ -7,7 +7,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import takeyouup.example.takeyouup.model.Course;
 import takeyouup.example.takeyouup.model.resources.ResourceCategory;
+import takeyouup.example.takeyouup.repository.CourseRepository;
 import takeyouup.example.takeyouup.repository.resources.ResourceCategoryRepository;
 import takeyouup.example.takeyouup.util.RequestOrigin;
 
@@ -25,11 +27,9 @@ import java.util.List;
  * The host comes from the request, so the URLs are right on whatever domain the
  * site is served from — the same approach used for emailed links.
  *
- * Deliberately NOT listed: course and lesson URLs. They sit behind
- * ProtectedRoute, so a signed-out crawler is redirected to /login and would
- * index the sign-in page under a course's URL. Listing them would be asking
- * search engines to crawl content they cannot reach. Add them here once course
- * pages render their overview publicly.
+ * Course overview pages are listed now that they render publicly. Individual
+ * LESSON URLs still are not: those need an account, so a crawler following one
+ * would land on the sign-in page.
  */
 @RestController
 public class SitemapController {
@@ -48,6 +48,9 @@ public class SitemapController {
     @Autowired
     private ResourceCategoryRepository resourceCategoryRepository;
 
+    @Autowired
+    private CourseRepository courseRepository;
+
     @Value("${app.frontend-url:http://localhost:5174}")
     private String fallbackOrigin;
 
@@ -61,6 +64,13 @@ public class SitemapController {
 
         for (String[] entry : STATIC_PATHS) {
             append(xml, origin + entry[0], entry[1], entry[2]);
+        }
+
+        // Course overviews — the pages a search result should actually land on.
+        for (Course course : courseRepository.findAll()) {
+            if (course.getSlug() != null && !course.getSlug().isBlank()) {
+                append(xml, origin + "/" + course.getSlug(), "weekly", "0.9");
+            }
         }
 
         // Resource categories are genuinely public — SecurityConfig permits GET

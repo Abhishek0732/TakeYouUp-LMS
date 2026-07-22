@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import takeyouup.example.takeyouup.dto.CourseOverviewDTO;
 import takeyouup.example.takeyouup.dto.CourseSummaryDTO;
 import takeyouup.example.takeyouup.helper.ApiResponse;
 import takeyouup.example.takeyouup.model.Course;
@@ -257,6 +258,24 @@ public class CourseController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ApiResponse(404, "Course not found with slug " + slug));
         }
+    }
+
+    /**
+     * Public course overview — syllabus without lesson bodies.
+     *
+     * Kept separate from {@code /slug/{slug}} rather than making that endpoint
+     * conditionally redact its response: two shapes behind one URL is how an
+     * authenticated field eventually leaks into an anonymous response. This one
+     * cannot expose lesson content because the DTO has nowhere to put it.
+     */
+    @GetMapping("/overview/{slug}")
+    public ResponseEntity<?> getCourseOverview(@PathVariable String slug) {
+        return courseService.findBySlug(slug)
+                .<ResponseEntity<?>>map(course -> ResponseEntity.ok()
+                        .header("Cache-Control", "public, max-age=300")
+                        .body(CourseOverviewDTO.from(course)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ApiResponse(404, "Course not found with slug " + slug)));
     }
 
     @GetMapping("/basic")

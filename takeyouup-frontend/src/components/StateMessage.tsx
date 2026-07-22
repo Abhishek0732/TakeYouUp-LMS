@@ -21,6 +21,13 @@ export type StateMessageProps = {
   /** Renders in place of the retry button — e.g. a Link to somewhere useful. */
   action?: React.ReactNode;
   className?: string;
+  /**
+   * Heading level for the title. Defaults to h3 because this usually sits
+   * inside a section that already has one — but when the panel IS the page
+   * (a not-found screen, say) it needs to be the h1, or the page ships with
+   * no top-level heading at all.
+   */
+  headingAs?: "h1" | "h2" | "h3";
 };
 
 const StateMessage = ({
@@ -32,6 +39,7 @@ const StateMessage = ({
   retryLabel = "Try again",
   action,
   className = "",
+  headingAs: Heading = "h3",
 }: StateMessageProps) => {
   const isError = tone === "error";
   const Icon = icon ?? (isError ? AlertCircle : Inbox);
@@ -59,7 +67,7 @@ const StateMessage = ({
         <Icon style={{ width: 20, height: 20, color: accent }} />
       </div>
 
-      <h3
+      <Heading
         style={{
           fontFamily: "'Syne', sans-serif",
           fontWeight: 700,
@@ -68,7 +76,7 @@ const StateMessage = ({
         }}
       >
         {title}
-      </h3>
+      </Heading>
 
       {description && (
         <p

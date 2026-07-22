@@ -61,6 +61,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/resources/categories").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/resources/categories/*").permitAll()
 
+                        // --- Public course overview ---
+                        // Syllabus only: module and lesson TITLES, never lesson
+                        // bodies or key points — see CourseOverviewDTO, which has
+                        // no field capable of carrying them. Lesson content stays
+                        // behind /api/courses/slug/** for signed-in users.
+                        // Scoped to GET; creating and editing courses remains
+                        // admin-only via the blanket rules further down.
+                        .requestMatchers(HttpMethod.GET, "/api/courses/overview/*").permitAll()
+
                         // --- Writes that a normal logged-in USER may perform ---
                         .requestMatchers(HttpMethod.POST,
                                 "/api/contacts",
