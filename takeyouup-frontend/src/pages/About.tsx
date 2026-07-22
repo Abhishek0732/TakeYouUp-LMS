@@ -15,16 +15,24 @@ const About = () => {
       "Who builds TakeYouUp and why: the mission behind the platform, how the catalogue is put together, and live counts of the content on it.",
   });
 
+  const { items, text } = useSiteContent();
+  const values = items("ABOUT_VALUE");
+  const whyReasons = items("ABOUT_REASON");
+  const story = items("ABOUT_STORY");
+
   const revealRef = useRef<HTMLDivElement>(null);
+  // Deps and the :not(.in-view) filter matter here for the same reason as on
+  // Home: the values, story and why-us rows now load from the content API after
+  // mount, so a run-once observer never saw them and they stayed invisible.
   useEffect(() => {
-    const els = revealRef.current?.querySelectorAll(".reveal") ?? [];
+    const els = revealRef.current?.querySelectorAll(".reveal:not(.in-view)") ?? [];
     const obs = new IntersectionObserver(
       (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in-view"); obs.unobserve(e.target); } }),
       { threshold: 0.1 }
     );
     els.forEach((el) => obs.observe(el));
     return () => obs.disconnect();
-  }, []);
+  }, [values.length, whyReasons.length, story.length]);
 
   // Every figure here used to be invented: "10,000+ Active Students" (against a
   // handful of real accounts, and contradicting the Home page's "5,000+"),
@@ -47,10 +55,6 @@ const About = () => {
   // use right now, rather than a claim about staff or community that does not
   // yet exist ("industry-expert instructors", "active community support and
   // mentorship").
-  const { items, text } = useSiteContent();
-  const values = items("ABOUT_VALUE");
-  const whyReasons = items("ABOUT_REASON");
-  const story = items("ABOUT_STORY");
 
   return (
     <div ref={revealRef} style={{ minHeight: "100vh" }}>

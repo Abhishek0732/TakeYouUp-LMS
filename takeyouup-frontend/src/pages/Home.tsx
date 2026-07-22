@@ -41,9 +41,20 @@ const Home = () => {
     staleTime: 5 * 60_000,
   });
 
+  const { items, text } = useSiteContent();
+  const features = items("HOME_FEATURE");
+  const steps = items("HOME_STEP");
+
   const revealRef = useRef<HTMLDivElement>(null);
+  // Re-runs when content arrives, and skips anything already revealed.
+  //
+  // With an empty dependency array this ran once on mount and observed only the
+  // .reveal elements that existed at that instant. That was fine while the
+  // feature and step cards were hardcoded, but they now arrive from the content
+  // API a moment later — so they were never observed, never got .in-view, and
+  // sat at `opacity: 0` forever, leaving a tall empty gap under the heading.
   useEffect(() => {
-    const els = revealRef.current?.querySelectorAll(".reveal") ?? [];
+    const els = revealRef.current?.querySelectorAll(".reveal:not(.in-view)") ?? [];
     const obs = new IntersectionObserver(
       (entries) =>
         entries.forEach((e) => {
@@ -56,7 +67,7 @@ const Home = () => {
     );
     els.forEach((el) => obs.observe(el));
     return () => obs.disconnect();
-  }, []);
+  }, [features.length, steps.length]);
 
 
   // Copy below is admin-editable. Each feature describes something the platform
@@ -64,9 +75,6 @@ const Home = () => {
   // exist — "built by industry experts", "Expert Instructors: learn directly
   // from engineers at top tech companies" — alongside "job-ready in record
   // time", which promises an outcome nobody can guarantee.
-  const { items, text } = useSiteContent();
-  const features = items("HOME_FEATURE");
-  const steps = items("HOME_STEP");
 
   const { hasProgress, target: resumeTarget } = useResume();
 
