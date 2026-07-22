@@ -183,14 +183,57 @@ function LessonModal({ moduleId, lesson, onClose, onSave }: {
               <label className="text-xs opacity-70">Key points</label>
               <button className="text-orange-500 text-xs flex items-center gap-1" onClick={addKp}><Plus className="h-3 w-3" /> Add</button>
             </div>
-            <div className="space-y-2">
+            {/* One block per point rather than two inputs on a row.
+                The explanation is rendered on the lesson page with the same
+                <RichContent /> as the lesson body, so it has always supported
+                Markdown and fenced code — but the editor was a single-line
+                <input>, which made anything longer than a few words unreadable
+                to write and a code block impossible. It now uses the same
+                MarkdownEditor as the Content field above. */}
+            <div className="space-y-3">
               {(form.keyPoints || []).map((kp, i) => (
-                <div key={i} className="flex gap-2 items-start">
-                  <input className={inp + " flex-1"} placeholder="Point" value={kp.point} onChange={(e) => setKp(i, "point", e.target.value)} />
-                  <input className={inp + " flex-1"} placeholder="Explanation" value={kp.explanation} onChange={(e) => setKp(i, "explanation", e.target.value)} />
-                  <button onClick={() => removeKp(i)} aria-label="Remove key point" className="p-2"><Trash2 className="h-4 w-4 text-red-500" /></button>
+                <div
+                  key={i}
+                  className="rounded-xl border p-3"
+                  style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--muted)/.35)" }}
+                >
+                  <div className="flex gap-2 items-center mb-2">
+                    <span
+                      className="text-[10px] font-mono opacity-50 flex-shrink-0"
+                      style={{ minWidth: 18 }}
+                    >
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <input
+                      className={inp + " flex-1"}
+                      placeholder="Point — a short heading"
+                      value={kp.point}
+                      onChange={(e) => setKp(i, "point", e.target.value)}
+                      aria-label={`Key point ${i + 1} heading`}
+                    />
+                    <button
+                      onClick={() => removeKp(i)}
+                      aria-label={`Remove key point ${i + 1}`}
+                      title="Remove key point"
+                      className="p-2 flex-shrink-0"
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </button>
+                  </div>
+                  <MarkdownEditor
+                    value={kp.explanation || ""}
+                    onChange={(v) => setKp(i, "explanation", v)}
+                    rows={4}
+                    placeholder={"Explain it — Markdown and code blocks are supported."}
+                    hint="Same formatting as the lesson content above."
+                  />
                 </div>
               ))}
+              {(form.keyPoints || []).length === 0 && (
+                <p className="text-xs opacity-50">
+                  No key points yet. Use “Add” to create one.
+                </p>
+              )}
             </div>
           </div>
         </div>
