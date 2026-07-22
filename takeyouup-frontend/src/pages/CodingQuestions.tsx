@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ExternalLink,
@@ -30,6 +30,7 @@ import {
   type QuestionStreak,
 } from "@/services/questionService";
 import { useProgress } from "@/context/ProgressContext";
+import useSeo from "@/hooks/useSeo";
 
 /** Topics, difficulties and platforms all come from the DB — never hardcode them. */
 type Difficulty = string;
@@ -111,7 +112,9 @@ function getTodayString() {
 
 /* pagination button base style */
 const paginationBtnStyle: React.CSSProperties = {
-  width: 32, height: 32, borderRadius: 8,
+  // 32px was below the ~44px minimum comfortable tap target, and these sit in a
+  // tight row on mobile where mis-taps jump you several pages.
+  width: 40, height: 40, borderRadius: 8,
   border: "1.5px solid hsl(var(--border))",
   background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))",
   display: "flex", alignItems: "center", justifyContent: "center",
@@ -121,9 +124,11 @@ const paginationBtnStyle: React.CSSProperties = {
 
 /* ═══════════════════════════════════════ */
 const CodingQuestions = () => {
-  useEffect(() => {
-    document.title = "Problems | TakeYouUp - Master Programming & Build Your Future";
-  }, []);
+  useSeo({
+    title: "Practice Problems",
+    description:
+      "A searchable list of curated coding problems on LeetCode and GeeksforGeeks, filterable by topic and difficulty, with your solved count tracked.",
+  });
 
   const [selectedTopic, setSelectedTopic] = useState<Topic | "All">("All");
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | "All">("All");
@@ -204,7 +209,7 @@ const CodingQuestions = () => {
   }, [totalPages, currentPage]);
 
   return (
-    <div style={{ minHeight: "100vh", background: "hsl(var(--background))" }}>
+    <div style={{ background: "hsl(var(--background))" }}>
 
       {/* ══════════════ HERO + POTD ══════════════ */}
       <section
@@ -556,11 +561,11 @@ const CodingQuestions = () => {
             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "hsl(var(--muted-foreground))" }}>
               Showing {startItem}–{endItem} of {totalElements}
             </span>
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <button disabled={currentPage === 1} onClick={() => setCurrentPage(1)} style={{ ...paginationBtnStyle, opacity: currentPage === 1 ? 0.3 : 1 }}>
+            <nav aria-label="Pagination" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <button aria-label="First page" title="First page" disabled={currentPage === 1} onClick={() => setCurrentPage(1)} style={{ ...paginationBtnStyle, opacity: currentPage === 1 ? 0.3 : 1 }}>
                 <ChevronsLeft style={{ width: 13, height: 13 }} />
               </button>
-              <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)} style={{ ...paginationBtnStyle, opacity: currentPage === 1 ? 0.3 : 1 }}>
+              <button aria-label="Previous page" title="Previous page" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)} style={{ ...paginationBtnStyle, opacity: currentPage === 1 ? 0.3 : 1 }}>
                 <ChevronLeft style={{ width: 13, height: 13 }} />
               </button>
               {pageNumbers.map((page, idx) =>
@@ -569,6 +574,8 @@ const CodingQuestions = () => {
                 ) : (
                   <button
                     key={page}
+                    aria-label={`Page ${page}`}
+                    aria-current={currentPage === page ? "page" : undefined}
                     onClick={() => setCurrentPage(page as number)}
                     style={{
                       ...paginationBtnStyle,
@@ -582,13 +589,13 @@ const CodingQuestions = () => {
                   </button>
                 )
               )}
-              <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)} style={{ ...paginationBtnStyle, opacity: currentPage === totalPages ? 0.3 : 1 }}>
+              <button aria-label="Next page" title="Next page" disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)} style={{ ...paginationBtnStyle, opacity: currentPage === totalPages ? 0.3 : 1 }}>
                 <ChevronRight style={{ width: 13, height: 13 }} />
               </button>
-              <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(totalPages)} style={{ ...paginationBtnStyle, opacity: currentPage === totalPages ? 0.3 : 1 }}>
+              <button aria-label="Last page" title="Last page" disabled={currentPage === totalPages} onClick={() => setCurrentPage(totalPages)} style={{ ...paginationBtnStyle, opacity: currentPage === totalPages ? 0.3 : 1 }}>
                 <ChevronsRight style={{ width: 13, height: 13 }} />
               </button>
-            </div>
+            </nav>
           </div>
         )}
       </div>
@@ -612,21 +619,26 @@ function ProgressTracker({ progress }: { progress?: QuestionProgress }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-3" style={{ marginBottom: 20 }}>
       {/* Ring + per-difficulty breakdown */}
-      <div className="lg:col-span-2 flex flex-wrap items-center gap-6"
-        style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 16, padding: "20px 24px" }}>
+      {/* No flex-wrap: on a narrow phone the 148px ring plus a 190px minimum
+          breakdown exceeded the available width and the breakdown dropped onto
+          its own line, making the card twice as tall. The ring is smaller on
+          mobile and the breakdown may now shrink, so they stay side by side. */}
+      <div className="lg:col-span-2 flex items-center gap-3 sm:gap-6 p-4 sm:px-6 sm:py-5"
+        style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 16 }}>
         <ProgressRing segments={segments} solved={solved} total={total} />
 
-        <div className="flex-1 grid gap-2" style={{ minWidth: 190 }}>
+        <div className="flex-1 grid gap-1.5 sm:gap-2 min-w-0">
           {segments.map((s) => (
             <div key={s.level}
+              className="px-2.5 py-1.5 sm:px-3.5 sm:py-2"
               style={{
-                background: "hsl(var(--muted))", borderRadius: 10, padding: "8px 14px",
+                background: "hsl(var(--muted))", borderRadius: 10,
                 borderLeft: `3px solid ${s.color}`,
               }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: s.color, fontFamily: "'DM Sans', sans-serif" }}>
+              <div className="text-[11px] sm:text-xs" style={{ fontWeight: 600, color: s.color, fontFamily: "'DM Sans', sans-serif" }}>
                 {s.level}
               </div>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 14 }}>
+              <div className="text-[12px] sm:text-sm" style={{ fontFamily: "'DM Mono', monospace" }}>
                 {s.solved}<span style={{ color: "hsl(var(--muted-foreground))" }}>/{s.total}</span>
               </div>
             </div>
@@ -662,8 +674,15 @@ function ProgressRing({ segments, solved, total }: { segments: Segment[]; solved
   });
 
   return (
-    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
-      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+    // Responsive box: 96px on phones, the original 148px from sm up. The SVG
+    // keeps its 148-unit coordinate system through viewBox, so every arc
+    // calculation above is unchanged — only the painted size differs.
+    <div className="relative flex-shrink-0 w-24 h-24 sm:w-[148px] sm:h-[148px]">
+      <svg
+        viewBox={`0 0 ${size} ${size}`}
+        className="w-full h-full"
+        style={{ transform: "rotate(-90deg)" }}
+      >
         {arcs.map((a) => (
           <g key={a.level}>
             {/* unsolved remainder */}
@@ -691,12 +710,12 @@ function ProgressRing({ segments, solved, total }: { segments: Segment[]; solved
         position: "absolute", inset: 0, display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center", gap: 2,
       }}>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 26, lineHeight: 1 }}>
+        <div className="text-lg sm:text-[26px]" style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, lineHeight: 1 }}>
           {solved}
-          <span style={{ fontSize: 13, fontWeight: 500, color: "hsl(var(--muted-foreground))" }}>/{total}</span>
+          <span className="text-[10px] sm:text-[13px]" style={{ fontWeight: 500, color: "hsl(var(--muted-foreground))" }}>/{total}</span>
         </div>
-        <div className="flex items-center gap-1" style={{ fontSize: 12, color: "#22c55e" }}>
-          <Check className="h-3 w-3" /> Solved
+        <div className="flex items-center gap-1 text-[10px] sm:text-xs" style={{ color: "#22c55e" }}>
+          <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> Solved
         </div>
       </div>
     </div>

@@ -39,6 +39,10 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/api/courses/basic",
+                                // Published-content counts only; see StatsController.
+                                "/api/stats",
+                                // Crawlers fetch this without credentials.
+                                "/sitemap.xml",
                                 "/api/certificates/verify/**",
                                 "/uploads/**",
                                 "/actuator/health",
@@ -57,9 +61,35 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/resources/categories").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/resources/categories/*").permitAll()
 
+                        // --- Public course overview ---
+                        // Syllabus only: module and lesson TITLES, never lesson
+                        // bodies or key points — see CourseOverviewDTO, which has
+                        // no field capable of carrying them. Lesson content stays
+                        // behind /api/courses/slug/** for signed-in users.
+                        // Scoped to GET; creating and editing courses remains
+                        // admin-only via the blanket rules further down.
+                        .requestMatchers(HttpMethod.GET, "/api/courses/overview/*").permitAll()
+
+                        // --- Public code execution ---
+                        // The compiler page works signed out, and a Run button
+                        // on a lesson snippet should not be what forces a login.
+                        // Abuse control is the per-IP limit in ExecuteController
+                        // plus the result cache in CodeExecutionService.
+                        .requestMatchers(HttpMethod.POST, "/api/execute").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/execute/languages").permitAll()
+
+                        // --- Public contact form ---
+                        // Requiring an account here turned away the one visitor
+                        // most worth hearing from: someone with a question they
+                        // want answered before signing up. Safe to open because
+                        // ContactController takes a DTO with no id field (a
+                        // client-supplied id used to overwrite an existing
+                        // message), validates every field, rate-limits by IP and
+                        // carries a honeypot.
+                        .requestMatchers(HttpMethod.POST, "/api/contacts").permitAll()
+
                         // --- Writes that a normal logged-in USER may perform ---
                         .requestMatchers(HttpMethod.POST,
-                                "/api/contacts",
                                 "/api/chatbot/generate",
                                 "/api/quizzes/attempts").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/progress/**").authenticated()
@@ -71,6 +101,17 @@ public class SecurityConfig {
 
                         // --- Admin-only user management (listing exposes accounts) ---
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+
+                        // --- Editable site copy ---
+                        // The admin listing goes FIRST: it returns inactive rows
+                        // too, which are drafts the public has no business seeing.
+                        // Without this it would fall through to
+                        // anyRequest().authenticated() and any signed-in user
+                        // could read them.
+                        .requestMatchers(HttpMethod.GET, "/api/content/admin/**").hasRole("ADMIN")
+                        // The public read is what every marketing page calls on
+                        // first paint, so it must work signed out.
+                        .requestMatchers(HttpMethod.GET, "/api/content").permitAll()
 
                         // --- All other content mutations are ADMIN-only ---
                         .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")

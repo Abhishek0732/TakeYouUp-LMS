@@ -1,32 +1,54 @@
-import { useState, useEffect } from "react"
-import { Mail, MapPin, Phone, Send, MessageSquare } from "lucide-react"
+import { useState } from "react"
+import { Mail, Send, MessageSquare } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import useSeo from "@/hooks/useSeo"
+import useSiteContent from "@/hooks/useSiteContent"
+import { contentIcon } from "@/lib/contentIcons"
 
 const Contact = () => {
-  useEffect(() => {
-    document.title = "Contact | TakeYouUp - Master Programming & Build Your Future";
-  }, []);
+  useSeo({
+    title: "Contact",
+    description:
+      "Send a message to the TakeYouUp team about courses, collaborations or a course you would like to see, or reach us by email or phone.",
+  });
 
   const { toast } = useToast()
+  const { items, text } = useSiteContent()
   const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" })
   const [sending, setSending] = useState(false)
+  // Honeypot value. Kept in state purely so it can be sent; a human never sees
+  // or focuses the field that sets it.
+  const [honeypot, setHoneypot] = useState("")
   const API = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setSending(true);
-      const token = localStorage.getItem("token");
+      // No Authorization header: the endpoint is public now. Sending one was
+      // also what produced the old 403 branch below.
       const res = await fetch(`${API}/api/contacts`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json" },
+        // `website` is the honeypot — see the hidden field in the form. A real
+        // visitor never touches it, so it goes up empty.
+        body: JSON.stringify({ ...formData, website: honeypot }),
       });
       if (res.ok) {
         toast({ title: "Message Sent!", description: "We've received your message and sent a confirmation email." });
         setFormData({ name: "", email: "", subject: "", message: "" });
+      } else if (res.status === 429) {
+        toast({ title: "Too many messages", description: "You've sent several already. Please try again a little later.", variant: "destructive" });
+      } else if (res.status === 400) {
+        const body = await res.json().catch(() => null);
+        // The server validates every field; surface its reason rather than a
+        // generic failure, so the user knows which field to fix.
+        const reason = body && typeof body === "object"
+          ? Object.values(body).filter((v) => typeof v === "string")[0]
+          : null;
+        toast({ title: "Check the form", description: (reason as string) || "Please fill in every field with valid details.", variant: "destructive" });
       } else {
-        toast({ title: "Error", description: res.status === 403 ? "Please log in to send a message." : "Failed to send message. Please try again.", variant: "destructive" });
+        toast({ title: "Error", description: "Failed to send message. Please try again.", variant: "destructive" });
       }
     } catch {
       toast({ title: "Error", description: "Something went wrong. Please try again later.", variant: "destructive" });
@@ -35,16 +57,8 @@ const Contact = () => {
     }
   };
 
-  const contactInfo = [
-    { icon: Mail, title: "Email", info: "info@takeyouup.com", link: "mailto:info@takeyouup.com" },
-    { icon: Phone, title: "Phone", info: "+91 6387000732", link: "tel:+916387000732" },
-    { icon: MapPin, title: "Location", info: "India, UP", link: null },
-  ];
-
-  const faqs = [
-    { q: "How do I enroll in a course?", a: "Simply browse our courses, select the one you're interested in, and start learning." },
-    { q: "Can I access courses on mobile devices?", a: "Absolutely! Our platform is fully responsive and works on all devices including phones and tablets." },
-  ];
+  const contactDetails = items("CONTACT_INFO");
+  const faqs = items("CONTACT_FAQ");
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
@@ -71,7 +85,7 @@ const Contact = () => {
   };
 
   return (
-    <div style={{ minHeight: "100vh" }}>
+    <div>
       {/* Hero */}
       <section className="relative py-20 overflow-hidden" style={{ background: "hsl(var(--background))" }}>
         <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-20 animate-blob" style={{ background: "radial-gradient(circle, #ff4d1c, transparent 70%)", filter: "blur(80px)" }} />
@@ -82,7 +96,10 @@ const Contact = () => {
               Get In <span className="gradient-text">Touch</span>
             </h1>
             <p className="text-lg leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
-              Have questions about our courses? Want to collaborate? We'd love to hear from you.
+              {text(
+                "contact.hero.subtitle",
+                "Have questions about our courses? Want to collaborate? We'd love to hear from you.",
+              )}
             </p>
           </div>
         </div>
@@ -106,17 +123,38 @@ const Contact = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Honeypot. Hidden from people and skipped by the tab order and
+                  by screen readers, so only a form-filling bot ever populates
+                  it; the server drops any submission that does. Positioned off
+                  the page rather than display:none, because some bots ignore
+                  fields that are not rendered at all. */}
+              <div
+                aria-hidden="true"
+                style={{ position: "absolute", left: "-9999px", width: 1, height: 1, overflow: "hidden" }}
+              >
+                <label htmlFor="contact-website">Do not fill this in</label>
+                <input
+                  id="contact-website"
+                  name="website"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label style={labelStyle}>Name</label>
-                  <input style={inputStyle} placeholder="Your name" value={formData.name}
+                  <label htmlFor="contact-name" style={labelStyle}>Name</label>
+                  <input id="contact-name" autoComplete="name" style={inputStyle} placeholder="Your name" value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })} required
                     onFocus={(e) => { e.target.style.borderColor = "#ff4d1c"; e.target.style.boxShadow = "0 0 0 3px rgba(255,77,28,0.12)"; }}
                     onBlur={(e) => { e.target.style.borderColor = "hsl(var(--border))"; e.target.style.boxShadow = "none"; }} />
                 </div>
                 <div>
-                  <label style={labelStyle}>Email</label>
-                  <input type="email" style={inputStyle} placeholder="your.email@example.com" value={formData.email}
+                  <label htmlFor="contact-email" style={labelStyle}>Email</label>
+                  <input id="contact-email" autoComplete="email" inputMode="email" type="email" style={inputStyle} placeholder="your.email@example.com" value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })} required
                     onFocus={(e) => { e.target.style.borderColor = "#ff4d1c"; e.target.style.boxShadow = "0 0 0 3px rgba(255,77,28,0.12)"; }}
                     onBlur={(e) => { e.target.style.borderColor = "hsl(var(--border))"; e.target.style.boxShadow = "none"; }} />
@@ -124,16 +162,17 @@ const Contact = () => {
               </div>
 
               <div>
-                <label style={labelStyle}>Subject</label>
-                <input style={inputStyle} placeholder="What is this regarding?" value={formData.subject}
+                <label htmlFor="contact-subject" style={labelStyle}>Subject</label>
+                <input id="contact-subject" style={inputStyle} placeholder="What is this regarding?" value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })} required
                   onFocus={(e) => { e.target.style.borderColor = "#ff4d1c"; e.target.style.boxShadow = "0 0 0 3px rgba(255,77,28,0.12)"; }}
                   onBlur={(e) => { e.target.style.borderColor = "hsl(var(--border))"; e.target.style.boxShadow = "none"; }} />
               </div>
 
               <div>
-                <label style={labelStyle}>Message</label>
+                <label htmlFor="contact-message" style={labelStyle}>Message</label>
                 <textarea
+                  id="contact-message"
                   style={{ ...inputStyle, minHeight: 140, resize: "vertical" }}
                   placeholder="Tell us more about your inquiry..."
                   value={formData.message}
@@ -144,7 +183,7 @@ const Contact = () => {
                 />
               </div>
 
-              <button type="submit" disabled={sending} className="btn-orange w-full justify-center" style={{ borderRadius: "12px" }}>
+              <button type="submit" disabled={sending} className="btn-orange w-full justify-center" style={{ borderRadius: "12px", opacity: sending ? 0.7 : 1 }}>
                 {sending ? "Sending..." : <><span>Send Message</span><Send className="h-4 w-4" /></>}
               </button>
             </form>
@@ -152,23 +191,26 @@ const Contact = () => {
 
           {/* Contact Info */}
           <div className="space-y-4">
-            {contactInfo.map((item, i) => (
+            {contactDetails.map((item) => {
+              const Icon = contentIcon(item.icon, Mail);
+              return (
               <div
-                key={i}
+                key={item.id}
                 className="card-lift rounded-2xl p-5 border flex items-start gap-4"
                 style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}
               >
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "rgba(255,77,28,0.1)" }}>
-                  <item.icon className="h-4.5 w-4.5" style={{ color: "#ff4d1c", width: 18, height: 18 }} />
+                  <Icon className="h-4.5 w-4.5" style={{ color: "#ff4d1c", width: 18, height: 18 }} />
                 </div>
                 <div>
                   <p className="text-xs font-semibold mb-1 uppercase tracking-wider" style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>{item.title}</p>
                   {item.link
-                    ? <a href={item.link} className="text-sm font-medium hover:text-orange-500 transition-colors">{item.info}</a>
-                    : <p className="text-sm font-medium">{item.info}</p>}
+                    ? <a href={item.link} className="text-sm font-medium hover:text-orange-500 transition-colors">{item.body}</a>
+                    : <p className="text-sm font-medium">{item.body}</p>}
                 </div>
               </div>
-            ))}
+              );
+            })}
 
             <div
               className="rounded-2xl p-6 text-center relative overflow-hidden"
@@ -181,6 +223,7 @@ const Contact = () => {
         </div>
 
         {/* FAQ */}
+        {faqs.length > 0 && (
         <div
           className="rounded-3xl p-8 border"
           style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}
@@ -189,16 +232,17 @@ const Contact = () => {
           <h2 className="text-2xl font-bold mb-6" style={{ fontFamily: "'Syne', sans-serif" }}>Frequently Asked Questions</h2>
           <div className="space-y-5">
             {faqs.map((faq, i) => (
-              <div key={i} className="border-b pb-5 last:border-0 last:pb-0" style={{ borderColor: "hsl(var(--border))" }}>
-                <h4 className="font-semibold mb-2 flex items-center gap-2" style={{ fontFamily: "'Syne', sans-serif" }}>
+              <div key={faq.id} className="border-b pb-5 last:border-0 last:pb-0" style={{ borderColor: "hsl(var(--border))" }}>
+                <h3 className="font-semibold mb-2 flex items-center gap-2" style={{ fontFamily: "'Syne', sans-serif" }}>
                   <span className="text-xs font-mono-custom" style={{ color: "#ff4d1c", fontFamily: "'DM Mono', monospace" }}>Q{i + 1}.</span>
-                  {faq.q}
-                </h4>
-                <p className="text-sm leading-relaxed pl-6" style={{ color: "hsl(var(--muted-foreground))" }}>{faq.a}</p>
+                  {faq.title}
+                </h3>
+                <p className="text-sm leading-relaxed pl-6" style={{ color: "hsl(var(--muted-foreground))" }}>{faq.body}</p>
               </div>
             ))}
           </div>
         </div>
+        )}
       </div>
     </div>
   );

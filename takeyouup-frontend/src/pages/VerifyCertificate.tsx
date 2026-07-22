@@ -1,18 +1,24 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import api from "@/api/axios";
+import useSeo from "@/hooks/useSeo";
 
 // Public page — verifies a certificate by serial without needing a login.
-const API = import.meta.env.VITE_API_URL || "";
 
 export default function VerifyCertificate() {
   const { serial } = useParams();
   const [state, setState] = useState<"loading" | "valid" | "invalid">("loading");
   const [cert, setCert] = useState<any>(null);
 
+  useSeo({
+    title: "Verify Certificate",
+    description:
+      "Check a TakeYouUp certificate by its serial number to confirm it is genuine and see the course it was awarded for and who earned it.",
+  });
+
   useEffect(() => {
-    axios
-      .get(`${API}/api/certificates/verify/${serial}`)
+    api
+      .get(`/certificates/verify/${serial}`)
       .then((r) => { setCert(r.data); setState("valid"); })
       .catch(() => setState("invalid"));
   }, [serial]);

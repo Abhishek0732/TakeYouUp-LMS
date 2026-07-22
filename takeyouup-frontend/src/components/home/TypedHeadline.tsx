@@ -30,6 +30,24 @@ export function slicesFor(count: number): string[] {
   });
 }
 
+/**
+ * Each line split into the part typed so far and the part still to come.
+ *
+ * Both halves are rendered; the pending half is only made invisible. That
+ * matters for search engines: this component is the page's h1, and when it
+ * rendered just the typed prefix, the h1's indexable text was incomplete for
+ * the ~2.5s the animation takes. A crawler snapshotting the page early indexed
+ * the homepage heading as "Code. Co". Keeping the full string in the DOM means
+ * the text content is correct from the very first frame, and it also stops each
+ * line's width from growing as characters land.
+ */
+export function splitFor(count: number): { shown: string; pending: string }[] {
+  return LINES.map((line, i) => {
+    const typed = Math.min(Math.max(count - LINE_STARTS[i], 0), line.length);
+    return { shown: line.slice(0, typed), pending: line.slice(typed) };
+  });
+}
+
 const GRADIENT: React.CSSProperties = {
   background: "linear-gradient(135deg, #ff4d1c 0%, #ffb800 100%)",
   WebkitBackgroundClip: "text",
@@ -71,11 +89,11 @@ const TypedHeadline = () => {
     return () => window.clearTimeout(timer);
   }, [count]);
 
-  const slices = slicesFor(count);
+  const parts = splitFor(count);
 
   return (
     <span aria-hidden="true">
-      {slices.map((text, i) => (
+      {parts.map(({ shown, pending }, i) => (
         <span
           key={LINES[i]}
           style={{
@@ -86,7 +104,11 @@ const TypedHeadline = () => {
             whiteSpace: "pre",
           }}
         >
-          <span style={i === LINES.length - 1 ? GRADIENT : undefined}>{text}</span>
+          <span style={i === LINES.length - 1 ? GRADIENT : undefined}>{shown}</span>
+          {/* Still in the DOM, just not painted — see splitFor(). visibility
+              keeps it out of the accessibility tree too, so a screen reader
+              still gets only the h1's aria-label. */}
+          <span style={{ visibility: "hidden" }}>{pending}</span>
         </span>
       ))}
     </span>

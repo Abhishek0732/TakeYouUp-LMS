@@ -4,21 +4,43 @@ import { toast } from "sonner";
 import api from "@/api/axios";
 import { CardGridSkeleton, ListSkeleton } from "@/components/Skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
+import StateMessage from "@/components/StateMessage";
+import useSeo from "@/hooks/useSeo";
 
 export default function Certificates() {
+  useSeo({
+    title: "My Certificates",
+    description:
+      "See the certificates you have already earned, with their serial numbers, and claim a new one for any course you have finished.",
+    noindex: true,
+  });
+
   const token = localStorage.getItem("token");
   const [certs, setCerts] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  // Without this, a broken backend renders exactly like "no certificates yet".
+  const [error, setError] = useState(false);
 
-  const load = () => api.get("/certificates/mine").then((r) => setCerts(r.data)).catch(() => {});
-  useEffect(() => {
+  const load = () => api.get("/certificates/mine").then((r) => setCerts(r.data));
+
+  const loadAll = () => {
+    setLoading(true);
+    setError(false);
     // Both feed the page; only drop the placeholders once each has answered,
     // otherwise "no certificates yet" flashes before the real list arrives.
     Promise.allSettled([
       load(),
       api.get("/courses/basic").then((r) => setCourses(r.data)),
-    ]).finally(() => setLoading(false));
+    ])
+      .then((results) => {
+        if (results.some((r) => r.status === "rejected")) setError(true);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadAll();
   }, []);
 
   if (!token) return <Navigate to="/login" replace />;
@@ -27,7 +49,7 @@ export default function Certificates() {
     try {
       await api.post(`/certificates/courses/${courseId}`);
       toast.success("Certificate issued!");
-      load();
+      load().catch(() => setError(true));
     } catch (e: any) {
       toast.error(e.response?.data?.message || "Complete the course first");
     }
@@ -48,8 +70,24 @@ export default function Certificates() {
         </div>
       )}
 
-      {!loading && certs.length === 0 && (
-        <p className="opacity-60 mb-8">No certificates yet — finish a course to earn one.</p>
+      {!loading && error && (
+        <StateMessage
+          tone="error"
+          className="mb-8"
+          title="Couldn't load your certificates"
+          description="We couldn't reach the certificates service, so this page may be incomplete. Your certificates have not been lost — please try again."
+          onRetry={loadAll}
+          retryLabel="Reload"
+        />
+      )}
+
+      {!loading && !error && certs.length === 0 && (
+        <StateMessage
+          tone="empty"
+          className="mb-8"
+          title="No certificates yet"
+          description="Finish a course to earn your first certificate — claim it from the list below once you're done."
+        />
       )}
 
       <div className="grid md:grid-cols-2 gap-4 mb-10">

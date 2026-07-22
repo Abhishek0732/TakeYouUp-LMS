@@ -61,6 +61,63 @@
   border-color: rgba(255, 77, 28, 0.5);
 }
 
+.tyu-code__copy:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Run / open-in-compiler / copy sit together on the right of the bar. */
+.tyu-code__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ── Inline run output ─────────────────────────────────────────────────────
+   Rendered under the snippet so the learner keeps their place in the lesson. */
+.tyu-code__output {
+  border-top: 1px solid var(--code-border);
+  background: var(--code-bar);
+}
+
+.tyu-code__output-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 12px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tyu-code__ok   { color: #22c55e; }
+.tyu-code__fail { color: #ef4444; }
+
+.tyu-code__meta {
+  color: hsl(var(--muted-foreground));
+  font-family: "DM Mono", monospace;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.tyu-code__output-body {
+  margin: 0;
+  padding: 10px 12px 12px;
+  background: var(--code-bg);
+  color: var(--code-fg);
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  /* A runaway loop can print a great deal; cap it rather than let the output
+     push the rest of the lesson off the screen. */
+  max-height: 260px;
+  overflow: auto;
+}
+
 .tyu-code__body {
   display: flex;
   align-items: stretch;

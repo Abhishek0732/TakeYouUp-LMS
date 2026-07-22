@@ -13,6 +13,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProgress } from "@/context/ProgressContext";
 import { HeroSkeleton, ListSkeleton } from "@/components/Skeletons";
+import StateMessage from "@/components/StateMessage";
+import useSeo from "@/hooks/useSeo";
 
 const difficultyStyles: Record<string, string> = {
   Beginner: "pill-green",
@@ -27,6 +29,13 @@ const ResourceCategory = () => {
   const [loading, setLoading] = useState(true);
   const { isCompleted } = useProgress();
 
+  useSeo({
+    title: category?.title ?? "Resources",
+    description: category
+      ? `${category.title} practice topics, each a set of multiple-choice questions with worked explanations, and every topic you finish marked off.`
+      : "Pick a practice topic in this aptitude category and work through its multiple-choice questions, with a worked explanation after every answer.",
+  });
+
   useEffect(() => {
     setLoading(true);
     getCategory(categorySlug!)
@@ -34,12 +43,6 @@ const ResourceCategory = () => {
       .catch(() => setCategory(null))
       .finally(() => setLoading(false));
   }, [categorySlug]);
-
-  useEffect(() => {
-    if (category) {
-      document.title = `${category.title} | TakeYouUp - Master Programming & Build Your Future`;
-    }
-  }, [category]);
 
   if (loading) {
     return (
@@ -58,7 +61,7 @@ const ResourceCategory = () => {
 
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <section className="relative overflow-hidden border-b border-border">
         <div
           className="absolute inset-0 opacity-80"
@@ -97,8 +100,23 @@ const ResourceCategory = () => {
           </div>
         </div>
 
+        {!category.topics?.length && (
+          <StateMessage
+            tone="empty"
+            icon={CircleHelp}
+            title="No topics in this category yet"
+            description="This category has no practice topics so far. Browse the other categories — new MCQ sets are published regularly."
+            action={
+              <Link to="/resources" className="btn-orange mt-5 mx-auto w-fit">
+                Browse all resources
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            }
+          />
+        )}
+
         <div className="grid gap-6 md:grid-cols-2">
-          {category.topics.map((topic) => (
+          {(category.topics ?? []).map((topic) => (
             <Link
               key={topic.slug}
               to={`/resources/${category.slug}/${topic.slug}`}

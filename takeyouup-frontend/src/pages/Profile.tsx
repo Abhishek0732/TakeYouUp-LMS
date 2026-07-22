@@ -18,6 +18,7 @@ import {
 import CourseCover from "@/components/CourseCover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatsSkeleton } from "@/components/Skeletons";
+import useSeo from "@/hooks/useSeo";
 
 const ORANGE = "#ff4d1c";
 const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
@@ -32,12 +33,18 @@ const card: React.CSSProperties = {
 };
 
 const Profile = () => {
+  useSeo({
+    title: "My Profile",
+    description:
+      "Your account in one place: course progress, quiz attempts and certificates, plus settings for your name, password and email verification.",
+    noindex: true,
+  });
+
   const { user, logout, login, emailVerified, setEmailVerified, ready } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("overview");
 
-  useEffect(() => { document.title = "My Profile | TakeYouUp"; }, []);
   // Only once the session has been restored: `user` is null during the
   // refresh that follows an expired access token.
   useEffect(() => { if (ready && !user) navigate("/login"); }, [ready, user, navigate]);
@@ -65,7 +72,7 @@ const Profile = () => {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: "hsl(var(--background))" }}>
+    <div style={{ background: "hsl(var(--background))" }}>
       <ProfileHeader
         me={me}
         fallbackName={user.name}
@@ -74,7 +81,7 @@ const Profile = () => {
         onLogout={() => { logout(); navigate("/login"); }}
       />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
         <StatGrid me={me} loading={isLoading} />
 
         {/* Tabs — the underline lives on the wrapper so the scrolling row
@@ -188,7 +195,7 @@ function ProfileHeader({ me, fallbackName, fallbackEmail, onSaved, onLogout }: {
         background: "radial-gradient(circle, rgba(255,77,28,0.16), transparent 70%)", filter: "blur(70px)",
       }} />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 py-8">
           <div
             className="flex items-center justify-center flex-shrink-0"
@@ -595,6 +602,14 @@ function Settings({ me, onNameSaved }: { me?: Me; onNameSaved: () => void }) {
     try {
       await resendVerification(me.email);
       toast({ title: "Verification email sent", description: "Check your inbox for the link." });
+    } catch (e) {
+      // Without this the button simply stopped spinning on failure and the user
+      // was left unable to tell whether the email had gone out.
+      toast({
+        title: "Couldn't send the email",
+        description: apiErrorMessage(e, "Please try again in a moment."),
+        variant: "destructive",
+      });
     } finally { setResending(false); }
   };
 

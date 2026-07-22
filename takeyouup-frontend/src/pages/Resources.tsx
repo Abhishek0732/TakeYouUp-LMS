@@ -11,7 +11,9 @@ import {
 import { useEffect, useState } from "react";
 import { getCategories } from "@/api/resources";
 import { CardGridSkeleton } from "@/components/Skeletons";
+import StateMessage from "@/components/StateMessage";
 import { useNavigate } from "react-router-dom";
+import useSeo from "@/hooks/useSeo";
 
 const iconMap = {
   "quantitative-aptitude": BrainCircuit,
@@ -21,22 +23,38 @@ const iconMap = {
 };
 
 const Resources = () => {
+  useSeo({
+    title: "Aptitude Resources",
+    description:
+      "Aptitude practice grouped into quantitative, data interpretation, logical and verbal reasoning, each with topic pages full of solved MCQs.",
+  });
+
   const navigate = useNavigate();
   const [resourceCategories, setResourceCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  // Kept apart from the empty list so an outage never reads as "no categories".
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
-    document.title = "Resources | TakeYouUp - Master Programming & Build Your Future";
+  const loadCategories = () => {
+    setLoading(true);
+    setError(false);
     // Browsing the catalogue is public — the sign-in gate lives on the topic
     // page, where practising actually starts.
     getCategories()
       .then(setResourceCategories)
-      .catch(() => setResourceCategories([]))
+      .catch(() => {
+        setResourceCategories([]);
+        setError(true);
+      })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadCategories();
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <section className="relative overflow-hidden border-b border-border bg-[#0d1016] text-white">
         <div
           className="absolute inset-0"
@@ -83,6 +101,25 @@ const Resources = () => {
             </h2>
           </div>
         </div>
+
+        {!loading && error && (
+          <StateMessage
+            tone="error"
+            title="Couldn't load the resource categories"
+            description="Something went wrong while fetching the catalogue. The categories are still there — please try again."
+            onRetry={loadCategories}
+            retryLabel="Reload categories"
+          />
+        )}
+
+        {!loading && !error && resourceCategories.length === 0 && (
+          <StateMessage
+            tone="empty"
+            icon={BookOpen}
+            title="No resource categories yet"
+            description="Practice categories haven't been published so far. Check back soon — new aptitude sets are added regularly."
+          />
+        )}
 
         <div className="grid gap-6 md:grid-cols-2">
           {loading && <CardGridSkeleton count={4} columns={2} media={false} />}

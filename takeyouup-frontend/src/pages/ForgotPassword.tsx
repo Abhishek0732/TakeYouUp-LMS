@@ -1,12 +1,18 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Mail, CheckCircle2 } from "lucide-react";
 import AuthCard, { authInputStyle } from "@/components/AuthCard";
 import { requestPasswordReset } from "@/api/auth";
 import { apiErrorMessage } from "@/api/errors";
+import useSeo from "@/hooks/useSeo";
 
 const ForgotPassword = () => {
-  useEffect(() => { document.title = "Forgot password | TakeYouUp"; }, []);
+  useSeo({
+    title: "Forgot Password",
+    description:
+      "Enter the email address on your TakeYouUp account and we'll send a password reset link to it. The link stays valid for 60 minutes.",
+    noindex: true,
+  });
 
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -58,11 +64,12 @@ const ForgotPassword = () => {
     >
       <form onSubmit={submit} className="space-y-4">
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
+          <label htmlFor="forgot-email" className="block text-xs font-semibold uppercase tracking-wider mb-2"
             style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>
             Email
           </label>
           <input
+            id="forgot-email" autoComplete="email" inputMode="email"
             type="email" required placeholder="your.email@example.com" style={authInputStyle}
             value={email} onChange={(e) => setEmail(e.target.value)}
             onFocus={(e) => { e.target.style.borderColor = "#ff4d1c"; e.target.style.boxShadow = "0 0 0 3px rgba(255,77,28,0.12)"; }}

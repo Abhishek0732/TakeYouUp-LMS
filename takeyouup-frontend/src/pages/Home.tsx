@@ -2,9 +2,7 @@ import { Link } from "react-router-dom";
 import {
   ArrowRight,
   BookOpen,
-  Code,
   Users,
-  Zap,
   Star,
   Clock,
   ChevronRight,
@@ -16,18 +14,47 @@ import CourseCover from "@/components/CourseCover";
 import ContinueLearning from "@/components/home/ContinueLearning";
 import Faq from "@/components/home/Faq";
 import { CardGridSkeleton } from "@/components/Skeletons";
+import StateMessage from "@/components/StateMessage";
 import { useResume } from "@/hooks/useResume";
 import TypedHeadline from "@/components/home/TypedHeadline";
 import { useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchStats } from "@/api/stats";
+import useSeo from "@/hooks/useSeo";
+import useSiteContent from "@/hooks/useSiteContent";
+import { contentIcon } from "@/lib/contentIcons";
 
 const Home = () => {
-  useEffect(() => {
-    document.title = "TakeYouUp - Master Programming & Build Your Future";
-  }, []);
+  useSeo({
+    title: "",
+    description:
+      "Free structured courses in DSA, Java, Python, web development and machine learning, with a built-in compiler, quizzes and saved progress.",
+  });
+
+  // Real catalogue counts. The strip used to claim "5,000+ students enrolled",
+  // "50+ expert instructors" and "4.9★ average rating" — all invented, and the
+  // student figure contradicted the About page. These are things we can actually
+  // point at, so they can never be wrong.
+  const { data: stats } = useQuery({
+    queryKey: ["platformStats"],
+    queryFn: fetchStats,
+    staleTime: 5 * 60_000,
+  });
+
+  const { items, text } = useSiteContent();
+  const features = items("HOME_FEATURE");
+  const steps = items("HOME_STEP");
 
   const revealRef = useRef<HTMLDivElement>(null);
+  // Re-runs when content arrives, and skips anything already revealed.
+  //
+  // With an empty dependency array this ran once on mount and observed only the
+  // .reveal elements that existed at that instant. That was fine while the
+  // feature and step cards were hardcoded, but they now arrive from the content
+  // API a moment later — so they were never observed, never got .in-view, and
+  // sat at `opacity: 0` forever, leaving a tall empty gap under the heading.
   useEffect(() => {
-    const els = revealRef.current?.querySelectorAll(".reveal") ?? [];
+    const els = revealRef.current?.querySelectorAll(".reveal:not(.in-view)") ?? [];
     const obs = new IntersectionObserver(
       (entries) =>
         entries.forEach((e) => {
@@ -40,86 +67,24 @@ const Home = () => {
     );
     els.forEach((el) => obs.observe(el));
     return () => obs.disconnect();
-  }, []);
+  }, [features.length, steps.length]);
 
-  const staticCourses = [
-    {
-      id: 1,
-      title: "Data Structures & Algorithms",
-      slug: "data-structures-algorithms",
-      description:
-        "Master DSA with hands-on practice and real-world problems. Learn sorting, searching, trees, graphs, and dynamic programming.",
-      level: "Intermediate",
-      duration: "12 weeks",
-      students: 1200,
-      rating: 4.8,
-      image:
-        "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=600&h=400&fit=crop",
-    },
-    {
-      id: 2,
-      title: "Python Programming Masterclass",
-      slug: "python-programming-masterclass",
-      description:
-        "Learn Python from basics to advanced topics. Perfect for beginners starting their coding journey.",
-      level: "Beginner",
-      duration: "8 weeks",
-      students: 1500,
-      rating: 4.9,
-      image:
-        "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=600&h=400&fit=crop",
-    },
-    {
-      id: 3,
-      title: "Java Programming Masterclass",
-      slug: "java-programming-masterclass",
-      description:
-        "Ace your JAVA interviews with real-world case studies and scalable architecture patterns.",
-      level: "Advanced",
-      duration: "6 weeks",
-      students: 450,
-      rating: 4.8,
-      image:
-        "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&h=400&fit=crop",
-    },
-  ];
 
-  const features = [
-    {
-      icon: BookOpen,
-      title: "Structured Learning",
-      description:
-        "Follow carefully curated learning paths built by industry experts.",
-    },
-    {
-      icon: Code,
-      title: "Hands-on Projects",
-      description:
-        "Build production-ready projects as you learn, not toy examples.",
-    },
-    {
-      icon: Users,
-      title: "Expert Instructors",
-      description: "Learn directly from engineers at top tech companies.",
-    },
-    {
-      icon: Zap,
-      title: "Fast Track",
-      description:
-        "Go from zero to job-ready in record time with focused content.",
-    },
-  ];
+  // Copy below is admin-editable. Each feature describes something the platform
+  // actually does. The previous set leaned on claims about people who do not
+  // exist — "built by industry experts", "Expert Instructors: learn directly
+  // from engineers at top tech companies" — alongside "job-ready in record
+  // time", which promises an outcome nobody can guarantee.
 
   const { hasProgress, target: resumeTarget } = useResume();
 
-  const { courses, loading, error } = useCourses();
+  const { courses, loading, error, refetch } = useCourses();
   const courseList = Array.isArray(courses) ? courses : [];
-  // Only fall back to the sample cards if the API actually failed. Showing
-  // them while merely loading advertised courses that do not exist, and every
-  // click landed on a 404.
-  const displayCourses = courseList.length > 0
-    ? courseList.slice(0, 3)
-    : (error ? staticCourses : []);
+  // No sample-course fallback. This used to swap in three hardcoded courses
+  // when the API failed, with no banner to say so — and their slugs matched
+  // nothing in the database, so every "View course" landed on "No course
+  // found". A failure now says it failed and offers a retry.
+  const displayCourses = courseList.slice(0, 3);
 
   const levelPill = (level: string) => {
     if (level === "Beginner") return "pill-green";
@@ -184,7 +149,7 @@ const Home = () => {
                 style={{ fontSize: 12 }}
               >
                 <Sparkles style={{ width: 13, height: 13 }} />
-                New courses dropping every week
+                {text("home.hero.badge", "New courses dropping every week")}
               </div>
 
               {/* Headline */}
@@ -215,8 +180,10 @@ const Home = () => {
                   marginBottom: "2.5rem",
                 }}
               >
-                Elevate your programming skills, solve real challenges, and
-                unlock a world of career possibilities — one commit at a time.
+                {text(
+                  "home.hero.subtitle",
+                  "Elevate your programming skills, solve real challenges, and unlock a world of career possibilities — one commit at a time.",
+                )}
               </p>
 
               {/* CTAs */}
@@ -249,11 +216,11 @@ const Home = () => {
                 }}
               >
                 {[
-                  ["5,000+", "students enrolled"],
-                  ["50+", "expert instructors"],
-                  ["4.9★", "average rating"],
+                  [stats?.courses, "structured courses"],
+                  [stats?.lessons, "lessons"],
+                  [stats?.practiceProblems, "practice problems"],
                 ].map(([num, label]) => (
-                  <div key={label}>
+                  <div key={label as string}>
                     <div
                       style={{
                         fontFamily: "'Syne', sans-serif",
@@ -261,11 +228,24 @@ const Home = () => {
                         fontSize: "1.9rem",
                         color: "white",
                         lineHeight: 1,
+                        // Hold the line's height while the count is in flight so
+                        // the hero doesn't jump when it arrives.
+                        minHeight: "1.9rem",
                       }}
                     >
-                      {num.replace("★", "")}
-                      {num.includes("★") && (
-                        <span style={{ color: "#ff4d1c" }}>★</span>
+                      {num === undefined ? (
+                        <span
+                          className="skeleton"
+                          style={{
+                            display: "inline-block",
+                            width: "2.2ch",
+                            height: "1.4rem",
+                            borderRadius: 4,
+                            verticalAlign: "middle",
+                          }}
+                        />
+                      ) : (
+                        num
                       )}
                     </div>
                     <div
@@ -368,12 +348,15 @@ const Home = () => {
       </section>
 
       {/* ═══════════════════ FEATURES ═══════════════════ */}
+      {features.length > 0 && (
       <section
         style={{ padding: "96px 0", background: "hsl(var(--muted) / 0.4)" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-14 reveal in-view">
-            <div className="section-tag justify-center">Why TakeYouUp</div>
+            <div className="section-tag justify-center">
+              {text("home.features.heading", "Why TakeYouUp")}
+            </div>
             <h2
               style={{
                 fontFamily: "'Syne', sans-serif",
@@ -390,13 +373,15 @@ const Home = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(240px, 100%), 1fr))",
               gap: 20,
             }}
           >
-            {features.map((f, i) => (
+            {features.map((f, i) => {
+              const Icon = contentIcon(f.icon, BookOpen);
+              return (
               <div
-                key={f.title}
+                key={f.id}
                 className={`reveal delay-${i + 1} card-lift rounded-2xl group`}
                 style={{
                   background: "hsl(var(--card))",
@@ -419,7 +404,7 @@ const Home = () => {
                     marginBottom: 18,
                   }}
                 >
-                  <f.icon style={{ width: 20, height: 20, color: "white" }} />
+                  <Icon style={{ width: 20, height: 20, color: "white" }} />
                 </div>
                 <h3
                   style={{
@@ -438,13 +423,15 @@ const Home = () => {
                     lineHeight: 1.65,
                   }}
                 >
-                  {f.description}
+                  {f.body}
                 </p>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
+      )}
 
       {/* ═══════════════════ COURSES ═══════════════════ */}
       <section
@@ -490,11 +477,33 @@ const Home = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+              // min() keeps the track from having a floor wider than the
+              // container: at 320px the viewport minus px-4 leaves 288px, and a
+              // hard 300px floor forced the whole page to scroll sideways.
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))",
               gap: 24,
             }}
           >
             {loading && displayCourses.length === 0 && <CardGridSkeleton count={3} columns={3} />}
+            {!loading && error && displayCourses.length === 0 && (
+              <div style={{ gridColumn: "1 / -1" }}>
+                <StateMessage
+                  tone="error"
+                  title="Couldn't load the featured courses"
+                  description="The catalogue didn't respond. Everything else on the page still works."
+                  onRetry={refetch}
+                />
+              </div>
+            )}
+            {!loading && !error && displayCourses.length === 0 && (
+              <div style={{ gridColumn: "1 / -1" }}>
+                <StateMessage
+                  title="No courses published yet"
+                  description="New courses are on the way. Check back soon."
+                  icon={BookOpen}
+                />
+              </div>
+            )}
             {displayCourses.map((course: any, i: number) => (
               <div
                 key={course.id}
@@ -563,30 +572,25 @@ const Home = () => {
                       color: "hsl(var(--muted-foreground))",
                     }}
                   >
+                    {/* Enrolment counts and star ratings used to sit here. Both
+                        are real columns on `course`, but they were seeded with
+                        invented values (thousands of students against a handful
+                        of real accounts), so showing them told the visitor
+                        something untrue. Level and duration are editorial facts
+                        about the course itself, which is honest. Put the other
+                        two back when they are derived from real enrolments and
+                        real submitted ratings. */}
                     <span
                       style={{ display: "flex", alignItems: "center", gap: 4 }}
                     >
-                      <Users style={{ width: 12, height: 12 }} />{" "}
-                      {course.students?.toLocaleString()}
+                      <BookOpen style={{ width: 12, height: 12 }} />{" "}
+                      {course.level}
                     </span>
                     <span
                       style={{ display: "flex", alignItems: "center", gap: 4 }}
                     >
                       <Clock style={{ width: 12, height: 12 }} />{" "}
                       {course.duration}
-                    </span>
-                    <span
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 4,
-                        color: "#f59e0b",
-                      }}
-                    >
-                      <Star
-                        style={{ width: 12, height: 12, fill: "#f59e0b" }}
-                      />{" "}
-                      {course.rating}
                     </span>
                   </div>
                   <h3
@@ -639,6 +643,7 @@ const Home = () => {
         </div>
       </section>
 
+      {steps.length > 0 && (
       <section
         style={{
           background: "hsl(var(--card))",
@@ -648,8 +653,16 @@ const Home = () => {
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          {/* This slot used to hold three testimonials with invented quotes
+              attributed to named people at Amazon, Flipkart and Zomato. Made-up
+              social proof is the fastest way to lose a visitor's trust, so it is
+              replaced with something true and equally reassuring: what actually
+              happens when you start. Put real, attributable testimonials back
+              here once there are learners willing to be quoted. */}
           <div className="text-center mb-12 reveal in-view">
-            <div className="section-tag justify-center">Student Stories</div>
+            <div className="section-tag justify-center">
+              {text("home.steps.heading", "How it works")}
+            </div>
             <h2
               style={{
                 fontFamily: "'Syne', sans-serif",
@@ -658,41 +671,21 @@ const Home = () => {
                 letterSpacing: "-0.025em",
               }}
             >
-              What our learners <span className="gradient-text">say</span>
+              From first lesson to <span className="gradient-text">certificate</span>
             </h2>
           </div>
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(240px, 100%), 1fr))",
               gap: 20,
             }}
           >
-            {[
-              {
-                name: "Priya Sharma",
-                role: "SDE at Amazon",
-                text: "TakeYouUp's DSA course was a game-changer. The structured approach and real interview questions helped me crack Amazon in 3 months.",
-                avatar: "PS",
-                color: "#8b5cf6",
-              },
-              {
-                name: "Rahul Verma",
-                role: "Python Dev at Flipkart",
-                text: "Best Python course I've ever taken. The hands-on projects and AI chatbot made complex concepts crystal clear.",
-                avatar: "RV",
-                color: "#3b82f6",
-              },
-              {
-                name: "Anjali Singh",
-                role: "ML Engineer at Zomato",
-                text: "The Machine Learning masterclass is incredibly comprehensive. Went from zero ML knowledge to building real models.",
-                avatar: "AS",
-                color: "#10b981",
-              },
-            ].map((t, i) => (
+            {steps.map((s, i) => {
+              const Icon = contentIcon(s.icon, BookOpen);
+              return (
               <div
-                key={t.name}
+                key={s.id}
                 className={`reveal delay-${i + 1}`}
                 style={{
                   background: "hsl(var(--background))",
@@ -701,74 +694,65 @@ const Home = () => {
                   padding: "24px 22px",
                 }}
               >
-                <div style={{ display: "flex", gap: 4, marginBottom: 14 }}>
-                  {[...Array(5)].map((_, j) => (
-                    <Star
-                      key={j}
-                      style={{
-                        width: 14,
-                        height: 14,
-                        fill: "#f59e0b",
-                        color: "#f59e0b",
-                      }}
-                    />
-                  ))}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    marginBottom: 14,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: 12,
+                      background: "var(--gradient-primary)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Icon style={{ width: 18, height: 18, color: "#fff" }} />
+                  </div>
+                  <span
+                    style={{
+                      fontFamily: "'DM Mono', monospace",
+                      fontSize: 12,
+                      color: "hsl(var(--muted-foreground))",
+                      letterSpacing: "0.08em",
+                    }}
+                  >
+                    {s.extra}
+                  </span>
                 </div>
+                <h3
+                  style={{
+                    fontFamily: "'Syne', sans-serif",
+                    fontWeight: 700,
+                    fontSize: "1.05rem",
+                    marginBottom: 8,
+                  }}
+                >
+                  {s.title}
+                </h3>
                 <p
                   style={{
                     color: "hsl(var(--muted-foreground))",
                     fontSize: "0.875rem",
                     lineHeight: 1.7,
-                    marginBottom: 18,
-                    fontStyle: "italic",
                   }}
                 >
-                  "{t.text}"
+                  {s.body}
                 </p>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div
-                    style={{
-                      width: 38,
-                      height: 38,
-                      borderRadius: "50%",
-                      background: t.color,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#fff",
-                      fontFamily: "'Syne', sans-serif",
-                      fontWeight: 700,
-                      fontSize: 13,
-                    }}
-                  >
-                    {t.avatar}
-                  </div>
-                  <div>
-                    <div
-                      style={{
-                        fontFamily: "'Syne', sans-serif",
-                        fontWeight: 700,
-                        fontSize: 13,
-                      }}
-                    >
-                      {t.name}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: "hsl(var(--muted-foreground))",
-                        fontFamily: "'DM Mono', monospace",
-                      }}
-                    >
-                      {t.role}
-                    </div>
-                  </div>
-                </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
+      )}
 
       <Faq />
       <ContinueLearning />
@@ -806,8 +790,8 @@ const Home = () => {
             className="pill-orange mx-auto mb-7 w-fit animate-fade-up anim-d0"
             style={{ fontSize: 12 }}
           >
-            <Terminal style={{ width: 13, height: 13 }} /> Join 5,000+ learners
-            today
+            <Terminal style={{ width: 13, height: 13 }} />{" "}
+            {text("home.cta.badge", "Free to start — no card required")}
           </div>
           <h2
             className="animate-fade-up anim-d1"

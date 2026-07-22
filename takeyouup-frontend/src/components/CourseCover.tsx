@@ -43,6 +43,7 @@ const CourseCover = ({ src, title = "", className, style }: CourseCoverProps) =>
           fontSize: "2rem",
           fontWeight: 500,
         }}
+        role="img"
         aria-label={title}
       >
         {"</>"}

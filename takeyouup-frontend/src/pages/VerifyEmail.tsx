@@ -4,11 +4,19 @@ import { CheckCircle2, XCircle, Loader2, ArrowRight, Mail } from "lucide-react";
 import AuthCard, { authInputStyle } from "@/components/AuthCard";
 import { verifyEmail, resendVerification } from "@/api/auth";
 import { apiErrorMessage } from "@/api/errors";
+import useSeo from "@/hooks/useSeo";
 
 type State = "checking" | "done" | "failed";
 
 /** Landing page for the link in the verification email: /verify-email?token=… */
 const VerifyEmail = () => {
+  useSeo({
+    title: "Verify Email",
+    description:
+      "Confirm the email address on your TakeYouUp account from the link we sent you, or ask for a fresh verification email if it has expired.",
+    noindex: true,
+  });
+
   const [params] = useSearchParams();
   const token = params.get("token") || "";
 
@@ -25,7 +33,6 @@ const VerifyEmail = () => {
   const started = useRef(false);
 
   useEffect(() => {
-    document.title = "Verify email | TakeYouUp";
     if (!token || started.current) return;
     started.current = true;
 
@@ -78,11 +85,12 @@ const VerifyEmail = () => {
           <p className="text-center text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>{message}</p>
 
           <form onSubmit={resend} className="w-full space-y-3 pt-2">
-            <label className="block text-xs font-semibold uppercase tracking-wider"
+            <label htmlFor="verify-email" className="block text-xs font-semibold uppercase tracking-wider"
               style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>
               Send a new link
             </label>
             <input
+              id="verify-email" autoComplete="email" inputMode="email"
               type="email" required placeholder="your.email@example.com" style={authInputStyle}
               value={email} onChange={(e) => setEmail(e.target.value)}
             />

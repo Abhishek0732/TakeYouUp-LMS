@@ -2,7 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, CheckCircle2, FileText, ChevronRight, BrainCircuit, Clock, Users, Star } from "lucide-react";
+import { ArrowLeft, CheckCircle2, FileText, ChevronRight, BrainCircuit, Clock, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import QuizSection from "@/components/QuizSection";
 import RichContent from "@/components/RichContent";
@@ -11,16 +11,28 @@ import dsaQuiz from "@/data/quizzes/dsaQuiz";
 import javaQuiz from "@/data/quizzes/javaQuiz";
 import pythonQuiz from "@/data/quizzes/pythonQuiz";
 import { useProgress } from "@/context/ProgressContext";
+import StateMessage from "@/components/StateMessage";
+import useSeo from "@/hooks/useSeo";
 
 const CourseDetail = () => {
   const { courseSlug, lessonSlug } = useParams();
   const [selectedLesson, setSelectedLesson] = useState({ moduleIndex: 0, lessonIndex: 0 });
   const [course, setCourse] = useState<any>(null);
-  const [loading, setLoading] = useState<any>(null);
+  // Starts true, not null. On the very first render — before the fetch effect
+  // has run — a falsy `loading` fell through to the `!course` branch, so every
+  // visit flashed "No course found" for a frame before the skeleton appeared.
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any>(null);
   const quizMap: any = { dsa: dsaQuiz, java: javaQuiz, python: pythonQuiz };
   const navigate = useNavigate();
   const { isCompleted, toggleProgress } = useProgress();
+
+  useSeo({
+    title: course?.title ?? "Course",
+    description:
+      course?.description ??
+      "Work through this course module by module — read each lesson, run the sample code, and take the end-of-module quiz at your own pace.",
+  });
 
   useEffect(() => {
     // No auth check here: the route is wrapped in ProtectedRoute, and checking
@@ -38,12 +50,6 @@ const CourseDetail = () => {
     };
     fetchCourse();
   }, [courseSlug]);
-
-  useEffect(() => {
-    if (course && course.title) {
-      document.title = `${course.title} | TakeYouUp - Master Programming & Build Your Future`;
-    }
-  }, [course]);
 
   useEffect(() => {
     if (!course || !lessonSlug) return;
@@ -81,13 +87,28 @@ const CourseDetail = () => {
   );
 
   if (error) return (
-    <div className="flex items-center justify-center h-screen">
-      <div style={{ color: "#ef4444", fontFamily: "'DM Mono', monospace", fontSize: 14 }}>{error}</div>
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-20">
+      <StateMessage
+        tone="error"
+        title="Couldn't load this course"
+        description={error}
+        onRetry={() => window.location.reload()}
+      />
     </div>
   );
 
   if (!course) return (
-    <div className="flex items-center justify-center h-screen" style={{ color: "hsl(var(--muted-foreground))" }}>No course found</div>
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-20">
+      <StateMessage
+        title="Course not found"
+        description="This course may have been renamed or removed."
+        action={
+          <Link to="/courses" className="btn-orange mt-5 mx-auto" style={{ borderRadius: 10, padding: "9px 16px", fontSize: 13 }}>
+            Browse all courses
+          </Link>
+        }
+      />
+    </div>
   );
 
   const currentLesson = course.modules[selectedLesson.moduleIndex]?.lessons[selectedLesson.lessonIndex];
@@ -96,7 +117,7 @@ const CourseDetail = () => {
   const getLessonKey = (lesson: any) => lesson.slug || String(lesson.id);
 
   return (
-    <div style={{ minHeight: "100vh", background: "hsl(var(--background))" }}>
+    <div style={{ background: "hsl(var(--background))" }}>
       {/* Mini header */}
       <div style={{ borderBottom: "1px solid hsl(var(--border))", padding: "12px 0", background: "hsl(var(--card))" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-4">
@@ -106,11 +127,16 @@ const CourseDetail = () => {
               <ArrowLeft style={{ width: 15, height: 15 }} /> Back to Courses
             </Link>
             <span style={{ color: "hsl(var(--muted-foreground))", fontSize: 13 }}>/</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: "hsl(var(--foreground))", fontFamily: "'Syne', sans-serif" }}>{course.title}</span>
+            {/* The course title is this page's h1. It was a <span>, so the
+                primary "you are learning X" screen had no top-level heading at
+                all — the first one was the <h3> "Course Content" further down.
+                Styling is unchanged; only the element differs. */}
+            <h1 style={{ fontSize: 13, fontWeight: 600, color: "hsl(var(--foreground))", fontFamily: "'Syne', sans-serif", margin: 0 }}>{course.title}</h1>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, fontFamily: "'DM Mono', monospace", fontSize: 11, color: "hsl(var(--muted-foreground))" }}>
-            {course.students && <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Users style={{ width: 12, height: 12 }} /> {course.students?.toLocaleString()}</span>}
-            {course.rating && <span style={{ display: "flex", alignItems: "center", gap: 4, color: "#f59e0b" }}><Star style={{ width: 12, height: 12, fill: "#f59e0b" }} /> {course.rating}</span>}
+            {/* Seeded enrolment count and star rating removed — see Home.tsx. */}
+            {course.level && <span style={{ display: "flex", alignItems: "center", gap: 4 }}><BookOpen style={{ width: 12, height: 12 }} /> {course.level}</span>}
+            {course.duration && <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Clock style={{ width: 12, height: 12 }} /> {course.duration}</span>}
           </div>
         </div>
       </div>
