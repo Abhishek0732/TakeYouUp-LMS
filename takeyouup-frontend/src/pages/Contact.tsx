@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
 import { Mail, Send, MessageSquare } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import useSeo from "@/hooks/useSeo"
@@ -17,24 +16,39 @@ const Contact = () => {
   const { items, text } = useSiteContent()
   const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" })
   const [sending, setSending] = useState(false)
-  const [signedIn] = useState(() => !!localStorage.getItem("token"))
+  // Honeypot value. Kept in state purely so it can be sent; a human never sees
+  // or focuses the field that sets it.
+  const [honeypot, setHoneypot] = useState("")
   const API = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setSending(true);
-      const token = localStorage.getItem("token");
+      // No Authorization header: the endpoint is public now. Sending one was
+      // also what produced the old 403 branch below.
       const res = await fetch(`${API}/api/contacts`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json" },
+        // `website` is the honeypot — see the hidden field in the form. A real
+        // visitor never touches it, so it goes up empty.
+        body: JSON.stringify({ ...formData, website: honeypot }),
       });
       if (res.ok) {
         toast({ title: "Message Sent!", description: "We've received your message and sent a confirmation email." });
         setFormData({ name: "", email: "", subject: "", message: "" });
+      } else if (res.status === 429) {
+        toast({ title: "Too many messages", description: "You've sent several already. Please try again a little later.", variant: "destructive" });
+      } else if (res.status === 400) {
+        const body = await res.json().catch(() => null);
+        // The server validates every field; surface its reason rather than a
+        // generic failure, so the user knows which field to fix.
+        const reason = body && typeof body === "object"
+          ? Object.values(body).filter((v) => typeof v === "string")[0]
+          : null;
+        toast({ title: "Check the form", description: (reason as string) || "Please fill in every field with valid details.", variant: "destructive" });
       } else {
-        toast({ title: "Error", description: res.status === 403 ? "Please log in to send a message." : "Failed to send message. Please try again.", variant: "destructive" });
+        toast({ title: "Error", description: "Failed to send message. Please try again.", variant: "destructive" });
       }
     } catch {
       toast({ title: "Error", description: "Something went wrong. Please try again later.", variant: "destructive" });
@@ -108,19 +122,28 @@ const Contact = () => {
               </div>
             </div>
 
-            {!signedIn && (
-              <div
-                className="rounded-xl p-4 mb-6 border text-sm"
-                style={{ background: "rgba(255,77,28,0.08)", borderColor: "rgba(255,77,28,0.25)" }}
-              >
-                You need to sign in to send a message.{" "}
-                <Link to="/login" className="font-semibold hover:underline" style={{ color: "#ff4d1c" }}>
-                  Sign in
-                </Link>
-              </div>
-            )}
-
             <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Honeypot. Hidden from people and skipped by the tab order and
+                  by screen readers, so only a form-filling bot ever populates
+                  it; the server drops any submission that does. Positioned off
+                  the page rather than display:none, because some bots ignore
+                  fields that are not rendered at all. */}
+              <div
+                aria-hidden="true"
+                style={{ position: "absolute", left: "-9999px", width: 1, height: 1, overflow: "hidden" }}
+              >
+                <label htmlFor="contact-website">Do not fill this in</label>
+                <input
+                  id="contact-website"
+                  name="website"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label htmlFor="contact-name" style={labelStyle}>Name</label>

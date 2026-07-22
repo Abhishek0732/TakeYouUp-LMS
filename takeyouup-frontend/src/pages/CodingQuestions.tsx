@@ -619,21 +619,26 @@ function ProgressTracker({ progress }: { progress?: QuestionProgress }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-3" style={{ marginBottom: 20 }}>
       {/* Ring + per-difficulty breakdown */}
-      <div className="lg:col-span-2 flex flex-wrap items-center gap-6"
-        style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 16, padding: "20px 24px" }}>
+      {/* No flex-wrap: on a narrow phone the 148px ring plus a 190px minimum
+          breakdown exceeded the available width and the breakdown dropped onto
+          its own line, making the card twice as tall. The ring is smaller on
+          mobile and the breakdown may now shrink, so they stay side by side. */}
+      <div className="lg:col-span-2 flex items-center gap-3 sm:gap-6 p-4 sm:px-6 sm:py-5"
+        style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 16 }}>
         <ProgressRing segments={segments} solved={solved} total={total} />
 
-        <div className="flex-1 grid gap-2" style={{ minWidth: 190 }}>
+        <div className="flex-1 grid gap-1.5 sm:gap-2 min-w-0">
           {segments.map((s) => (
             <div key={s.level}
+              className="px-2.5 py-1.5 sm:px-3.5 sm:py-2"
               style={{
-                background: "hsl(var(--muted))", borderRadius: 10, padding: "8px 14px",
+                background: "hsl(var(--muted))", borderRadius: 10,
                 borderLeft: `3px solid ${s.color}`,
               }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: s.color, fontFamily: "'DM Sans', sans-serif" }}>
+              <div className="text-[11px] sm:text-xs" style={{ fontWeight: 600, color: s.color, fontFamily: "'DM Sans', sans-serif" }}>
                 {s.level}
               </div>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 14 }}>
+              <div className="text-[12px] sm:text-sm" style={{ fontFamily: "'DM Mono', monospace" }}>
                 {s.solved}<span style={{ color: "hsl(var(--muted-foreground))" }}>/{s.total}</span>
               </div>
             </div>
@@ -669,8 +674,15 @@ function ProgressRing({ segments, solved, total }: { segments: Segment[]; solved
   });
 
   return (
-    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
-      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+    // Responsive box: 96px on phones, the original 148px from sm up. The SVG
+    // keeps its 148-unit coordinate system through viewBox, so every arc
+    // calculation above is unchanged — only the painted size differs.
+    <div className="relative flex-shrink-0 w-24 h-24 sm:w-[148px] sm:h-[148px]">
+      <svg
+        viewBox={`0 0 ${size} ${size}`}
+        className="w-full h-full"
+        style={{ transform: "rotate(-90deg)" }}
+      >
         {arcs.map((a) => (
           <g key={a.level}>
             {/* unsolved remainder */}
@@ -698,12 +710,12 @@ function ProgressRing({ segments, solved, total }: { segments: Segment[]; solved
         position: "absolute", inset: 0, display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center", gap: 2,
       }}>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 26, lineHeight: 1 }}>
+        <div className="text-lg sm:text-[26px]" style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, lineHeight: 1 }}>
           {solved}
-          <span style={{ fontSize: 13, fontWeight: 500, color: "hsl(var(--muted-foreground))" }}>/{total}</span>
+          <span className="text-[10px] sm:text-[13px]" style={{ fontWeight: 500, color: "hsl(var(--muted-foreground))" }}>/{total}</span>
         </div>
-        <div className="flex items-center gap-1" style={{ fontSize: 12, color: "#22c55e" }}>
-          <Check className="h-3 w-3" /> Solved
+        <div className="flex items-center gap-1 text-[10px] sm:text-xs" style={{ color: "#22c55e" }}>
+          <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> Solved
         </div>
       </div>
     </div>

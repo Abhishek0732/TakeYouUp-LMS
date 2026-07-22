@@ -70,9 +70,18 @@ public class SecurityConfig {
                         // admin-only via the blanket rules further down.
                         .requestMatchers(HttpMethod.GET, "/api/courses/overview/*").permitAll()
 
+                        // --- Public contact form ---
+                        // Requiring an account here turned away the one visitor
+                        // most worth hearing from: someone with a question they
+                        // want answered before signing up. Safe to open because
+                        // ContactController takes a DTO with no id field (a
+                        // client-supplied id used to overwrite an existing
+                        // message), validates every field, rate-limits by IP and
+                        // carries a honeypot.
+                        .requestMatchers(HttpMethod.POST, "/api/contacts").permitAll()
+
                         // --- Writes that a normal logged-in USER may perform ---
                         .requestMatchers(HttpMethod.POST,
-                                "/api/contacts",
                                 "/api/chatbot/generate",
                                 "/api/quizzes/attempts").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/progress/**").authenticated()
