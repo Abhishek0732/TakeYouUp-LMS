@@ -45,7 +45,7 @@ const Courses = () => {
   };
 
   return (
-    <div ref={revealRef} style={{ minHeight: "100vh" }}>
+    <div ref={revealRef}>
       {/* Hero header */}
       <section
         className="relative py-20 overflow-hidden bg-dots"

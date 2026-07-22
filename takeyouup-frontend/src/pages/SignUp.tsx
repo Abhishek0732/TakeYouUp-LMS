@@ -90,7 +90,7 @@ const Signup = () => {
   const perks = ["Access all courses instantly", "Community support included", "Track your progress"];
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8 relative overflow-hidden bg-dots" style={{ background: "hsl(var(--background))" }}>
+    <div className="flex-1 flex items-center justify-center px-4 py-8 relative overflow-hidden bg-dots" style={{ background: "hsl(var(--background))" }}>
       <div className="absolute top-0 left-0 w-80 h-80 rounded-full opacity-15 animate-blob pointer-events-none" style={{ background: "radial-gradient(circle, #ff4d1c, transparent 70%)", filter: "blur(80px)" }} />
       <div className="absolute bottom-0 right-0 w-64 h-64 rounded-full opacity-10 animate-blob-2 pointer-events-none" style={{ background: "radial-gradient(circle, #ffb800, transparent 70%)", filter: "blur(70px)" }} />
 

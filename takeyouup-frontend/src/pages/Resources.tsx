@@ -54,7 +54,7 @@ const Resources = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <section className="relative overflow-hidden border-b border-border bg-[#0d1016] text-white">
         <div
           className="absolute inset-0"

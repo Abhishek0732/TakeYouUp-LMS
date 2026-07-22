@@ -85,7 +85,7 @@ const Contact = () => {
   };
 
   return (
-    <div style={{ minHeight: "100vh" }}>
+    <div>
       {/* Hero */}
       <section className="relative py-20 overflow-hidden" style={{ background: "hsl(var(--background))" }}>
         <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-20 animate-blob" style={{ background: "radial-gradient(circle, #ff4d1c, transparent 70%)", filter: "blur(80px)" }} />

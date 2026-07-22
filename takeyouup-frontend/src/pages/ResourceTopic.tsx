@@ -107,7 +107,7 @@ const ResourceTopic = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <section className="border-b border-border bg-muted/30">
         <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6 lg:py-8">
           <Link to={`/resources/${category.slug}`} className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground">

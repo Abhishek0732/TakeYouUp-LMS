@@ -106,7 +106,7 @@ const CourseOverview = ({ slug }: { slug: string }) => {
   };
 
   return (
-    <div style={{ minHeight: "100vh" }}>
+    <div>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* Hero */}

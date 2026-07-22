@@ -57,7 +57,7 @@ const About = () => {
   // mentorship").
 
   return (
-    <div ref={revealRef} style={{ minHeight: "100vh" }}>
+    <div ref={revealRef}>
       {/* Hero */}
       <section className="relative py-20 overflow-hidden" style={{ background: "hsl(var(--background))" }}>
         <div className="absolute top-0 left-0 w-80 h-80 rounded-full opacity-20 animate-blob" style={{ background: "radial-gradient(circle, #ff4d1c, transparent 70%)", filter: "blur(80px)" }} />

@@ -64,7 +64,13 @@ const App = () => (
               <div className="flex flex-col min-h-screen">
                 <Navbar />
                 <VerifyEmailBanner />
-                <main className="flex-1">
+                {/* flex-1 + flex-col: main already absorbs the space the
+                    navbar and footer leave, which is what pins the footer to the
+                    bottom on a short page. Pages must therefore NOT set their
+                    own min-height: 100vh — doing so stacked a full viewport
+                    inside a container that was already a full viewport tall,
+                    leaving a block of dead space above the footer. */}
+                <main className="flex-1 flex flex-col">
                   <Suspense fallback={<RouteFallback />}>
                   <Routes>
                   <Route path="/login" element={<Login />} />

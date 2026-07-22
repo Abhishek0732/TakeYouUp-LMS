@@ -117,7 +117,7 @@ const CourseDetail = () => {
   const getLessonKey = (lesson: any) => lesson.slug || String(lesson.id);
 
   return (
-    <div style={{ minHeight: "100vh", background: "hsl(var(--background))" }}>
+    <div style={{ background: "hsl(var(--background))" }}>
       {/* Mini header */}
       <div style={{ borderBottom: "1px solid hsl(var(--border))", padding: "12px 0", background: "hsl(var(--card))" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-4">

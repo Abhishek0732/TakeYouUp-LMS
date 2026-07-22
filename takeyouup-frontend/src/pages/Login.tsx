@@ -55,7 +55,7 @@ const Login = () => {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-dots"
+      className="flex-1 flex items-center justify-center px-4 py-12 relative overflow-hidden bg-dots"
       style={{ background: "hsl(var(--background))" }}
     >
       {/* blobs */}

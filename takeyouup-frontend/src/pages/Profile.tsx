@@ -72,7 +72,7 @@ const Profile = () => {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: "hsl(var(--background))" }}>
+    <div style={{ background: "hsl(var(--background))" }}>
       <ProfileHeader
         me={me}
         fallbackName={user.name}

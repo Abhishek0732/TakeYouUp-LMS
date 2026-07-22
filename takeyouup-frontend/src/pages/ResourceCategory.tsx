@@ -61,7 +61,7 @@ const ResourceCategory = () => {
 
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <section className="relative overflow-hidden border-b border-border">
         <div
           className="absolute inset-0 opacity-80"
