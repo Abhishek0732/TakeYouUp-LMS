@@ -70,6 +70,14 @@ public class SecurityConfig {
                         // admin-only via the blanket rules further down.
                         .requestMatchers(HttpMethod.GET, "/api/courses/overview/*").permitAll()
 
+                        // --- Public code execution ---
+                        // The compiler page works signed out, and a Run button
+                        // on a lesson snippet should not be what forces a login.
+                        // Abuse control is the per-IP limit in ExecuteController
+                        // plus the result cache in CodeExecutionService.
+                        .requestMatchers(HttpMethod.POST, "/api/execute").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/execute/languages").permitAll()
+
                         // --- Public contact form ---
                         // Requiring an account here turned away the one visitor
                         // most worth hearing from: someone with a question they

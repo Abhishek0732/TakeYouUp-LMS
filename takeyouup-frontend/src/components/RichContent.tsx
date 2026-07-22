@@ -25,10 +25,14 @@ interface RichContentProps {
 }
 
 type Block =
-  | { kind: "code"; language: string; code: string }
+  | { kind: "code"; language: string; code: string; runnable: boolean }
   | { kind: "prose"; text: string };
 
-const FENCE = /```([a-zA-Z0-9+#._-]*)[ \t]*\r?\n?([\s\S]*?)```/g;
+// Captures the info string after the fence, e.g. ```java  or  ```java norun.
+// Plenty of snippets are fragments with no entry point, or deliberate
+// illustrations of something broken; `norun` lets an author suppress the Run
+// button on those rather than offering one that always fails.
+const FENCE = /```([a-zA-Z0-9+#._-]*)([^\n]*)\r?\n?([\s\S]*?)```/g;
 
 function splitFences(src: string): Block[] {
   const blocks: Block[] = [];
@@ -37,7 +41,13 @@ function splitFences(src: string): Block[] {
   FENCE.lastIndex = 0;
   while ((match = FENCE.exec(src)) !== null) {
     if (match.index > last) blocks.push({ kind: "prose", text: src.slice(last, match.index) });
-    blocks.push({ kind: "code", language: (match[1] || "plaintext").toLowerCase(), code: match[2] || "" });
+    const info = (match[2] || "").trim().toLowerCase();
+    blocks.push({
+      kind: "code",
+      language: (match[1] || "plaintext").toLowerCase(),
+      code: match[3] || "",
+      runnable: !/\bnorun\b/.test(info),
+    });
     last = match.index + match[0].length;
   }
   if (last < src.length) blocks.push({ kind: "prose", text: src.slice(last) });
@@ -176,7 +186,7 @@ const RichContent = ({ text, className, compact }: RichContentProps) => {
     <div className={`tyu-rich ${compact ? "tyu-rich--compact" : ""} ${className || ""}`}>
       {blocks.map((b, i) =>
         b.kind === "code"
-          ? <CodeBlock key={`c${i}`} code={b.code} language={b.language} />
+          ? <CodeBlock key={`c${i}`} code={b.code} language={b.language} runnable={b.runnable} />
           : <React.Fragment key={`t${i}`}>{renderProse(b.text, `b${i}`)}</React.Fragment>
       )}
     </div>

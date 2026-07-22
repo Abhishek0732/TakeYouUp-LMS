@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MonacoEditor from "@monaco-editor/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,13 +13,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Play, Code2, Terminal, Loader2, Code } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import useSeo from "@/hooks/useSeo";
-
-const languageMap: Record<string, number> = {
-  python: 71,
-  javascript: 63,
-  cpp: 54,
-  java: 62,
-};
+import { runCode } from "@/api/execute";
+import { consumeHandoff } from "@/lib/compilerHandoff";
 
 const defaultCode: Record<string, string> = {
   python: '# Write your Python code here\nprint("Hello, World!")',
@@ -43,6 +38,17 @@ const CodeEditor = () => {
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // An "Open in compiler" click from a lesson snippet leaves the code in
+  // localStorage rather than the URL — see lib/compilerHandoff.
+  useEffect(() => {
+    const handoff = consumeHandoff();
+    if (!handoff) return;
+    setLanguage(handoff.language);
+    setCode(handoff.code);
+    setInput("");
+    setOutput("");
+  }, []);
+
   const handleLanguageChange = (value: string) => {
     setLanguage(value);
     setCode(defaultCode[value]);
@@ -53,24 +59,17 @@ const CodeEditor = () => {
     setOutput("");
 
     try {
-      const response = await fetch(
-        "https://ce.judge0.com/submissions?base64_encoded=false&wait=true",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            source_code: code,
-            language_id: languageMap[language],
-            stdin: input,
-          }),
-        },
-      );
-      const data = await response.json();
+      // Was a direct browser call to the free public Judge0 instance: no key,
+      // no throttle, no caching, and nothing we could do when it rate-limited.
+      // Our backend now owns the credential and the retry/cache policy.
+      const result = await runCode(language, code, input);
+      setOutput(result.output || "No output");
+    } catch (e: any) {
       setOutput(
-        data.stdout || data.stderr || data.compile_output || "No output",
+        e?.response?.status === 429
+          ? "You are running code very quickly. Give it a moment and try again."
+          : "Error executing code. Please try again.",
       );
-    } catch {
-      setOutput("Error executing code. Please try again.");
     }
 
     setLoading(false);

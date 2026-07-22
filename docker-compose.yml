@@ -47,6 +47,12 @@ services:
       # marketing pages blank. It only ever fills in what is missing, so it
       # never overwrites content edited through the admin console.
       APP_SEED_CONTENT_ENABLED: ${APP_SEED_CONTENT_ENABLED:-true}
+      # Code execution. The default is the free public Judge0 instance —
+      # unauthenticated and heavily rate limited. Point this at a self-hosted
+      # instance, or supply a key, before it carries real traffic.
+      APP_EXECUTE_HOST: ${APP_EXECUTE_HOST:-https://ce.judge0.com}
+      APP_EXECUTE_API_KEY: ${APP_EXECUTE_API_KEY:-}
+      EXECUTE_RATE_LIMIT_PER_MINUTE: ${EXECUTE_RATE_LIMIT_PER_MINUTE:-20}
       JWT_SECRET: ${JWT_SECRET:-takeyouupsecretkeytakeyouupsecretkeytakeyouupsecretkeytakeyouupsecretkey}
       JWT_ACCESS_EXPIRATION_MS: ${JWT_ACCESS_EXPIRATION_MS:-900000}
       JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS:-604800000}
