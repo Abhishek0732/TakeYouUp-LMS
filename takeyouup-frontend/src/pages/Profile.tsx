@@ -74,7 +74,7 @@ const Profile = () => {
         onLogout={() => { logout(); navigate("/login"); }}
       />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
         <StatGrid me={me} loading={isLoading} />
 
         {/* Tabs — the underline lives on the wrapper so the scrolling row
@@ -188,7 +188,7 @@ function ProfileHeader({ me, fallbackName, fallbackEmail, onSaved, onLogout }: {
         background: "radial-gradient(circle, rgba(255,77,28,0.16), transparent 70%)", filter: "blur(70px)",
       }} />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 py-8">
           <div
             className="flex items-center justify-center flex-shrink-0"
