@@ -111,7 +111,9 @@ function getTodayString() {
 
 /* pagination button base style */
 const paginationBtnStyle: React.CSSProperties = {
-  width: 32, height: 32, borderRadius: 8,
+  // 32px was below the ~44px minimum comfortable tap target, and these sit in a
+  // tight row on mobile where mis-taps jump you several pages.
+  width: 40, height: 40, borderRadius: 8,
   border: "1.5px solid hsl(var(--border))",
   background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))",
   display: "flex", alignItems: "center", justifyContent: "center",
@@ -556,11 +558,11 @@ const CodingQuestions = () => {
             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "hsl(var(--muted-foreground))" }}>
               Showing {startItem}–{endItem} of {totalElements}
             </span>
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <button disabled={currentPage === 1} onClick={() => setCurrentPage(1)} style={{ ...paginationBtnStyle, opacity: currentPage === 1 ? 0.3 : 1 }}>
+            <nav aria-label="Pagination" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <button aria-label="First page" title="First page" disabled={currentPage === 1} onClick={() => setCurrentPage(1)} style={{ ...paginationBtnStyle, opacity: currentPage === 1 ? 0.3 : 1 }}>
                 <ChevronsLeft style={{ width: 13, height: 13 }} />
               </button>
-              <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)} style={{ ...paginationBtnStyle, opacity: currentPage === 1 ? 0.3 : 1 }}>
+              <button aria-label="Previous page" title="Previous page" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)} style={{ ...paginationBtnStyle, opacity: currentPage === 1 ? 0.3 : 1 }}>
                 <ChevronLeft style={{ width: 13, height: 13 }} />
               </button>
               {pageNumbers.map((page, idx) =>
@@ -569,6 +571,8 @@ const CodingQuestions = () => {
                 ) : (
                   <button
                     key={page}
+                    aria-label={`Page ${page}`}
+                    aria-current={currentPage === page ? "page" : undefined}
                     onClick={() => setCurrentPage(page as number)}
                     style={{
                       ...paginationBtnStyle,
@@ -582,13 +586,13 @@ const CodingQuestions = () => {
                   </button>
                 )
               )}
-              <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)} style={{ ...paginationBtnStyle, opacity: currentPage === totalPages ? 0.3 : 1 }}>
+              <button aria-label="Next page" title="Next page" disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)} style={{ ...paginationBtnStyle, opacity: currentPage === totalPages ? 0.3 : 1 }}>
                 <ChevronRight style={{ width: 13, height: 13 }} />
               </button>
-              <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(totalPages)} style={{ ...paginationBtnStyle, opacity: currentPage === totalPages ? 0.3 : 1 }}>
+              <button aria-label="Last page" title="Last page" disabled={currentPage === totalPages} onClick={() => setCurrentPage(totalPages)} style={{ ...paginationBtnStyle, opacity: currentPage === totalPages ? 0.3 : 1 }}>
                 <ChevronsRight style={{ width: 13, height: 13 }} />
               </button>
-            </div>
+            </nav>
           </div>
         )}
       </div>

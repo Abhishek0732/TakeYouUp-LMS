@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Search, Pencil, Trash2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { TableRowsSkeleton } from "@/components/Skeletons";
+import StateMessage from "@/components/StateMessage";
 
 export interface Column {
   key: string;
@@ -41,6 +42,9 @@ export default function DataGrid({
   const [size, setSize] = useState(25);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
+  /** Non-null only when the last fetch failed — kept apart from an empty result. */
+  const [error, setError] = useState<string | null>(null);
+  const [retryToken, setRetryToken] = useState(0);
   const [selected, setSelected] = useState<Set<any>>(new Set());
 
   const totalPages = Math.max(1, Math.ceil(total / size));
@@ -49,11 +53,16 @@ export default function DataGrid({
     let alive = true;
     setLoading(true);
     fetchPage({ page, size, search, filters: filterState })
-      .then((r) => { if (alive) { setRows(r.rows); setTotal(r.total); } })
-      .catch(() => { if (alive) { setRows([]); setTotal(0); } })
+      .then((r) => { if (alive) { setRows(r.rows); setTotal(r.total); setError(null); } })
+      .catch((e: any) => {
+        if (alive) {
+          setRows([]); setTotal(0);
+          setError(e?.response?.data?.message || e?.message || "The server did not respond.");
+        }
+      })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [page, size, search, reloadToken, JSON.stringify(filterState)]);
+  }, [page, size, search, reloadToken, retryToken, JSON.stringify(filterState)]);
 
   // reset to first page when the query narrows
   useEffect(() => { setPage(0); setSelected(new Set()); }, [search, size, JSON.stringify(filterState), reloadToken]);
@@ -126,7 +135,7 @@ export default function DataGrid({
           <thead>
             <tr style={{ background: "hsl(var(--muted))" }}>
               <th className={cell + " w-10"}>
-                <input type="checkbox" checked={allChecked} onChange={toggleAll} />
+                <input type="checkbox" aria-label="Select all rows" checked={allChecked} onChange={toggleAll} />
               </th>
               {columns.map((c) => (
                 <th key={c.key} className={cell + " text-left font-semibold"} style={{ width: c.width }}>{c.label}</th>
@@ -138,13 +147,27 @@ export default function DataGrid({
             {loading && (
               <TableRowsSkeleton rows={size > 10 ? 10 : size} columns={columns.length + (hasActions ? 2 : 1)} />
             )}
-            {!loading && rows.length === 0 && (
+            {!loading && error && (
+              <tr>
+                <td className="p-0" colSpan={columns.length + (hasActions ? 2 : 1)}>
+                  <StateMessage
+                    tone="error"
+                    title={`Couldn't load ${title.toLowerCase()}`}
+                    description={`${error} — the records are still there, the list just failed to load.`}
+                    onRetry={() => setRetryToken((n) => n + 1)}
+                    retryLabel="Retry"
+                    className="border-none"
+                  />
+                </td>
+              </tr>
+            )}
+            {!loading && !error && rows.length === 0 && (
               <tr><td className={cell + " opacity-60"} colSpan={columns.length + (hasActions ? 2 : 1)}>No records found.</td></tr>
             )}
-            {!loading && rows.map((row) => (
+            {!loading && !error && rows.map((row) => (
               <tr key={row[idKey]} className="border-t" style={{ borderColor: "hsl(var(--border))" }}>
                 <td className={cell}>
-                  <input type="checkbox" checked={selected.has(row[idKey])} onChange={() => toggleOne(row[idKey])} />
+                  <input type="checkbox" aria-label={`Select row ${row[idKey]}`} checked={selected.has(row[idKey])} onChange={() => toggleOne(row[idKey])} />
                 </td>
                 {columns.map((c) => (
                   <td key={c.key} className={cell}>{c.render ? c.render(row) : String(row[c.key] ?? "")}</td>
@@ -154,12 +177,12 @@ export default function DataGrid({
                     <div className="flex items-center justify-end gap-3">
                       {rowActions && rowActions(row)}
                       {onEdit && (
-                        <button className="opacity-70 hover:opacity-100" title="Edit" onClick={() => onEdit(row)}>
+                        <button className="opacity-70 hover:opacity-100" title="Edit" aria-label="Edit" onClick={() => onEdit(row)}>
                           <Pencil className="h-4 w-4" />
                         </button>
                       )}
                       {onDelete && (
-                        <button className="text-red-500 opacity-80 hover:opacity-100" title="Delete"
+                        <button className="text-red-500 opacity-80 hover:opacity-100" title="Delete" aria-label="Delete"
                           onClick={async () => { if (confirm("Delete this record?")) await onDelete(row); }}>
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -176,9 +199,9 @@ export default function DataGrid({
       {/* Pagination */}
       <div className="flex items-center justify-end gap-3 mt-4 text-sm">
         <span className="opacity-60">Page {page + 1} of {totalPages}</span>
-        <button className="rounded-lg border p-1.5 disabled:opacity-30" disabled={page <= 0}
+        <button className="rounded-lg border p-1.5 disabled:opacity-30" disabled={page <= 0} aria-label="Previous page"
           onClick={() => setPage((p) => Math.max(0, p - 1))}><ChevronLeft className="h-4 w-4" /></button>
-        <button className="rounded-lg border p-1.5 disabled:opacity-30" disabled={page + 1 >= totalPages}
+        <button className="rounded-lg border p-1.5 disabled:opacity-30" disabled={page + 1 >= totalPages} aria-label="Next page"
           onClick={() => setPage((p) => p + 1)}><ChevronRight className="h-4 w-4" /></button>
       </div>
     </div>

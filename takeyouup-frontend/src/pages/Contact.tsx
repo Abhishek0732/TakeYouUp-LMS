@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { Mail, MapPin, Phone, Send, MessageSquare } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -10,6 +11,7 @@ const Contact = () => {
   const { toast } = useToast()
   const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" })
   const [sending, setSending] = useState(false)
+  const [signedIn] = useState(() => !!localStorage.getItem("token"))
   const API = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,18 +107,30 @@ const Contact = () => {
               </div>
             </div>
 
+            {!signedIn && (
+              <div
+                className="rounded-xl p-4 mb-6 border text-sm"
+                style={{ background: "rgba(255,77,28,0.08)", borderColor: "rgba(255,77,28,0.25)" }}
+              >
+                You need to sign in to send a message.{" "}
+                <Link to="/login" className="font-semibold hover:underline" style={{ color: "#ff4d1c" }}>
+                  Sign in
+                </Link>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label style={labelStyle}>Name</label>
-                  <input style={inputStyle} placeholder="Your name" value={formData.name}
+                  <label htmlFor="contact-name" style={labelStyle}>Name</label>
+                  <input id="contact-name" autoComplete="name" style={inputStyle} placeholder="Your name" value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })} required
                     onFocus={(e) => { e.target.style.borderColor = "#ff4d1c"; e.target.style.boxShadow = "0 0 0 3px rgba(255,77,28,0.12)"; }}
                     onBlur={(e) => { e.target.style.borderColor = "hsl(var(--border))"; e.target.style.boxShadow = "none"; }} />
                 </div>
                 <div>
-                  <label style={labelStyle}>Email</label>
-                  <input type="email" style={inputStyle} placeholder="your.email@example.com" value={formData.email}
+                  <label htmlFor="contact-email" style={labelStyle}>Email</label>
+                  <input id="contact-email" autoComplete="email" inputMode="email" type="email" style={inputStyle} placeholder="your.email@example.com" value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })} required
                     onFocus={(e) => { e.target.style.borderColor = "#ff4d1c"; e.target.style.boxShadow = "0 0 0 3px rgba(255,77,28,0.12)"; }}
                     onBlur={(e) => { e.target.style.borderColor = "hsl(var(--border))"; e.target.style.boxShadow = "none"; }} />
@@ -124,16 +138,17 @@ const Contact = () => {
               </div>
 
               <div>
-                <label style={labelStyle}>Subject</label>
-                <input style={inputStyle} placeholder="What is this regarding?" value={formData.subject}
+                <label htmlFor="contact-subject" style={labelStyle}>Subject</label>
+                <input id="contact-subject" style={inputStyle} placeholder="What is this regarding?" value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })} required
                   onFocus={(e) => { e.target.style.borderColor = "#ff4d1c"; e.target.style.boxShadow = "0 0 0 3px rgba(255,77,28,0.12)"; }}
                   onBlur={(e) => { e.target.style.borderColor = "hsl(var(--border))"; e.target.style.boxShadow = "none"; }} />
               </div>
 
               <div>
-                <label style={labelStyle}>Message</label>
+                <label htmlFor="contact-message" style={labelStyle}>Message</label>
                 <textarea
+                  id="contact-message"
                   style={{ ...inputStyle, minHeight: 140, resize: "vertical" }}
                   placeholder="Tell us more about your inquiry..."
                   value={formData.message}
@@ -144,7 +159,7 @@ const Contact = () => {
                 />
               </div>
 
-              <button type="submit" disabled={sending} className="btn-orange w-full justify-center" style={{ borderRadius: "12px" }}>
+              <button type="submit" disabled={sending} className="btn-orange w-full justify-center" style={{ borderRadius: "12px", opacity: sending ? 0.7 : 1 }}>
                 {sending ? "Sending..." : <><span>Send Message</span><Send className="h-4 w-4" /></>}
               </button>
             </form>
@@ -190,10 +205,10 @@ const Contact = () => {
           <div className="space-y-5">
             {faqs.map((faq, i) => (
               <div key={i} className="border-b pb-5 last:border-0 last:pb-0" style={{ borderColor: "hsl(var(--border))" }}>
-                <h4 className="font-semibold mb-2 flex items-center gap-2" style={{ fontFamily: "'Syne', sans-serif" }}>
+                <h3 className="font-semibold mb-2 flex items-center gap-2" style={{ fontFamily: "'Syne', sans-serif" }}>
                   <span className="text-xs font-mono-custom" style={{ color: "#ff4d1c", fontFamily: "'DM Mono', monospace" }}>Q{i + 1}.</span>
                   {faq.q}
-                </h4>
+                </h3>
                 <p className="text-sm leading-relaxed pl-6" style={{ color: "hsl(var(--muted-foreground))" }}>{faq.a}</p>
               </div>
             ))}

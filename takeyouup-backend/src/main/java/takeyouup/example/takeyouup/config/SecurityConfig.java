@@ -39,6 +39,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/api/courses/basic",
+                                // Published-content counts only; see StatsController.
+                                "/api/stats",
                                 "/api/certificates/verify/**",
                                 "/uploads/**",
                                 "/actuator/health",

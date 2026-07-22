@@ -122,9 +122,11 @@ const CodeEditor = () => {
 
       {/* Editor + IO */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-220px)]">
+        {/* The viewport-height budget only makes sense once the three columns sit
+            side by side; while the cards are stacked each one keeps its own floor. */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[calc(100vh-220px)]">
           {/* Editor */}
-          <div className="lg:col-span-2 flex flex-col">
+          <div className="lg:col-span-2 flex flex-col min-h-[420px]">
             <Card className="flex-1 overflow-hidden border-border">
               <CardContent className="p-0 h-full">
                 <MonacoEditor
@@ -140,6 +142,9 @@ const CodeEditor = () => {
                     scrollBeyondLastLine: false,
                     wordWrap: "on",
                     automaticLayout: true,
+                    // Monaco's editing surface is a bare <textarea>; without
+                    // this a screen reader announces it with no name at all.
+                    ariaLabel: "Code editor",
                   }}
                 />
               </CardContent>
@@ -147,7 +152,7 @@ const CodeEditor = () => {
           </div>
 
           {/* Input / Output */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 min-h-[420px]">
             <Card className="flex-1 border-border">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
@@ -156,6 +161,8 @@ const CodeEditor = () => {
               </CardHeader>
               <CardContent>
                 <Textarea
+                  id="program-stdin"
+                  aria-label="Program input (stdin)"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Enter input for your program..."
@@ -171,7 +178,13 @@ const CodeEditor = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="rounded-md bg-secondary p-4 min-h-[120px] font-mono text-sm text-foreground whitespace-pre-wrap">
+                {/* aria-live so the result is announced when a run finishes —
+                    otherwise a screen-reader user has to go hunting for it. */}
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="rounded-md bg-secondary p-4 min-h-[120px] font-mono text-sm text-foreground whitespace-pre-wrap"
+                >
                   {loading ? (
                     <span className="text-muted-foreground flex items-center gap-2">
                       <Loader2 className="h-3 w-3 animate-spin" /> Executing...

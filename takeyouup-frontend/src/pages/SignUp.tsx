@@ -95,8 +95,11 @@ const Signup = () => {
           <div className="rounded-2xl p-3" style={{ background: "linear-gradient(135deg, #ff4d1c, #ffb800)" }}>
             <Code2 className="h-7 w-7 text-white" />
           </div>
-          <h1 className="text-2xl font-bold" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: "-0.02em" }}>
+          <div className="text-2xl font-bold" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: "-0.02em" }}>
             <span style={{ color: "#ff4d1c" }}>Take</span>You<span style={{ color: "#ff4d1c" }}>Up</span>
+          </div>
+          <h1 className="text-xl font-bold text-center" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: "-0.02em" }}>
+            Create your account
           </h1>
           <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>Create your free account today</p>
         </div>
@@ -112,12 +115,13 @@ const Signup = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {[
-            { label: "Full Name", key: "name", type: "text", placeholder: "Your full name" },
-            { label: "Email", key: "email", type: "email", placeholder: "your.email@example.com" },
-          ].map(({ label, key, type, placeholder }) => (
+            { label: "Full Name", key: "name", type: "text", placeholder: "Your full name", autoComplete: "name" },
+            { label: "Email", key: "email", type: "email", placeholder: "your.email@example.com", autoComplete: "email" },
+          ].map(({ label, key, type, placeholder, autoComplete }) => (
             <div key={key}>
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>{label}</label>
-              <input type={type} placeholder={placeholder}
+              <label htmlFor={`signup-${key}`} className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>{label}</label>
+              <input id={`signup-${key}`} type={type} placeholder={placeholder}
+                autoComplete={autoComplete} inputMode={type === "email" ? "email" : undefined}
                 style={errors[key] ? { ...inputStyle, borderColor: "#ef4444" } : inputStyle}
                 value={formData[key as keyof typeof formData]}
                 onChange={(e) => { setFormData({ ...formData, [key]: e.target.value }); clearError(key); }}
@@ -131,14 +135,14 @@ const Signup = () => {
             { label: "Confirm Password", key: "confirmPassword", show: showConfirmPw, toggle: () => setShowConfirmPw(!showConfirmPw), placeholder: "Confirm password" },
           ].map(({ label, key, show, toggle, placeholder }) => (
             <div key={key}>
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>{label}</label>
+              <label htmlFor={`signup-${key}`} className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>{label}</label>
               <div className="relative">
-                <input type={show ? "text" : "password"} placeholder={placeholder}
+                <input id={`signup-${key}`} autoComplete="new-password" type={show ? "text" : "password"} placeholder={placeholder}
                   style={{ ...inputStyle, paddingRight: "44px", ...(errors[key] ? { borderColor: "#ef4444" } : {}) }}
                   value={formData[key as keyof typeof formData]}
                   onChange={(e) => { setFormData({ ...formData, [key]: e.target.value }); clearError(key); }}
                   required onFocus={focusStyle} onBlur={blurStyle} />
-                <button type="button" onClick={toggle} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-70" style={{ background: "none", border: "none", cursor: "pointer" }}>
+                <button type="button" onClick={toggle} aria-label={show ? "Hide password" : "Show password"} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-70" style={{ background: "none", border: "none", cursor: "pointer" }}>
                   {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>

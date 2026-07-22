@@ -14,6 +14,7 @@ import api from "@/api/axios";
 import { Skeleton } from "@/components/ui/skeleton";
 import CodeBlock from "@/components/CodeBlock";
 import RichContent, { InlineMarkdown } from "@/components/RichContent";
+import StateMessage from "@/components/StateMessage";
 
 interface Question {
   question: string;
@@ -38,6 +39,10 @@ interface QuizSectionProps {
 const QuizSection = ({ courseId }: QuizSectionProps) => {
   const [quizData, setQuizData] = useState<QuizTopic[]>([]);
   const [loading, setLoading] = useState(true);
+  // A failed load must not fall through to the "Select a Topic" card, which
+  // reads as "this course has no quiz".
+  const [error, setError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const [selectedTopic, setSelectedTopic] = useState<number | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -50,6 +55,8 @@ const QuizSection = ({ courseId }: QuizSectionProps) => {
 
   useEffect(() => {
     const fetchQuiz = async () => {
+      setLoading(true);
+      setError(false);
       try {
         const res = await api.get(`/quizzes/course/${courseId}`);
         setQuizData(res.data);
@@ -58,13 +65,14 @@ const QuizSection = ({ courseId }: QuizSectionProps) => {
         }
       } catch (err) {
         console.error("Failed to fetch quiz", err);
+        setError(true);
       } finally {
         setLoading(false);
       }
     };
 
     if (courseId) fetchQuiz();
-  }, [courseId]);
+  }, [courseId, reloadKey]);
 
   const handleTopicClick = (index: number) => {
     setSelectedTopic(index);
@@ -160,6 +168,18 @@ const QuizSection = ({ courseId }: QuizSectionProps) => {
           </div>
         </div>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <StateMessage
+        tone="error"
+        title="Couldn't load the quiz"
+        description="The quiz for this course failed to load — that's a connection problem, not an empty quiz. Try again in a moment."
+        onRetry={() => setReloadKey((k) => k + 1)}
+        retryLabel="Reload quiz"
+      />
     );
   }
 

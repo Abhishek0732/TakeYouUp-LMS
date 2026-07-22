@@ -16,14 +16,27 @@ import CourseCover from "@/components/CourseCover";
 import ContinueLearning from "@/components/home/ContinueLearning";
 import Faq from "@/components/home/Faq";
 import { CardGridSkeleton } from "@/components/Skeletons";
+import StateMessage from "@/components/StateMessage";
 import { useResume } from "@/hooks/useResume";
 import TypedHeadline from "@/components/home/TypedHeadline";
 import { useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchStats } from "@/api/stats";
 
 const Home = () => {
   useEffect(() => {
     document.title = "TakeYouUp - Master Programming & Build Your Future";
   }, []);
+
+  // Real catalogue counts. The strip used to claim "5,000+ students enrolled",
+  // "50+ expert instructors" and "4.9★ average rating" — all invented, and the
+  // student figure contradicted the About page. These are things we can actually
+  // point at, so they can never be wrong.
+  const { data: stats } = useQuery({
+    queryKey: ["platformStats"],
+    queryFn: fetchStats,
+    staleTime: 5 * 60_000,
+  });
 
   const revealRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -42,84 +55,48 @@ const Home = () => {
     return () => obs.disconnect();
   }, []);
 
-  const staticCourses = [
-    {
-      id: 1,
-      title: "Data Structures & Algorithms",
-      slug: "data-structures-algorithms",
-      description:
-        "Master DSA with hands-on practice and real-world problems. Learn sorting, searching, trees, graphs, and dynamic programming.",
-      level: "Intermediate",
-      duration: "12 weeks",
-      students: 1200,
-      rating: 4.8,
-      image:
-        "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=600&h=400&fit=crop",
-    },
-    {
-      id: 2,
-      title: "Python Programming Masterclass",
-      slug: "python-programming-masterclass",
-      description:
-        "Learn Python from basics to advanced topics. Perfect for beginners starting their coding journey.",
-      level: "Beginner",
-      duration: "8 weeks",
-      students: 1500,
-      rating: 4.9,
-      image:
-        "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=600&h=400&fit=crop",
-    },
-    {
-      id: 3,
-      title: "Java Programming Masterclass",
-      slug: "java-programming-masterclass",
-      description:
-        "Ace your JAVA interviews with real-world case studies and scalable architecture patterns.",
-      level: "Advanced",
-      duration: "6 weeks",
-      students: 450,
-      rating: 4.8,
-      image:
-        "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&h=400&fit=crop",
-    },
-  ];
 
+  // Each of these describes something the platform actually does. The previous
+  // set leaned on claims about people who do not exist — "built by industry
+  // experts", "Expert Instructors: learn directly from engineers at top tech
+  // companies" — alongside "job-ready in record time", which promises an
+  // outcome nobody can guarantee.
   const features = [
     {
       icon: BookOpen,
-      title: "Structured Learning",
+      title: "Structured Paths",
       description:
-        "Follow carefully curated learning paths built by industry experts.",
+        "Courses are ordered module by module, so you always know what comes next.",
     },
     {
       icon: Code,
-      title: "Hands-on Projects",
+      title: "Run Code In-Place",
       description:
-        "Build production-ready projects as you learn, not toy examples.",
-    },
-    {
-      icon: Users,
-      title: "Expert Instructors",
-      description: "Learn directly from engineers at top tech companies.",
+        "A built-in compiler for 10+ languages — try what you just read without switching tabs.",
     },
     {
       icon: Zap,
-      title: "Fast Track",
+      title: "Practice & Quizzes",
       description:
-        "Go from zero to job-ready in record time with focused content.",
+        "Curated problems with difficulty filters, plus a quiz at the end of each module.",
+    },
+    {
+      icon: Sparkles,
+      title: "Progress That Sticks",
+      description:
+        "Every lesson is tracked, so you can stop anywhere and pick up where you left off.",
     },
   ];
 
   const { hasProgress, target: resumeTarget } = useResume();
 
-  const { courses, loading, error } = useCourses();
+  const { courses, loading, error, refetch } = useCourses();
   const courseList = Array.isArray(courses) ? courses : [];
-  // Only fall back to the sample cards if the API actually failed. Showing
-  // them while merely loading advertised courses that do not exist, and every
-  // click landed on a 404.
-  const displayCourses = courseList.length > 0
-    ? courseList.slice(0, 3)
-    : (error ? staticCourses : []);
+  // No sample-course fallback. This used to swap in three hardcoded courses
+  // when the API failed, with no banner to say so — and their slugs matched
+  // nothing in the database, so every "View course" landed on "No course
+  // found". A failure now says it failed and offers a retry.
+  const displayCourses = courseList.slice(0, 3);
 
   const levelPill = (level: string) => {
     if (level === "Beginner") return "pill-green";
@@ -249,11 +226,11 @@ const Home = () => {
                 }}
               >
                 {[
-                  ["5,000+", "students enrolled"],
-                  ["50+", "expert instructors"],
-                  ["4.9★", "average rating"],
+                  [stats?.courses, "structured courses"],
+                  [stats?.lessons, "lessons"],
+                  [stats?.practiceProblems, "practice problems"],
                 ].map(([num, label]) => (
-                  <div key={label}>
+                  <div key={label as string}>
                     <div
                       style={{
                         fontFamily: "'Syne', sans-serif",
@@ -261,11 +238,24 @@ const Home = () => {
                         fontSize: "1.9rem",
                         color: "white",
                         lineHeight: 1,
+                        // Hold the line's height while the count is in flight so
+                        // the hero doesn't jump when it arrives.
+                        minHeight: "1.9rem",
                       }}
                     >
-                      {num.replace("★", "")}
-                      {num.includes("★") && (
-                        <span style={{ color: "#ff4d1c" }}>★</span>
+                      {num === undefined ? (
+                        <span
+                          className="skeleton"
+                          style={{
+                            display: "inline-block",
+                            width: "2.2ch",
+                            height: "1.4rem",
+                            borderRadius: 4,
+                            verticalAlign: "middle",
+                          }}
+                        />
+                      ) : (
+                        num
                       )}
                     </div>
                     <div
@@ -390,7 +380,7 @@ const Home = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(240px, 100%), 1fr))",
               gap: 20,
             }}
           >
@@ -490,11 +480,33 @@ const Home = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+              // min() keeps the track from having a floor wider than the
+              // container: at 320px the viewport minus px-4 leaves 288px, and a
+              // hard 300px floor forced the whole page to scroll sideways.
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))",
               gap: 24,
             }}
           >
             {loading && displayCourses.length === 0 && <CardGridSkeleton count={3} columns={3} />}
+            {!loading && error && displayCourses.length === 0 && (
+              <div style={{ gridColumn: "1 / -1" }}>
+                <StateMessage
+                  tone="error"
+                  title="Couldn't load the featured courses"
+                  description="The catalogue didn't respond. Everything else on the page still works."
+                  onRetry={refetch}
+                />
+              </div>
+            )}
+            {!loading && !error && displayCourses.length === 0 && (
+              <div style={{ gridColumn: "1 / -1" }}>
+                <StateMessage
+                  title="No courses published yet"
+                  description="New courses are on the way. Check back soon."
+                  icon={BookOpen}
+                />
+              </div>
+            )}
             {displayCourses.map((course: any, i: number) => (
               <div
                 key={course.id}
@@ -563,30 +575,25 @@ const Home = () => {
                       color: "hsl(var(--muted-foreground))",
                     }}
                   >
+                    {/* Enrolment counts and star ratings used to sit here. Both
+                        are real columns on `course`, but they were seeded with
+                        invented values (thousands of students against a handful
+                        of real accounts), so showing them told the visitor
+                        something untrue. Level and duration are editorial facts
+                        about the course itself, which is honest. Put the other
+                        two back when they are derived from real enrolments and
+                        real submitted ratings. */}
                     <span
                       style={{ display: "flex", alignItems: "center", gap: 4 }}
                     >
-                      <Users style={{ width: 12, height: 12 }} />{" "}
-                      {course.students?.toLocaleString()}
+                      <BookOpen style={{ width: 12, height: 12 }} />{" "}
+                      {course.level}
                     </span>
                     <span
                       style={{ display: "flex", alignItems: "center", gap: 4 }}
                     >
                       <Clock style={{ width: 12, height: 12 }} />{" "}
                       {course.duration}
-                    </span>
-                    <span
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 4,
-                        color: "#f59e0b",
-                      }}
-                    >
-                      <Star
-                        style={{ width: 12, height: 12, fill: "#f59e0b" }}
-                      />{" "}
-                      {course.rating}
                     </span>
                   </div>
                   <h3
@@ -648,8 +655,14 @@ const Home = () => {
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          {/* This slot used to hold three testimonials with invented quotes
+              attributed to named people at Amazon, Flipkart and Zomato. Made-up
+              social proof is the fastest way to lose a visitor's trust, so it is
+              replaced with something true and equally reassuring: what actually
+              happens when you start. Put real, attributable testimonials back
+              here once there are learners willing to be quoted. */}
           <div className="text-center mb-12 reveal in-view">
-            <div className="section-tag justify-center">Student Stories</div>
+            <div className="section-tag justify-center">How it works</div>
             <h2
               style={{
                 fontFamily: "'Syne', sans-serif",
@@ -658,41 +671,38 @@ const Home = () => {
                 letterSpacing: "-0.025em",
               }}
             >
-              What our learners <span className="gradient-text">say</span>
+              From first lesson to <span className="gradient-text">certificate</span>
             </h2>
           </div>
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(240px, 100%), 1fr))",
               gap: 20,
             }}
           >
             {[
               {
-                name: "Priya Sharma",
-                role: "SDE at Amazon",
-                text: "TakeYouUp's DSA course was a game-changer. The structured approach and real interview questions helped me crack Amazon in 3 months.",
-                avatar: "PS",
-                color: "#8b5cf6",
+                step: "01",
+                icon: BookOpen,
+                title: "Pick a track",
+                text: "Choose from structured courses in DSA, Java, Python, web development, machine learning and system design. Every one is free to start — no card required.",
               },
               {
-                name: "Rahul Verma",
-                role: "Python Dev at Flipkart",
-                text: "Best Python course I've ever taken. The hands-on projects and AI chatbot made complex concepts crystal clear.",
-                avatar: "RV",
-                color: "#3b82f6",
+                step: "02",
+                icon: Code,
+                title: "Learn, then prove it",
+                text: "Work through lessons at your own pace, run code in the built-in compiler, and check yourself with a quiz at the end of each module.",
               },
               {
-                name: "Anjali Singh",
-                role: "ML Engineer at Zomato",
-                text: "The Machine Learning masterclass is incredibly comprehensive. Went from zero ML knowledge to building real models.",
-                avatar: "AS",
-                color: "#10b981",
+                step: "03",
+                icon: Sparkles,
+                title: "Track and finish",
+                text: "Your progress is saved lesson by lesson, so you can always pick up where you left off. Finish a course and claim a verifiable certificate.",
               },
-            ].map((t, i) => (
+            ].map((s, i) => (
               <div
-                key={t.name}
+                key={s.step}
                 className={`reveal delay-${i + 1}`}
                 style={{
                   background: "hsl(var(--background))",
@@ -701,69 +711,58 @@ const Home = () => {
                   padding: "24px 22px",
                 }}
               >
-                <div style={{ display: "flex", gap: 4, marginBottom: 14 }}>
-                  {[...Array(5)].map((_, j) => (
-                    <Star
-                      key={j}
-                      style={{
-                        width: 14,
-                        height: 14,
-                        fill: "#f59e0b",
-                        color: "#f59e0b",
-                      }}
-                    />
-                  ))}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    marginBottom: 14,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: 12,
+                      background: "var(--gradient-primary)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <s.icon style={{ width: 18, height: 18, color: "#fff" }} />
+                  </div>
+                  <span
+                    style={{
+                      fontFamily: "'DM Mono', monospace",
+                      fontSize: 12,
+                      color: "hsl(var(--muted-foreground))",
+                      letterSpacing: "0.08em",
+                    }}
+                  >
+                    {s.step}
+                  </span>
                 </div>
+                <h3
+                  style={{
+                    fontFamily: "'Syne', sans-serif",
+                    fontWeight: 700,
+                    fontSize: "1.05rem",
+                    marginBottom: 8,
+                  }}
+                >
+                  {s.title}
+                </h3>
                 <p
                   style={{
                     color: "hsl(var(--muted-foreground))",
                     fontSize: "0.875rem",
                     lineHeight: 1.7,
-                    marginBottom: 18,
-                    fontStyle: "italic",
                   }}
                 >
-                  "{t.text}"
+                  {s.text}
                 </p>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div
-                    style={{
-                      width: 38,
-                      height: 38,
-                      borderRadius: "50%",
-                      background: t.color,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#fff",
-                      fontFamily: "'Syne', sans-serif",
-                      fontWeight: 700,
-                      fontSize: 13,
-                    }}
-                  >
-                    {t.avatar}
-                  </div>
-                  <div>
-                    <div
-                      style={{
-                        fontFamily: "'Syne', sans-serif",
-                        fontWeight: 700,
-                        fontSize: 13,
-                      }}
-                    >
-                      {t.name}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: "hsl(var(--muted-foreground))",
-                        fontFamily: "'DM Mono', monospace",
-                      }}
-                    >
-                      {t.role}
-                    </div>
-                  </div>
-                </div>
               </div>
             ))}
           </div>
@@ -806,8 +805,8 @@ const Home = () => {
             className="pill-orange mx-auto mb-7 w-fit animate-fade-up anim-d0"
             style={{ fontSize: 12 }}
           >
-            <Terminal style={{ width: 13, height: 13 }} /> Join 5,000+ learners
-            today
+            <Terminal style={{ width: 13, height: 13 }} /> Free to start — no
+            card required
           </div>
           <h2
             className="animate-fade-up anim-d1"

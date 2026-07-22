@@ -1,9 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, CheckCircle2, RotateCcw, XCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, CircleHelp, RotateCcw, XCircle } from "lucide-react";
 import { getTopic } from "@/api/resources";
 import { useProgress } from "@/context/ProgressContext";
 import { DetailSkeleton } from "@/components/Skeletons";
+import StateMessage from "@/components/StateMessage";
 
 const ResourceTopic = () => {
   const { categorySlug, topicSlug } = useParams();
@@ -33,8 +34,8 @@ const ResourceTopic = () => {
   const [showSummary, setShowSummary] = useState(false);
 
   const progress = useMemo(() => {
-    if (!topic) return 0;
-    return ((showSummary ? topic.questions.length : currentQuestion + 1) / topic.questions.length) * 100;
+    if (!topic?.questions?.length) return 0;
+    return ((showSummary ? topic.questions.length : Math.min(currentQuestion + 1, topic.questions.length)) / topic.questions.length) * 100;
   }, [currentQuestion, showSummary, topic]);
 
   if (loading) {
@@ -49,7 +50,30 @@ const ResourceTopic = () => {
     return <Navigate to="/resources" replace />;
   }
 
-  const activeQuestion = topic.questions[currentQuestion];
+  // A topic with no questions used to crash the page on `activeQuestion.question`.
+  if (!topic.questions?.length) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <StateMessage
+          tone="empty"
+          icon={CircleHelp}
+          title="No questions in this topic yet"
+          description="This topic hasn't been filled with MCQs so far. Try another topic in this category — new practice sets are added regularly."
+          action={
+            <Link to={`/resources/${category.slug}`} className="btn-orange mt-5 mx-auto w-fit">
+              Back to {category.title}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          }
+        />
+      </div>
+    );
+  }
+
+  // The stored index can fall outside the list (e.g. a shorter topic loads into
+  // the same mounted component), which would make `activeQuestion` undefined.
+  const questionIndex = Math.min(Math.max(currentQuestion, 0), topic.questions.length - 1);
+  const activeQuestion = topic.questions[questionIndex];
 
   const handleAnswerSelect = (index: number) => {
     if (selectedAnswer !== null) return;
@@ -63,12 +87,12 @@ const ResourceTopic = () => {
   };
 
   const handleNext = () => {
-    if (currentQuestion === topic.questions.length - 1) {
+    if (questionIndex === topic.questions.length - 1) {
       setShowSummary(true);
       return;
     }
 
-    setCurrentQuestion((value) => value + 1);
+    setCurrentQuestion(questionIndex + 1);
     setSelectedAnswer(null);
   };
 
@@ -103,7 +127,7 @@ const ResourceTopic = () => {
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-bold">Progress</h2>
                 <span className="text-sm font-medium text-muted-foreground">
-                  {showSummary ? topic.questions.length : currentQuestion + 1}/{topic.questions.length}
+                  {showSummary ? topic.questions.length : questionIndex + 1}/{topic.questions.length}
                 </span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-muted">
@@ -111,7 +135,7 @@ const ResourceTopic = () => {
               </div>
               <div className="mt-5 grid grid-cols-4 gap-2">
                 {topic.questions.map((_, index) => {
-                  const isCurrent = !showSummary && index === currentQuestion;
+                  const isCurrent = !showSummary && index === questionIndex;
                   const isCompleted = index < submittedCount;
 
                   return (
@@ -201,7 +225,7 @@ const ResourceTopic = () => {
               <div className="rounded-[28px] border border-border bg-card p-6 shadow-sm sm:p-8">
                 <div className="mb-5 flex items-center justify-between gap-4">
                   <span className="pill-orange">{topic.difficulty}</span>
-                  <span className="text-sm font-medium text-muted-foreground">Question {currentQuestion + 1} of {topic.questions.length}</span>
+                  <span className="text-sm font-medium text-muted-foreground">Question {questionIndex + 1} of {topic.questions.length}</span>
                 </div>
                 <h5 className="text-2xl font-bold leading-tight sm:text-3xl">{activeQuestion.question}</h5>
                 <div className="mt-8 grid gap-4">
@@ -249,7 +273,7 @@ const ResourceTopic = () => {
                     <p className="text-sm leading-7 text-muted-foreground">{activeQuestion.explanation}</p>
                     <div className="mt-6 flex justify-end">
                       <button onClick={handleNext} className="btn-orange">
-                        {currentQuestion === topic.questions.length - 1 ? "See summary" : "Next question"}
+                        {questionIndex === topic.questions.length - 1 ? "See summary" : "Next question"}
                         <ArrowRight className="h-4 w-4" />
                       </button>
                     </div>

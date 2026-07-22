@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Clock, Users, Star, Search, SlidersHorizontal } from "lucide-react";
+import { ArrowRight, Clock, BookOpen, Search, SlidersHorizontal, AlertCircle } from "lucide-react";
 import { useCourses } from "@/context/CourseContext";
 import CourseCover from "@/components/CourseCover";
+import { CardGridSkeleton, ChipsSkeleton } from "@/components/Skeletons";
+import StateMessage from "@/components/StateMessage";
 
 const Courses = () => {
   useEffect(() => {
@@ -11,7 +13,7 @@ const Courses = () => {
 
   const [selectedCategory, setSelectedCategory] = useState("All");
   const revealRef = useRef<HTMLDivElement>(null);
-  const { courses, loading, error } = useCourses();
+  const { courses, loading, error, refetch } = useCourses();
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -25,18 +27,9 @@ const Courses = () => {
     return () => cancelAnimationFrame(frame);
   }, [selectedCategory, courses]);
 
-  const staticCourses = [
-    { id: 1, slug: "data-structures-algorithms", title: "Data Structures & Algorithms", description: "Master DSA with hands-on practice and real-world problems. Learn sorting, searching, trees, graphs, and dynamic programming.", level: "Intermediate", duration: "12 weeks", students: 1200, rating: 4.8, image: "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=600&h=400&fit=crop", category: "Programming" },
-    { id: 2, slug: "python-programming-masterclass", title: "Python Programming Masterclass", description: "Learn Python from basics to advanced topics. Perfect for beginners starting their coding journey.", level: "Beginner", duration: "8 weeks", students: 1500, rating: 4.9, image: "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=600&h=400&fit=crop", category: "Programming" },
-    { id: 3, slug: "java-programming-masterclass", title: "Java Programming Masterclass", description: "Ace your JAVA interviews with real-world case studies and scalable architecture patterns.", level: "Advanced", duration: "6 weeks", students: 450, rating: 4.8, image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&h=400&fit=crop", category: "Programming" },
-    { id: 4, slug: "web-development-masterclass", title: "Web Development Masterclass", description: "Ace your Web Development interviews with real-world case studies and scalable architecture patterns.", level: "Advanced", duration: "6 weeks", students: 450, rating: 4.8, image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&h=400&fit=crop", category: "Development" },
-    { id: 5, slug: "machine-learning-masterclass", title: "Machine Learning Masterclass", description: "Ace your Machine Learning interviews with real-world case studies and scalable architecture patterns.", level: "Advanced", duration: "6 weeks", students: 450, rating: 4.8, image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&h=400&fit=crop", category: "AI/ML" },
-    { id: 6, slug: "system-design-masterclass", title: "System Design Masterclass", description: "Ace your System Design interviews with real-world case studies and scalable architecture patterns.", level: "Advanced", duration: "6 weeks", students: 450, rating: 4.8, image: "https://images.unsplash.com/photo-1593642532973-d31b6557fa68?w=600&h=400&fit=crop", category: "Development" },
-  ];
 
   const courseList = Array.isArray(courses) ? courses : [];
-  const shouldShowStatic = loading || error || courseList.length === 0;
-  const allCourses = shouldShowStatic ? staticCourses : courseList;
+  const allCourses = courseList;
   const categories = ["All", ...Array.from(new Set(allCourses.map((c: any) => c.category)))];
   const filteredCourses = selectedCategory === "All" ? allCourses : allCourses.filter((c: any) => c.category === selectedCategory);
 
@@ -73,6 +66,11 @@ const Courses = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         {/* Filter bar */}
+        {loading ? (
+          <div className="mb-10">
+            <ChipsSkeleton count={5} />
+          </div>
+        ) : (
         <div className="flex items-center gap-3 mb-10 scroll-x pb-2 reveal in-view">
           <SlidersHorizontal className="h-4 w-4 flex-shrink-0 opacity-40" />
           <div className="flex gap-2 flex-shrink-0">
@@ -94,8 +92,48 @@ const Courses = () => {
             ))}
           </div>
         </div>
+        )}
 
-        {/* Course grid */}
+        {/* Course grid.
+            This block used to fall back to six hardcoded courses whenever the
+            fetch was loading, failed, or came back empty — with invented
+            ratings, and slugs that did not match any real course, so every card
+            led to "No course found". Each state now says what it actually is. */}
+        {loading ? (
+          <div className="mb-16">
+            <CardGridSkeleton count={6} columns={3} />
+          </div>
+        ) : error ? (
+          <StateMessage
+            tone="error"
+            title="Couldn't load the courses"
+            description="Something went wrong reaching the catalogue. Your progress is safe — this is just the listing."
+            onRetry={refetch}
+            className="mb-16"
+          />
+        ) : filteredCourses.length === 0 ? (
+          <StateMessage
+            title={selectedCategory === "All" ? "No courses published yet" : `Nothing in ${selectedCategory} yet`}
+            description={
+              selectedCategory === "All"
+                ? "New courses are on the way. Check back soon."
+                : "Try another category, or browse them all."
+            }
+            icon={BookOpen}
+            className="mb-16"
+            action={
+              selectedCategory !== "All" ? (
+                <button
+                  onClick={() => setSelectedCategory("All")}
+                  className="btn-orange mt-5 mx-auto"
+                  style={{ borderRadius: 10, padding: "9px 16px", fontSize: 13 }}
+                >
+                  Show all courses
+                </button>
+              ) : undefined
+            }
+          />
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {filteredCourses.map((course: any, i: number) => (
             <div
@@ -119,15 +157,15 @@ const Courses = () => {
               {/* Body */}
               <div className="p-6">
                 <div className="flex items-center gap-4 mb-3" style={{ color: "hsl(var(--muted-foreground))", fontFamily: "'DM Mono', monospace", fontSize: 11 }}>
+                  {/* Enrolment count and star rating removed: both are real
+                      columns but hold seeded, invented values, so they told the
+                      visitor something false. See the same note on Home.tsx. */}
                   <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {course.duration}</span>
-                  <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {course.students?.toLocaleString()}</span>
-                  <span className="flex items-center gap-1" style={{ color: "#f59e0b" }}>
-                    <Star className="h-3 w-3" style={{ fill: "#f59e0b" }} /> {course.rating}
-                  </span>
+                  <span className="flex items-center gap-1"><BookOpen className="h-3 w-3" /> {course.level}</span>
                 </div>
-                <h3 className="font-bold text-lg mb-2 transition-colors group-hover:text-orange-500 line-clamp-2" style={{ fontFamily: "'Syne', sans-serif" }}>
+                <h2 className="font-bold text-lg mb-2 transition-colors group-hover:text-orange-500 line-clamp-2" style={{ fontFamily: "'Syne', sans-serif" }}>
                   {course.title}
-                </h3>
+                </h2>
                 <p className="text-sm leading-relaxed mb-5 line-clamp-2" style={{ color: "hsl(var(--muted-foreground))" }}>
                   {course.description}
                 </p>
@@ -145,6 +183,7 @@ const Courses = () => {
             </div>
           ))}
         </div>
+        )}
 
         {/* Bottom CTA */}
         <div

@@ -595,6 +595,14 @@ function Settings({ me, onNameSaved }: { me?: Me; onNameSaved: () => void }) {
     try {
       await resendVerification(me.email);
       toast({ title: "Verification email sent", description: "Check your inbox for the link." });
+    } catch (e) {
+      // Without this the button simply stopped spinning on failure and the user
+      // was left unable to tell whether the email had gone out.
+      toast({
+        title: "Couldn't send the email",
+        description: apiErrorMessage(e, "Please try again in a moment."),
+        variant: "destructive",
+      });
     } finally { setResending(false); }
   };
 

@@ -104,14 +104,15 @@ const ResetPassword = () => {
     );
   }
 
-  const field = (label: string, value: string, onChange: (v: string) => void) => (
+  const field = (id: string, label: string, value: string, onChange: (v: string) => void) => (
     <div>
-      <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
+      <label htmlFor={id} className="block text-xs font-semibold uppercase tracking-wider mb-2"
         style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>
         {label}
       </label>
       <div className="relative">
         <input
+          id={id} autoComplete="new-password"
           type={show ? "text" : "password"} required placeholder="••••••••"
           style={{ ...authInputStyle, paddingRight: 44 }}
           value={value} onChange={(e) => onChange(e.target.value)}
@@ -119,6 +120,7 @@ const ResetPassword = () => {
           onBlur={(e) => { e.target.style.borderColor = "hsl(var(--border))"; e.target.style.boxShadow = "none"; }}
         />
         <button type="button" onClick={() => setShow(!show)}
+          aria-label={show ? "Hide password" : "Show password"}
           className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-70"
           style={{ background: "none", border: "none", cursor: "pointer" }}>
           {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -130,8 +132,8 @@ const ResetPassword = () => {
   return (
     <AuthCard title="Choose a new password" subtitle={PASSWORD_HINT}>
       <form onSubmit={submit} className="space-y-4">
-        {field("New password", password, setPassword)}
-        {field("Confirm password", confirm, setConfirm)}
+        {field("reset-password", "New password", password, setPassword)}
+        {field("reset-confirm-password", "Confirm password", confirm, setConfirm)}
 
         {error && <p className="text-xs" style={{ color: "#ef4444" }}>{error}</p>}
 

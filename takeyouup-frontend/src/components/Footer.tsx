@@ -1,12 +1,22 @@
 import { Link } from "react-router-dom"
-import { Code2, Github, Twitter, Linkedin, Mail, ArrowUpRight } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
+import { Code2, Mail, ArrowUpRight } from "lucide-react"
+
+/**
+ * Real social profiles, if there are any.
+ *
+ * Left empty on purpose: the footer previously rendered GitHub, X and LinkedIn
+ * icons all pointing at "#". Add entries here — e.g.
+ * `{ icon: Github, href: "https://github.com/...", label: "TakeYouUp on GitHub" }`
+ * — and the row appears automatically. Import the icons you use.
+ */
+const SOCIAL_LINKS: { icon: LucideIcon; href: string; label: string }[] = [];
 
 const Footer = () => {
   const links = {
     Learn: [
       { name: "Courses", path: "/courses" },
       { name: "Resources", path: "/resources" },
-      { name: "Interview Prep", path: "/interview-prep" },
       { name: "Practice", path: "/online-compiler" },
       { name: "Problems", path: "/problems" },
     ],
@@ -43,24 +53,33 @@ const Footer = () => {
               </span>
             </Link>
             <p className="text-sm leading-relaxed max-w-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-              Elevate your programming skills with comprehensive courses, real-world projects, and expert mentorship.
+              Structured programming courses with a built-in compiler, quizzes
+              and practice problems. Free to start.
             </p>
-            <div className="flex items-center gap-3">
-              {[
-                { icon: Github, href: "#" },
-                { icon: Twitter, href: "#" },
-                { icon: Linkedin, href: "#" },
-              ].map(({ icon: Icon, href }) => (
-                <a
-                  key={href + Icon.name}
-                  href={href}
-                  className="p-2 rounded-lg border transition-all hover:border-orange-400 hover:text-orange-500"
-                  style={{ borderColor: "hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}
-                >
-                  <Icon className="h-4 w-4" />
-                </a>
-              ))}
-            </div>
+            {/* The GitHub / X / LinkedIn icons that were here all pointed at
+                href="#" and had no accessible name, so they were three dead,
+                unlabelled buttons. A link that goes nowhere costs more trust
+                than an absent one. To restore them, put the real profile URLs
+                in SOCIAL_LINKS below — the row renders itself once it is not
+                empty, and each link already carries an aria-label. */}
+            {SOCIAL_LINKS.length > 0 && (
+              <div className="flex items-center gap-3">
+                {SOCIAL_LINKS.map(({ icon: Icon, href, label }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    aria-label={label}
+                    title={label}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="p-2 rounded-lg border transition-all hover:border-orange-400 hover:text-orange-500"
+                    style={{ borderColor: "hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Links */}

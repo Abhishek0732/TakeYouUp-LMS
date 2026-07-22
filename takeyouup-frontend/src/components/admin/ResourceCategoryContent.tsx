@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, Pencil, Trash2, X, ChevronDown, ChevronRight } from "lucide-react";
 import api from "@/api/axios";
+import { useModalA11y } from "@/components/admin/useModalA11y";
 
 const inp = "w-full rounded-lg border px-3 py-2 text-sm bg-transparent";
 const optStyle = { background: "hsl(var(--card))", color: "hsl(var(--foreground))" };
@@ -91,10 +92,10 @@ export default function ResourceCategoryContent({ category, onBack }: { category
                 <span className="text-xs opacity-50">({t.questionCount ?? 0} questions · {t.difficulty || "—"})</span>
               </button>
               <div className="flex items-center gap-3">
-                <button title="Add question" className="text-orange-500 flex items-center gap-1 text-sm"
+                <button title="Add question" aria-label="Add question" className="text-orange-500 flex items-center gap-1 text-sm"
                   onClick={() => setMcqModal({ open: true, topicId: t.id, question: null })}><Plus className="h-4 w-4" /> Question</button>
-                <button title="Edit topic" onClick={() => setTopicModal({ open: true, editing: t })}><Pencil className="h-4 w-4 opacity-70" /></button>
-                <button title="Delete topic" onClick={() => deleteTopic(t)}><Trash2 className="h-4 w-4 text-red-500" /></button>
+                <button title="Edit topic" aria-label="Edit topic" onClick={() => setTopicModal({ open: true, editing: t })}><Pencil className="h-4 w-4 opacity-70" /></button>
+                <button title="Delete topic" aria-label="Delete topic" onClick={() => deleteTopic(t)}><Trash2 className="h-4 w-4 text-red-500" /></button>
               </div>
             </div>
             {open[t.id] && (
@@ -116,8 +117,8 @@ export default function ResourceCategoryContent({ category, onBack }: { category
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <button onClick={() => setMcqModal({ open: true, topicId: t.id, question: q })}><Pencil className="h-4 w-4 opacity-70" /></button>
-                      <button onClick={() => deleteQuestion(t.id, q)}><Trash2 className="h-4 w-4 text-red-500" /></button>
+                      <button aria-label="Edit question" onClick={() => setMcqModal({ open: true, topicId: t.id, question: q })}><Pencil className="h-4 w-4 opacity-70" /></button>
+                      <button aria-label="Delete question" onClick={() => deleteQuestion(t.id, q)}><Trash2 className="h-4 w-4 text-red-500" /></button>
                     </div>
                   </div>
                 ))}
@@ -144,12 +145,13 @@ function TopicModal({ editing, onClose, onSave }: { editing: any | null; onClose
     ? { ...editing, concepts: editing.concepts || [] }
     : { slug: "", title: "", summary: "", difficulty: "Beginner", duration: "", concepts: [] });
   const [saving, setSaving] = useState(false);
+  const panelRef = useModalA11y(onClose);
   const set = (k: string, v: any) => setForm((s: any) => ({ ...s, [k]: v }));
   const setConcept = (i: number, v: string) => set("concepts", form.concepts.map((c: string, idx: number) => idx === i ? v : c));
 
   const submit = async () => {
-    if (!form.slug.trim() || !form.title.trim()) { alert("Slug and title are required"); return; }
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(form.slug)) { alert("Slug must be lowercase kebab-case (e.g. time-work)"); return; }
+    if (!form.slug.trim() || !form.title.trim()) { toast.error("Slug and title are required"); return; }
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(form.slug)) { toast.error("Slug must be lowercase kebab-case (e.g. time-work)"); return; }
     setSaving(true);
     try { await onSave({ ...form, concepts: form.concepts.filter((c: string) => c.trim()) }); onClose(); }
     finally { setSaving(false); }
@@ -157,10 +159,11 @@ function TopicModal({ editing, onClose, onSave }: { editing: any | null; onClose
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl border p-6 max-h-[88vh] overflow-y-auto" style={{ background: "hsl(var(--card))" }} onClick={(e) => e.stopPropagation()}>
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="topic-modal-title"
+        className="w-full max-w-lg rounded-2xl border p-6 max-h-[88vh] overflow-y-auto" style={{ background: "hsl(var(--card))" }} onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold">{editing ? "Edit topic" : "New topic"}</h2>
-          <button onClick={onClose}><X className="h-5 w-5 opacity-60" /></button>
+          <h2 id="topic-modal-title" className="text-lg font-bold">{editing ? "Edit topic" : "New topic"}</h2>
+          <button onClick={onClose} aria-label="Close"><X className="h-5 w-5 opacity-60" /></button>
         </div>
         <div className="space-y-3">
           <div><label className="block text-xs opacity-70 mb-1">Slug *</label>
@@ -186,7 +189,7 @@ function TopicModal({ editing, onClose, onSave }: { editing: any | null; onClose
               {form.concepts.map((c: string, i: number) => (
                 <div key={i} className="flex gap-2">
                   <input className={inp} value={c} onChange={(e) => setConcept(i, e.target.value)} placeholder={`Concept ${i + 1}`} />
-                  <button onClick={() => set("concepts", form.concepts.filter((_: any, idx: number) => idx !== i))} className="p-2"><Trash2 className="h-4 w-4 text-red-500" /></button>
+                  <button onClick={() => set("concepts", form.concepts.filter((_: any, idx: number) => idx !== i))} aria-label="Remove concept" className="p-2"><Trash2 className="h-4 w-4 text-red-500" /></button>
                 </div>
               ))}
             </div>
@@ -216,6 +219,7 @@ function McqModal({ question, onClose, onSave }: { question: any | null; onClose
     : { questionText: "", options: ["", ""], correctAnswerIndex: 0, explanation: "" };
   const [form, setForm] = useState<any>(initial);
   const [saving, setSaving] = useState(false);
+  const panelRef = useModalA11y(onClose);
   const set = (k: string, v: any) => setForm((s: any) => ({ ...s, [k]: v }));
   const setOpt = (i: number, v: string) => set("options", form.options.map((o: string, idx: number) => idx === i ? v : o));
   const removeOpt = (i: number) => {
@@ -226,8 +230,8 @@ function McqModal({ question, onClose, onSave }: { question: any | null; onClose
   };
 
   const submit = async () => {
-    if (!form.questionText.trim()) { alert("Question text is required"); return; }
-    if (form.options.filter((o: string) => o.trim()).length < 2) { alert("At least 2 options required"); return; }
+    if (!form.questionText.trim()) { toast.error("Question text is required"); return; }
+    if (form.options.filter((o: string) => o.trim()).length < 2) { toast.error("At least 2 options required"); return; }
     setSaving(true);
     try {
       await onSave({ ...form, options: form.options.map((o: string) => o.trim()).filter(Boolean),
@@ -238,10 +242,11 @@ function McqModal({ question, onClose, onSave }: { question: any | null; onClose
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl border p-6 max-h-[88vh] overflow-y-auto" style={{ background: "hsl(var(--card))" }} onClick={(e) => e.stopPropagation()}>
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="mcq-modal-title"
+        className="w-full max-w-lg rounded-2xl border p-6 max-h-[88vh] overflow-y-auto" style={{ background: "hsl(var(--card))" }} onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold">{question ? "Edit question" : "New question"}</h2>
-          <button onClick={onClose}><X className="h-5 w-5 opacity-60" /></button>
+          <h2 id="mcq-modal-title" className="text-lg font-bold">{question ? "Edit question" : "New question"}</h2>
+          <button onClick={onClose} aria-label="Close"><X className="h-5 w-5 opacity-60" /></button>
         </div>
         <div className="space-y-3">
           <div><label className="block text-xs opacity-70 mb-1">Question *</label>
@@ -256,7 +261,7 @@ function McqModal({ question, onClose, onSave }: { question: any | null; onClose
                 <div key={i} className="flex items-center gap-2">
                   <input type="radio" name="correct" checked={form.correctAnswerIndex === i} onChange={() => set("correctAnswerIndex", i)} />
                   <input className={inp} value={o} onChange={(e) => setOpt(i, e.target.value)} placeholder={`Option ${i + 1}`} />
-                  <button onClick={() => removeOpt(i)} disabled={form.options.length <= 2} className="p-1.5 disabled:opacity-30"><Trash2 className="h-4 w-4 text-red-500" /></button>
+                  <button onClick={() => removeOpt(i)} disabled={form.options.length <= 2} aria-label="Remove option" className="p-1.5 disabled:opacity-30"><Trash2 className="h-4 w-4 text-red-500" /></button>
                 </div>
               ))}
             </div>

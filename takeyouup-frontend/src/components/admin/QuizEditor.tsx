@@ -3,6 +3,8 @@ import { toast } from "sonner";
 import { X, Plus, Trash2, Code2, Eye, Pencil } from "lucide-react";
 import api from "@/api/axios";
 import CodeBlock from "@/components/CodeBlock";
+import { ListSkeleton } from "@/components/Skeletons";
+import { useModalA11y } from "@/components/admin/useModalA11y";
 import { CODE_LANGUAGES } from "@/lib/code-languages";
 
 interface QuizQuestion {
@@ -23,6 +25,7 @@ export default function QuizEditor({ quiz, onClose, onSaved }: {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const panelRef = useModalA11y(onClose);
 
   useEffect(() => {
     api.get(`/quizzes/${quiz.id}`)
@@ -62,13 +65,13 @@ export default function QuizEditor({ quiz, onClose, onSaved }: {
   };
 
   const save = async () => {
-    if (!title.trim()) { alert("Quiz title is required"); return; }
+    if (!title.trim()) { toast.error("Quiz title is required"); return; }
     // validate
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
-      if (!q.question.trim()) { alert(`Question ${i + 1} text is empty`); return; }
+      if (!q.question.trim()) { toast.error(`Question ${i + 1} text is empty`); return; }
       const filled = q.options.filter((o) => o.trim());
-      if (filled.length < 2) { alert(`Question ${i + 1} needs at least 2 options`); return; }
+      if (filled.length < 2) { toast.error(`Question ${i + 1} needs at least 2 options`); return; }
     }
     setSaving(true);
     try {
@@ -98,16 +101,17 @@ export default function QuizEditor({ quiz, onClose, onSaved }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={onClose}>
-      <div className="w-full max-w-3xl rounded-2xl border p-6 max-h-[90vh] overflow-y-auto" style={{ background: "hsl(var(--card))" }} onClick={(e) => e.stopPropagation()}>
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="quiz-editor-title"
+        className="w-full max-w-3xl rounded-2xl border p-6 max-h-[90vh] overflow-y-auto" style={{ background: "hsl(var(--card))" }} onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">Edit quiz questions</h2>
-          <button onClick={onClose}><X className="h-5 w-5 opacity-60" /></button>
+          <h2 id="quiz-editor-title" className="text-lg font-bold">Edit quiz questions</h2>
+          <button onClick={onClose} aria-label="Close"><X className="h-5 w-5 opacity-60" /></button>
         </div>
 
         <label className="block text-xs opacity-70 mb-1">Quiz title *</label>
         <input className={inp + " w-full mb-5"} value={title} onChange={(e) => setTitle(e.target.value)} />
 
-        {loading ? <p className="opacity-60">Loading…</p> : (
+        {loading ? <ListSkeleton count={4} /> : (
           <div className="space-y-4">
             {questions.length === 0 && <p className="opacity-60 text-sm">No questions yet. Add one below.</p>}
             {questions.map((q, qi) => (
@@ -116,7 +120,7 @@ export default function QuizEditor({ quiz, onClose, onSaved }: {
                   <span className="text-sm font-semibold mt-2">{qi + 1}.</span>
                   <textarea className={inp + " flex-1"} rows={2} placeholder="Question text"
                     value={q.question} onChange={(e) => setQ(qi, { question: e.target.value })} />
-                  <button title="Remove question" onClick={() => removeQuestion(qi)} className="p-2"><Trash2 className="h-4 w-4 text-red-500" /></button>
+                  <button title="Remove question" aria-label="Remove question" onClick={() => removeQuestion(qi)} className="p-2"><Trash2 className="h-4 w-4 text-red-500" /></button>
                 </div>
                 <div className="pl-6 mb-3">
                   <CodeSnippetField
@@ -135,7 +139,7 @@ export default function QuizEditor({ quiz, onClose, onSaved }: {
                       <input className={inp + " flex-1"} placeholder={`Option ${oi + 1}`}
                         value={opt} onChange={(e) => setOption(qi, oi, e.target.value)} />
                       <button onClick={() => removeOption(qi, oi)} disabled={q.options.length <= 2}
-                        className="p-1.5 disabled:opacity-30"><Trash2 className="h-4 w-4 text-red-500" /></button>
+                        aria-label="Remove option" className="p-1.5 disabled:opacity-30"><Trash2 className="h-4 w-4 text-red-500" /></button>
                     </div>
                   ))}
                   <button className="text-orange-500 text-xs flex items-center gap-1" onClick={() => addOption(qi)}>
@@ -210,7 +214,7 @@ function CodeSnippetField({ code, language, onCodeChange, onLanguageChange }: {
           {preview ? <Pencil className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
           {preview ? "Edit" : "Preview"}
         </button>
-        <button type="button" title="Remove snippet"
+        <button type="button" title="Remove snippet" aria-label="Remove snippet"
           onClick={() => { onCodeChange(""); setOpen(false); setPreview(false); }}>
           <Trash2 className="h-3.5 w-3.5 text-red-500" />
         </button>

@@ -58,11 +58,12 @@ const ForgotPassword = () => {
     >
       <form onSubmit={submit} className="space-y-4">
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
+          <label htmlFor="forgot-email" className="block text-xs font-semibold uppercase tracking-wider mb-2"
             style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>
             Email
           </label>
           <input
+            id="forgot-email" autoComplete="email" inputMode="email"
             type="email" required placeholder="your.email@example.com" style={authInputStyle}
             value={email} onChange={(e) => setEmail(e.target.value)}
             onFocus={(e) => { e.target.style.borderColor = "#ff4d1c"; e.target.style.boxShadow = "0 0 0 3px rgba(255,77,28,0.12)"; }}

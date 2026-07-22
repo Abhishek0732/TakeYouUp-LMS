@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   LayoutDashboard, BookOpen, ListChecks, Code2, Tags, Server, Gauge,
-  FolderTree, Users as UsersIcon, Layers, Image as ImageIcon,
+  FolderTree, Users as UsersIcon, Layers, Image as ImageIcon, Menu, X,
 } from "lucide-react";
 import api from "@/api/axios";
 import DataGrid, { Column } from "@/components/admin/DataGrid";
@@ -82,8 +82,15 @@ function ResourceView({ config }: { config: ResourceConfig }) {
 
   const onBulkDelete = async (rows: any[]) => {
     let ok = 0;
-    for (const r of rows) { try { await config.remove!(r); ok++; } catch { /* skip */ } }
-    toast.success(`Deleted ${ok}/${rows.length}`);
+    let firstError = "";
+    for (const r of rows) {
+      try { await config.remove!(r); ok++; }
+      catch (e: any) {
+        if (!firstError) firstError = e?.response?.data?.message || e?.message || "Delete failed";
+      }
+    }
+    if (ok === rows.length) toast.success(`Deleted ${ok}/${rows.length}`);
+    else toast.error(`Deleted ${ok}/${rows.length} — ${firstError}`);
     bump();
   };
 
@@ -122,12 +129,13 @@ function ResourceView({ config }: { config: ResourceConfig }) {
 function Dashboard() {
   const [stats, setStats] = useState<any>({});
   useEffect(() => {
+    // `null` marks a figure we could not load — it must never be shown as a real 0.
     Promise.all([
-      api.get("/courses/basic").then((r) => r.data.length).catch(() => 0),
-      api.get("/questions", { params: { size: 1 } }).then((r) => r.data.totalElements ?? 0).catch(() => 0),
-      api.get("/topics").then((r) => r.data.length).catch(() => 0),
-      api.get("/resources/categories").then((r) => r.data.length).catch(() => 0),
-      api.get("/users").then((r) => r.data.length).catch(() => 0),
+      api.get("/courses/basic").then((r) => r.data.length).catch(() => null),
+      api.get("/questions", { params: { size: 1 } }).then((r) => r.data.totalElements ?? 0).catch(() => null),
+      api.get("/topics").then((r) => r.data.length).catch(() => null),
+      api.get("/resources/categories").then((r) => r.data.length).catch(() => null),
+      api.get("/users").then((r) => r.data.length).catch(() => null),
     ]).then(([courses, questions, topics, categories, users]) =>
       setStats({ courses, questions, topics, categories, users }));
   }, []);
@@ -142,13 +150,18 @@ function Dashboard() {
     <div>
       <h1 className="text-2xl font-bold mb-6" style={{ fontFamily: "'Syne', sans-serif" }}>Dashboard</h1>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {cards.map((c) => (
-          <div key={c.label} className="rounded-2xl border p-5">
-            <c.icon className="h-5 w-5 text-orange-500 mb-3" />
-            <div className="text-3xl font-bold">{c.value ?? "…"}</div>
-            <div className="text-sm opacity-60">{c.label}</div>
-          </div>
-        ))}
+        {cards.map((c) => {
+          const failed = c.value === null;
+          return (
+            <div key={c.label} className="rounded-2xl border p-5"
+              title={failed ? `Couldn't load ${c.label.toLowerCase()}` : undefined}>
+              <c.icon className="h-5 w-5 text-orange-500 mb-3" />
+              <div className="text-3xl font-bold">{failed ? "—" : c.value ?? "…"}</div>
+              <div className="text-sm opacity-60">{c.label}</div>
+              {failed && <div className="text-xs opacity-50 mt-0.5">couldn't load</div>}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -222,12 +235,25 @@ const NAV: { section: string; items: NavItem[] }[] = [
 ];
 
 export default function Admin() {
+  useEffect(() => {
+    document.title = "Admin | TakeYouUp - Master Programming & Build Your Future";
+  }, []);
+
   const role = localStorage.getItem("role");
   const token = localStorage.getItem("token");
   const [active, setActive] = useState("dashboard");
   const [manageCourse, setManageCourse] = useState<any>(null);
   const [manageCategory, setManageCategory] = useState<any>(null);
+  const [navOpen, setNavOpen] = useState(false);
   const [lookups, setLookups] = useState<{ topics: any[]; platforms: any[]; difficulties: any[] }>({ topics: [], platforms: [], difficulties: [] });
+
+  // Escape closes the mobile nav drawer.
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setNavOpen(false); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [navOpen]);
 
   useEffect(() => {
     if (role !== "ADMIN") return;
@@ -415,14 +441,24 @@ export default function Admin() {
 
   return (
     <div className="flex min-h-[calc(100vh-64px)]">
-      {/* Sidebar */}
-      <aside className="w-56 shrink-0 border-r p-4" style={{ borderColor: "hsl(var(--border))" }}>
+      {/* Backdrop for the mobile drawer */}
+      {navOpen && (
+        <div className="fixed inset-x-0 bottom-0 top-16 z-30 bg-black/50 md:hidden"
+          aria-hidden="true" onClick={() => setNavOpen(false)} />
+      )}
+
+      {/* Sidebar — a slide-over drawer below md, the static column from md up */}
+      <aside id="admin-nav"
+        className={`fixed left-0 top-16 bottom-0 z-40 w-56 shrink-0 overflow-y-auto border-r bg-background p-4 pt-16 transition-transform duration-200
+          md:static md:z-auto md:translate-x-0 md:visible md:overflow-visible md:bg-transparent md:pt-4 md:transition-none ${
+          navOpen ? "translate-x-0" : "-translate-x-full invisible"}`}
+        style={{ borderColor: "hsl(var(--border))" }}>
         <p className="text-xs tracking-widest text-orange-500 font-mono mb-4 px-2">// ADMIN</p>
         {NAV.map((grp) => (
           <div key={grp.section} className="mb-5">
             <p className="text-[10px] uppercase tracking-wider opacity-40 px-2 mb-1">{grp.section}</p>
             {grp.items.map((it) => (
-              <button key={it.key} onClick={() => { setActive(it.key); setManageCourse(null); setManageCategory(null); }}
+              <button key={it.key} onClick={() => { setActive(it.key); setManageCourse(null); setManageCategory(null); setNavOpen(false); }}
                 className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm mb-0.5 transition-colors ${
                   active === it.key ? "bg-orange-500 text-white" : "hover:bg-muted"}`}>
                 <it.icon className="h-4 w-4" /> {it.label}
@@ -434,6 +470,13 @@ export default function Admin() {
 
       {/* Content */}
       <main className="flex-1 p-6 md:p-8 overflow-x-hidden">
+        <button type="button" onClick={() => setNavOpen((o) => !o)}
+          aria-label={navOpen ? "Close admin menu" : "Open admin menu"}
+          aria-expanded={navOpen} aria-controls="admin-nav"
+          className="md:hidden relative z-50 mb-4 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium"
+          style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--card))" }}>
+          {navOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />} Menu
+        </button>
         {active === "dashboard" && <Dashboard />}
         {active === "quizzes" && <QuizzesView />}
         {active === "courses" && manageCourse

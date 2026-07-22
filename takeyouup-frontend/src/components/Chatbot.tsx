@@ -46,6 +46,8 @@ const Chatbot = () => {
       {/* Toggle button */}
       <button
         onClick={(e) => { e.stopPropagation(); setIsOpen((p) => !p); }}
+        aria-label={isOpen ? "Close chat" : "Open chat"}
+        aria-expanded={isOpen}
         className="fixed bottom-6 right-6 z-50 flex items-center justify-center shadow-2xl transition-all hover:scale-105 active:scale-95"
         style={{
           width: 52, height: 52, borderRadius: "50%",
@@ -62,7 +64,10 @@ const Chatbot = () => {
         <div
           className="fixed bottom-20 right-6 z-50 flex flex-col animate-fade-up"
           style={{
-            width: 340, height: 480, borderRadius: 20,
+            // Never wider/taller than the viewport it sits in (right-6 = 24px gutter).
+            width: "min(340px, calc(100vw - 32px))",
+            height: "min(480px, calc(100vh - 140px))",
+            borderRadius: 20,
             background: "hsl(var(--card))",
             border: "1px solid hsl(var(--border))",
             boxShadow: "0 24px 60px rgba(0,0,0,0.2)",
@@ -86,7 +91,7 @@ const Chatbot = () => {
                 <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 11, fontFamily: "'DM Mono', monospace" }}>● Online</p>
               </div>
             </div>
-            <button onClick={() => setIsOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.7)" }}>
+            <button onClick={() => setIsOpen(false)} aria-label="Minimize chat" style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.7)" }}>
               <Minimize2 style={{ width: 16, height: 16 }} />
             </button>
           </div>
@@ -131,6 +136,7 @@ const Chatbot = () => {
               />
               <button
                 onClick={handleSendMessage}
+                aria-label="Send message"
                 style={{
                   width: 38, height: 38, borderRadius: 10, border: "none", cursor: "pointer",
                   background: "linear-gradient(135deg, #ff4d1c, #ffb800)",

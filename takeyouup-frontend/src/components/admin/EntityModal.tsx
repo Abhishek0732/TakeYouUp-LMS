@@ -1,5 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
+import { toast } from "sonner";
 import { X, Upload, Trash2, ImageIcon } from "lucide-react";
+import { useModalA11y } from "@/components/admin/useModalA11y";
 
 export interface Field {
   name: string;
@@ -33,6 +35,8 @@ export default function EntityModal({ open, title, fields, initial, onClose, onS
   const [values, setValues] = useState<any>({});
   const [saving, setSaving] = useState(false);
   const isEdit = !!initial;
+  const panelRef = useModalA11y(onClose);
+  const titleId = useId();
 
   useEffect(() => { if (open) setValues(initial ? { ...initial } : {}); }, [open, initial]);
 
@@ -43,7 +47,7 @@ export default function EntityModal({ open, title, fields, initial, onClose, onS
   const submit = async () => {
     for (const f of fields) {
       if (f.type === "image") continue;
-      if (f.required && !String(values[f.name] ?? "").trim()) { alert(`${f.label} is required`); return; }
+      if (f.required && !String(values[f.name] ?? "").trim()) { toast.error(`${f.label} is required`); return; }
     }
     setSaving(true);
     try { await onSubmit(values); onClose(); }
@@ -53,11 +57,12 @@ export default function EntityModal({ open, title, fields, initial, onClose, onS
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: "rgba(0,0,0,0.6)" }} onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl border p-6 max-h-[85vh] overflow-y-auto"
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby={titleId}
+        className="w-full max-w-lg rounded-2xl border p-6 max-h-[85vh] overflow-y-auto"
         style={{ background: "hsl(var(--card))" }} onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold">{title}</h2>
-          <button onClick={onClose}><X className="h-5 w-5 opacity-60" /></button>
+          <h2 id={titleId} className="text-lg font-bold">{title}</h2>
+          <button onClick={onClose} aria-label="Close"><X className="h-5 w-5 opacity-60" /></button>
         </div>
 
         <div className="space-y-3">
@@ -135,8 +140,8 @@ function ImageField({ url, file, cleared, onPick, onClear }: {
     const chosen = e.target.files?.[0];
     e.target.value = ""; // allow re-picking the same file
     if (!chosen) return;
-    if (!chosen.type.startsWith("image/")) { alert("Please choose an image file"); return; }
-    if (chosen.size > MAX_IMAGE_BYTES) { alert("Image must be 5 MB or smaller"); return; }
+    if (!chosen.type.startsWith("image/")) { toast.error("Please choose an image file"); return; }
+    if (chosen.size > MAX_IMAGE_BYTES) { toast.error("Image must be 5 MB or smaller"); return; }
     onPick(chosen);
   };
 

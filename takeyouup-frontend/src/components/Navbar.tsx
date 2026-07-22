@@ -49,7 +49,6 @@ const Navbar = () => {
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Courses", path: "/courses" },
-    { name: "Interview Prep", path: "/interview-prep" },
     { name: "Practice", path: "/online-compiler" },
     { name: "Problems", path: "/problems" },
     { name: "About", path: "/about" },
@@ -155,17 +154,35 @@ const Navbar = () => {
             ))}
 
             {/* Resources dropdown */}
+            {/* Opening this was mouse-only: `resOpen` was set purely by
+                onMouseEnter/onMouseLeave and the trigger's onClick navigated
+                away, so a keyboard user could never reach the category links
+                inside. Focus now opens it, Enter/Space toggles rather than
+                navigates, Escape closes, and blur out of the whole group closes
+                — while hover keeps behaving exactly as before for mouse users. */}
             <div
               className="relative"
               ref={resRef}
               onMouseEnter={() => setResOpen(true)}
               onMouseLeave={() => setResOpen(false)}
+              onFocus={() => setResOpen(true)}
+              onBlur={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) setResOpen(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape" && resOpen) {
+                  setResOpen(false);
+                  resRef.current?.querySelector("button")?.focus();
+                }
+              }}
             >
               <button
                 type="button"
                 className="relative rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200"
                 style={linkStyle(isResActive)}
-                onClick={() => navigate("/resources")}
+                aria-expanded={resOpen}
+                aria-haspopup="true"
+                onClick={() => setResOpen((o) => !o)}
               >
                 <span className="flex items-center gap-1.5">
                   Resources{" "}
@@ -269,6 +286,8 @@ const Navbar = () => {
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="rounded-lg p-2 transition-all hover:bg-muted"
               style={{ color: "hsl(var(--muted-foreground))" }}
+              aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+              title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
             >
               {theme === "dark" ? (
                 <Sun style={{ width: 18, height: 18 }} />
@@ -395,6 +414,8 @@ const Navbar = () => {
             <button
               className="rounded-lg p-2 transition-colors hover:bg-muted lg:hidden"
               onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileOpen}
             >
               {mobileOpen ? (
                 <X className="h-5 w-5" />

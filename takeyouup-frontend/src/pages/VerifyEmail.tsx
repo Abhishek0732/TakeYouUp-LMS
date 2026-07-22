@@ -78,11 +78,12 @@ const VerifyEmail = () => {
           <p className="text-center text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>{message}</p>
 
           <form onSubmit={resend} className="w-full space-y-3 pt-2">
-            <label className="block text-xs font-semibold uppercase tracking-wider"
+            <label htmlFor="verify-email" className="block text-xs font-semibold uppercase tracking-wider"
               style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>
               Send a new link
             </label>
             <input
+              id="verify-email" autoComplete="email" inputMode="email"
               type="email" required placeholder="your.email@example.com" style={authInputStyle}
               value={email} onChange={(e) => setEmail(e.target.value)}
             />

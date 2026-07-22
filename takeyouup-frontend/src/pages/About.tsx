@@ -1,7 +1,9 @@
-import { Target, Eye, Award, Users, BookOpen, TrendingUp } from "lucide-react";
+import { Target, Eye, Award, Code, BookOpen, GraduationCap } from "lucide-react";
 import abhishek from "../assets/abhishek-photo.jpeg";
 import { useEffect, useRef } from "react";
 import CountUp from "react-countup";
+import { useQuery } from "@tanstack/react-query";
+import { fetchStats } from "@/api/stats";
 
 const About = () => {
   useEffect(() => {
@@ -19,11 +21,21 @@ const About = () => {
     return () => obs.disconnect();
   }, []);
 
+  // Every figure here used to be invented: "10,000+ Active Students" (against a
+  // handful of real accounts, and contradicting the Home page's "5,000+"),
+  // "50+ Courses Offered", a "95% Success Rate" nobody measured, and "8,500+
+  // Certifications". They are now live counts of content that genuinely exists.
+  const { data: platform } = useQuery({
+    queryKey: ["platformStats"],
+    queryFn: fetchStats,
+    staleTime: 5 * 60_000,
+  });
+
   const stats = [
-    { label: "Active Students", value: 10000, suffix: "+", icon: Users },
-    { label: "Courses Offered", value: 50, suffix: "+", icon: BookOpen },
-    { label: "Success Rate", value: 95, suffix: "%", icon: TrendingUp },
-    { label: "Certifications", value: 8500, suffix: "+", icon: Award },
+    { label: "Courses", value: platform?.courses, suffix: "", icon: BookOpen },
+    { label: "Lessons", value: platform?.lessons, suffix: "", icon: GraduationCap },
+    { label: "Practice Problems", value: platform?.practiceProblems, suffix: "", icon: Code },
+    { label: "Quiz Questions", value: platform?.quizQuestions, suffix: "", icon: Award },
   ];
 
   const values = [
@@ -32,13 +44,16 @@ const About = () => {
     { icon: Award, title: "Our Values", description: "Excellence in education, commitment to student success, innovation in teaching methods, and building a supportive learning community." },
   ];
 
+  // Each of these is a feature you can go and use right now, rather than a
+  // claim about staff or community that does not yet exist ("industry-expert
+  // instructors", "active community support and mentorship").
   const whyReasons = [
-    "Industry-expert instructors with years of experience",
-    "Hands-on projects and real-world applications",
-    "Flexible learning at your own pace",
-    "Active community support and mentorship",
-    "Regular content updates with latest technologies",
-    "Career guidance and interview preparation",
+    "Structured courses that build in order, not scattered tutorials",
+    "A built-in compiler — run code without leaving the lesson",
+    "Quizzes at the end of each module to check what stuck",
+    "Curated practice problems with difficulty and topic filters",
+    "Progress saved lesson by lesson, so you can pick up where you left off",
+    "A verifiable certificate when you finish a course",
   ];
 
   return (
@@ -72,8 +87,15 @@ const About = () => {
               <div className="mx-auto mb-3 w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,77,28,0.1)" }}>
                 <stat.icon className="h-5 w-5" style={{ color: "#ff4d1c" }} />
               </div>
-              <p className="text-3xl font-bold gradient-text mb-1" style={{ fontFamily: "'Syne', sans-serif" }}>
-                <CountUp end={stat.value} duration={2} separator="," suffix={stat.suffix} />
+              <p className="text-3xl font-bold gradient-text mb-1" style={{ fontFamily: "'Syne', sans-serif", minHeight: "1.2em" }}>
+                {stat.value === undefined ? (
+                  <span
+                    className="skeleton"
+                    style={{ display: "inline-block", width: "2.5ch", height: "1.5rem", borderRadius: 4, verticalAlign: "middle" }}
+                  />
+                ) : (
+                  <CountUp end={stat.value} duration={2} separator="," suffix={stat.suffix} />
+                )}
               </p>
               <p className="text-xs uppercase tracking-wider" style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>
                 {stat.label}
@@ -116,9 +138,14 @@ const About = () => {
               <div className="section-tag">Our History</div>
               <h2 className="text-2xl font-bold mb-5" style={{ fontFamily: "'Syne', sans-serif" }}>Our Story</h2>
               <div className="space-y-4 text-sm leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
-                <p>TakeYouUp was founded in 2020 with a simple yet powerful vision: to make programming education accessible to everyone. What started as a small online tutoring service has grown into a comprehensive learning platform serving thousands of students worldwide.</p>
-                <p>Our founders, experienced software engineers from top tech companies, recognized a gap in the market for high-quality, practical programming education. They combined their industry expertise with a passion for teaching to create courses that not only teach theory but also focus on real-world application.</p>
-                <p>Today, we're proud to offer a wide range of courses covering everything from programming fundamentals to advanced topics in machine learning and system design. Our commitment to excellence and student success drives everything we do.</p>
+                {/* Rewritten to match reality. The previous copy claimed a 2020
+                    founding, "thousands of students worldwide" and plural
+                    "founders … from top tech companies" — while the team section
+                    directly below lists one person. Overstating the story is the
+                    quickest way to make everything else on the page suspect. */}
+                <p>TakeYouUp started from a simple frustration: most programming material is either a wall of theory or a pile of disconnected tutorials, and neither gets you to the point where you can actually build something.</p>
+                <p>It is built and maintained by a working software engineer who wanted a place where the path is laid out end to end — read the lesson, run the code, take the quiz, solve the problems, and have your progress remembered so you can stop and come back without losing your place.</p>
+                <p>The catalogue covers programming fundamentals through to machine learning and system design, and it keeps growing. Everything is free to start, with no card required.</p>
               </div>
             </div>
           </div>

@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProgress } from "@/context/ProgressContext";
 import { HeroSkeleton, ListSkeleton } from "@/components/Skeletons";
+import StateMessage from "@/components/StateMessage";
 
 const difficultyStyles: Record<string, string> = {
   Beginner: "pill-green",
@@ -97,8 +98,23 @@ const ResourceCategory = () => {
           </div>
         </div>
 
+        {!category.topics?.length && (
+          <StateMessage
+            tone="empty"
+            icon={CircleHelp}
+            title="No topics in this category yet"
+            description="This category has no practice topics so far. Browse the other categories — new MCQ sets are published regularly."
+            action={
+              <Link to="/resources" className="btn-orange mt-5 mx-auto w-fit">
+                Browse all resources
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            }
+          />
+        )}
+
         <div className="grid gap-6 md:grid-cols-2">
-          {category.topics.map((topic) => (
+          {(category.topics ?? []).map((topic) => (
             <Link
               key={topic.slug}
               to={`/resources/${category.slug}/${topic.slug}`}

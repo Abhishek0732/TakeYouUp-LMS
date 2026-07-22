@@ -14,6 +14,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const { toast } = useToast();
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const Login = () => {
     e.preventDefault();
     try {
       setLoading(true);
+      setError("");
       const data = await loginUser(email, password);
       localStorage.setItem("token", data.token);
       if (data.refreshToken) localStorage.setItem("refreshToken", data.refreshToken);
@@ -31,8 +33,9 @@ const Login = () => {
       login({ name: data.name, email: data.email, avatar: "https://i.pravatar.cc/40" }, data.emailVerified);
       toast({ title: "Login Successful", description: "Welcome to TakeYouUp!" });
       navigate(from, { replace: true });
-    } catch (error: any) {
-      toast({ title: "Login Failed", description: apiErrorMessage(error), variant: "destructive" });
+    } catch (err: any) {
+      setError(apiErrorMessage(err));
+      toast({ title: "Login Failed", description: apiErrorMessage(err), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -63,40 +66,45 @@ const Login = () => {
           <div className="rounded-2xl p-3" style={{ background: "linear-gradient(135deg, #ff4d1c, #ffb800)" }}>
             <Code2 className="h-7 w-7 text-white" />
           </div>
-          <h1 className="text-2xl font-bold" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: "-0.02em" }}>
+          <div className="text-2xl font-bold" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: "-0.02em" }}>
             <span style={{ color: "#ff4d1c" }}>Take</span>You<span style={{ color: "#ff4d1c" }}>Up</span>
+          </div>
+          <h1 className="text-xl font-bold text-center" style={{ fontFamily: "'Syne', sans-serif", letterSpacing: "-0.02em" }}>
+            Sign in
           </h1>
           <p className="text-sm text-center" style={{ color: "hsl(var(--muted-foreground))" }}>Welcome back! Sign in to continue.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>
+            <label htmlFor="login-email" className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>
               Email
             </label>
             <input
-              type="email" placeholder="your.email@example.com"
-              style={inputStyle} value={email} onChange={(e) => setEmail(e.target.value)} required
+              id="login-email" type="email" inputMode="email" autoComplete="email" placeholder="your.email@example.com"
+              style={inputStyle} value={email} onChange={(e) => { setEmail(e.target.value); setError(""); }} required
               onFocus={(e) => { e.target.style.borderColor = "#ff4d1c"; e.target.style.boxShadow = "0 0 0 3px rgba(255,77,28,0.12)"; }}
               onBlur={(e) => { e.target.style.borderColor = "hsl(var(--border))"; e.target.style.boxShadow = "none"; }}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>
+            <label htmlFor="login-password" className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "'DM Mono', monospace", color: "hsl(var(--muted-foreground))" }}>
               Password
             </label>
             <div className="relative">
               <input
+                id="login-password" autoComplete="current-password"
                 type={showPassword ? "text" : "password"} placeholder="Enter your password"
                 style={{ ...inputStyle, paddingRight: "44px" }} value={password}
-                onChange={(e) => setPassword(e.target.value)} required
+                onChange={(e) => { setPassword(e.target.value); setError(""); }} required
                 onFocus={(e) => { e.target.style.borderColor = "#ff4d1c"; e.target.style.boxShadow = "0 0 0 3px rgba(255,77,28,0.12)"; }}
                 onBlur={(e) => { e.target.style.borderColor = "hsl(var(--border))"; e.target.style.boxShadow = "none"; }}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
                 className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-70"
                 style={{ background: "none", border: "none", cursor: "pointer" }}
               >
@@ -104,6 +112,8 @@ const Login = () => {
               </button>
             </div>
           </div>
+
+          {error && <p className="text-xs" style={{ color: "#ef4444" }}>{error}</p>}
 
           <div className="flex justify-end -mt-1">
             <Link to="/forgot-password" className="text-xs font-semibold hover:underline"

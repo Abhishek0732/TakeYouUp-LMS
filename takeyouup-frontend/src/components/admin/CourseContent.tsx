@@ -4,6 +4,7 @@ import { ArrowLeft, Plus, Pencil, Trash2, X, ChevronDown, ChevronRight } from "l
 import api from "@/api/axios";
 import EntityModal from "@/components/admin/EntityModal";
 import MarkdownEditor from "@/components/admin/MarkdownEditor";
+import { useModalA11y } from "@/components/admin/useModalA11y";
 
 interface KeyPoint { id?: number; point: string; explanation: string; }
 interface Lesson { id?: number; title: string; slug?: string; duration?: string; content?: string; keyPoints?: KeyPoint[]; }
@@ -77,10 +78,10 @@ export default function CourseContent({ course, onBack }: { course: any; onBack:
                 <span className="text-xs opacity-50">({m.lessons?.length || 0} lessons)</span>
               </button>
               <div className="flex items-center gap-3">
-                <button title="Add lesson" onClick={() => setLessonModal({ open: true, moduleId: m.id, lesson: null })}
+                <button title="Add lesson" aria-label="Add lesson" onClick={() => setLessonModal({ open: true, moduleId: m.id, lesson: null })}
                   className="text-orange-500 flex items-center gap-1 text-sm"><Plus className="h-4 w-4" /> Lesson</button>
-                <button title="Edit module" onClick={() => setModuleModal({ open: true, editing: m })}><Pencil className="h-4 w-4 opacity-70" /></button>
-                <button title="Delete module" onClick={() => deleteModule(m)}><Trash2 className="h-4 w-4 text-red-500" /></button>
+                <button title="Edit module" aria-label="Edit module" onClick={() => setModuleModal({ open: true, editing: m })}><Pencil className="h-4 w-4 opacity-70" /></button>
+                <button title="Delete module" aria-label="Delete module" onClick={() => deleteModule(m)}><Trash2 className="h-4 w-4 text-red-500" /></button>
               </div>
             </div>
             {open[m.id] && (
@@ -93,8 +94,8 @@ export default function CourseContent({ course, onBack }: { course: any; onBack:
                       <span className="opacity-50"> · {l.duration || "—"} · {(l.keyPoints?.length || 0)} key points</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <button title="Edit lesson" onClick={() => setLessonModal({ open: true, moduleId: m.id, lesson: l })}><Pencil className="h-4 w-4 opacity-70" /></button>
-                      <button title="Delete lesson" onClick={() => deleteLesson(m.id, l)}><Trash2 className="h-4 w-4 text-red-500" /></button>
+                      <button title="Edit lesson" aria-label="Edit lesson" onClick={() => setLessonModal({ open: true, moduleId: m.id, lesson: l })}><Pencil className="h-4 w-4 opacity-70" /></button>
+                      <button title="Delete lesson" aria-label="Delete lesson" onClick={() => deleteLesson(m.id, l)}><Trash2 className="h-4 w-4 text-red-500" /></button>
                     </div>
                   </div>
                 ))}
@@ -134,6 +135,7 @@ function LessonModal({ moduleId, lesson, onClose, onSave }: {
 }) {
   const [form, setForm] = useState<Lesson>(lesson ? { ...lesson, keyPoints: lesson.keyPoints || [] } : { title: "", slug: "", duration: "", content: "", keyPoints: [] });
   const [saving, setSaving] = useState(false);
+  const panelRef = useModalA11y(onClose);
   const set = (k: keyof Lesson, v: any) => setForm((s) => ({ ...s, [k]: v }));
 
   const setKp = (i: number, k: keyof KeyPoint, v: string) =>
@@ -142,7 +144,7 @@ function LessonModal({ moduleId, lesson, onClose, onSave }: {
   const removeKp = (i: number) => setForm((s) => ({ ...s, keyPoints: (s.keyPoints || []).filter((_, idx) => idx !== i) }));
 
   const submit = async () => {
-    if (!form.title.trim()) { alert("Title is required"); return; }
+    if (!form.title.trim()) { toast.error("Title is required"); return; }
     setSaving(true);
     try { await onSave(moduleId, { ...form, keyPoints: (form.keyPoints || []).filter((k) => k.point.trim()) }); onClose(); }
     finally { setSaving(false); }
@@ -151,10 +153,11 @@ function LessonModal({ moduleId, lesson, onClose, onSave }: {
   const inp = "w-full rounded-lg border px-3 py-2 text-sm bg-transparent";
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={onClose}>
-      <div className="w-full max-w-3xl rounded-2xl border p-6 max-h-[88vh] overflow-y-auto" style={{ background: "hsl(var(--card))" }} onClick={(e) => e.stopPropagation()}>
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="lesson-modal-title"
+        className="w-full max-w-3xl rounded-2xl border p-6 max-h-[88vh] overflow-y-auto" style={{ background: "hsl(var(--card))" }} onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold">{lesson ? "Edit lesson" : "New lesson"}</h2>
-          <button onClick={onClose}><X className="h-5 w-5 opacity-60" /></button>
+          <h2 id="lesson-modal-title" className="text-lg font-bold">{lesson ? "Edit lesson" : "New lesson"}</h2>
+          <button onClick={onClose} aria-label="Close"><X className="h-5 w-5 opacity-60" /></button>
         </div>
         <div className="space-y-3">
           <div><label className="block text-xs opacity-70 mb-1">Title *</label>
@@ -185,7 +188,7 @@ function LessonModal({ moduleId, lesson, onClose, onSave }: {
                 <div key={i} className="flex gap-2 items-start">
                   <input className={inp + " flex-1"} placeholder="Point" value={kp.point} onChange={(e) => setKp(i, "point", e.target.value)} />
                   <input className={inp + " flex-1"} placeholder="Explanation" value={kp.explanation} onChange={(e) => setKp(i, "explanation", e.target.value)} />
-                  <button onClick={() => removeKp(i)} className="p-2"><Trash2 className="h-4 w-4 text-red-500" /></button>
+                  <button onClick={() => removeKp(i)} aria-label="Remove key point" className="p-2"><Trash2 className="h-4 w-4 text-red-500" /></button>
                 </div>
               ))}
             </div>
