@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import MonacoEditor from "@monaco-editor/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Play, Code2, Terminal, Loader2, Code } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
+import useSeo from "@/hooks/useSeo";
 
 const languageMap: Record<string, number> = {
   python: 71,
@@ -29,11 +30,11 @@ const defaultCode: Record<string, string> = {
 };
 
 const CodeEditor = () => {
-
-  useEffect(() => {
-      document.title =
-        "Practise | TakeYouUp - Master Programming & Build Your Future";
-    }, []);
+  useSeo({
+    title: "Online Compiler",
+    description:
+      "Write and run Python, JavaScript, C++ and Java in the browser, pass your own standard input, and read the output without installing anything.",
+  });
 
   const { theme } = useTheme();
   const [language, setLanguage] = useState("python");

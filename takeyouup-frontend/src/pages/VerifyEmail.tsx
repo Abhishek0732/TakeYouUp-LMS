@@ -4,11 +4,19 @@ import { CheckCircle2, XCircle, Loader2, ArrowRight, Mail } from "lucide-react";
 import AuthCard, { authInputStyle } from "@/components/AuthCard";
 import { verifyEmail, resendVerification } from "@/api/auth";
 import { apiErrorMessage } from "@/api/errors";
+import useSeo from "@/hooks/useSeo";
 
 type State = "checking" | "done" | "failed";
 
 /** Landing page for the link in the verification email: /verify-email?token=… */
 const VerifyEmail = () => {
+  useSeo({
+    title: "Verify Email",
+    description:
+      "Confirm the email address on your TakeYouUp account from the link we sent you, or ask for a fresh verification email if it has expired.",
+    noindex: true,
+  });
+
   const [params] = useSearchParams();
   const token = params.get("token") || "";
 
@@ -25,7 +33,6 @@ const VerifyEmail = () => {
   const started = useRef(false);
 
   useEffect(() => {
-    document.title = "Verify email | TakeYouUp";
     if (!token || started.current) return;
     started.current = true;
 

@@ -12,6 +12,7 @@ import javaQuiz from "@/data/quizzes/javaQuiz";
 import pythonQuiz from "@/data/quizzes/pythonQuiz";
 import { useProgress } from "@/context/ProgressContext";
 import StateMessage from "@/components/StateMessage";
+import useSeo from "@/hooks/useSeo";
 
 const CourseDetail = () => {
   const { courseSlug, lessonSlug } = useParams();
@@ -25,6 +26,13 @@ const CourseDetail = () => {
   const quizMap: any = { dsa: dsaQuiz, java: javaQuiz, python: pythonQuiz };
   const navigate = useNavigate();
   const { isCompleted, toggleProgress } = useProgress();
+
+  useSeo({
+    title: course?.title ?? "Course",
+    description:
+      course?.description ??
+      "Work through this course module by module — read each lesson, run the sample code, and take the end-of-module quiz at your own pace.",
+  });
 
   useEffect(() => {
     // No auth check here: the route is wrapped in ProtectedRoute, and checking
@@ -42,12 +50,6 @@ const CourseDetail = () => {
     };
     fetchCourse();
   }, [courseSlug]);
-
-  useEffect(() => {
-    if (course && course.title) {
-      document.title = `${course.title} | TakeYouUp - Master Programming & Build Your Future`;
-    }
-  }, [course]);
 
   useEffect(() => {
     if (!course || !lessonSlug) return;

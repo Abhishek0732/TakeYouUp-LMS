@@ -1,12 +1,15 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Mail, MapPin, Phone, Send, MessageSquare } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import useSeo from "@/hooks/useSeo"
 
 const Contact = () => {
-  useEffect(() => {
-    document.title = "Contact | TakeYouUp - Master Programming & Build Your Future";
-  }, []);
+  useSeo({
+    title: "Contact",
+    description:
+      "Send a message to the TakeYouUp team about courses, collaborations or a course you would like to see, or reach us by email or phone.",
+  });
 
   const { toast } = useToast()
   const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" })

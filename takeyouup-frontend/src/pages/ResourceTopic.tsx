@@ -5,6 +5,7 @@ import { getTopic } from "@/api/resources";
 import { useProgress } from "@/context/ProgressContext";
 import { DetailSkeleton } from "@/components/Skeletons";
 import StateMessage from "@/components/StateMessage";
+import useSeo from "@/hooks/useSeo";
 
 const ResourceTopic = () => {
   const { categorySlug, topicSlug } = useParams();
@@ -13,6 +14,13 @@ const ResourceTopic = () => {
   const { category, topic } = data;
   const { isCompleted, toggleProgress } = useProgress();
 
+  useSeo({
+    title: topic?.title ?? "Practice",
+    description: topic
+      ? `Multiple-choice practice on ${topic.title}: answer one question at a time, see the correct option with a short explanation, and score yourself.`
+      : "Answer this topic's multiple-choice questions one at a time, see the correct option and its explanation, and get your score at the end.",
+  });
+
   useEffect(() => {
     setLoading(true);
     getTopic(categorySlug!, topicSlug!)
@@ -20,12 +28,6 @@ const ResourceTopic = () => {
       .catch(() => setData({ category: null, topic: null }))
       .finally(() => setLoading(false));
   }, [categorySlug, topicSlug]);
-
-  useEffect(() => {
-    if (topic) {
-      document.title = `${topic.title} | TakeYouUp - Master Programming & Build Your Future`;
-    }
-  }, [topic]);
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);

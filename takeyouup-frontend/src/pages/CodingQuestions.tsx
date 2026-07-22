@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ExternalLink,
@@ -30,6 +30,7 @@ import {
   type QuestionStreak,
 } from "@/services/questionService";
 import { useProgress } from "@/context/ProgressContext";
+import useSeo from "@/hooks/useSeo";
 
 /** Topics, difficulties and platforms all come from the DB — never hardcode them. */
 type Difficulty = string;
@@ -123,9 +124,11 @@ const paginationBtnStyle: React.CSSProperties = {
 
 /* ═══════════════════════════════════════ */
 const CodingQuestions = () => {
-  useEffect(() => {
-    document.title = "Problems | TakeYouUp - Master Programming & Build Your Future";
-  }, []);
+  useSeo({
+    title: "Practice Problems",
+    description:
+      "A searchable list of curated coding problems on LeetCode and GeeksforGeeks, filterable by topic and difficulty, with your solved count tracked.",
+  });
 
   const [selectedTopic, setSelectedTopic] = useState<Topic | "All">("All");
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | "All">("All");

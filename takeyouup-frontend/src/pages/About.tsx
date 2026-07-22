@@ -4,11 +4,14 @@ import { useEffect, useRef } from "react";
 import CountUp from "react-countup";
 import { useQuery } from "@tanstack/react-query";
 import { fetchStats } from "@/api/stats";
+import useSeo from "@/hooks/useSeo";
 
 const About = () => {
-  useEffect(() => {
-    document.title = "About | TakeYouUp - Master Programming & Build Your Future";
-  }, []);
+  useSeo({
+    title: "About",
+    description:
+      "Who builds TakeYouUp and why: the mission behind the platform, how the catalogue is put together, and live counts of the content on it.",
+  });
 
   const revealRef = useRef<HTMLDivElement>(null);
   useEffect(() => {

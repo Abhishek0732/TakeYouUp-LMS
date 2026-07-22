@@ -2,11 +2,19 @@ import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Home, ArrowRight } from "lucide-react";
+import useSeo from "@/hooks/useSeo";
 
 const NotFound = () => {
   const location = useLocation();
+
+  useSeo({
+    title: "Page Not Found",
+    description:
+      "This address doesn't match anything on TakeYouUp — the page may have been renamed or removed. Head back to the home page to carry on.",
+    noindex: true,
+  });
+
   useEffect(() => {
-    document.title = "404 Not Found | TakeYouUp - Master Programming & Build Your Future";
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
   }, [location.pathname]);
 

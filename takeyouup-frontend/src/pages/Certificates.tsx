@@ -5,11 +5,15 @@ import api from "@/api/axios";
 import { CardGridSkeleton, ListSkeleton } from "@/components/Skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 import StateMessage from "@/components/StateMessage";
+import useSeo from "@/hooks/useSeo";
 
 export default function Certificates() {
-  useEffect(() => {
-    document.title = "My Certificates | TakeYouUp - Master Programming & Build Your Future";
-  }, []);
+  useSeo({
+    title: "My Certificates",
+    description:
+      "See the certificates you have already earned, with their serial numbers, and claim a new one for any course you have finished.",
+    noindex: true,
+  });
 
   const token = localStorage.getItem("token");
   const [certs, setCerts] = useState<any[]>([]);

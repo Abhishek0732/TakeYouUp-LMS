@@ -41,6 +41,8 @@ public class SecurityConfig {
                                 "/api/courses/basic",
                                 // Published-content counts only; see StatsController.
                                 "/api/stats",
+                                // Crawlers fetch this without credentials.
+                                "/sitemap.xml",
                                 "/api/certificates/verify/**",
                                 "/uploads/**",
                                 "/actuator/health",

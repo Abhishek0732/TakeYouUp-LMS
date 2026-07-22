@@ -5,11 +5,14 @@ import { useCourses } from "@/context/CourseContext";
 import CourseCover from "@/components/CourseCover";
 import { CardGridSkeleton, ChipsSkeleton } from "@/components/Skeletons";
 import StateMessage from "@/components/StateMessage";
+import useSeo from "@/hooks/useSeo";
 
 const Courses = () => {
-  useEffect(() => {
-    document.title = "Courses | TakeYouUp - Master Programming & Build Your Future";
-  }, []);
+  useSeo({
+    title: "Courses",
+    description:
+      "Browse the full course catalogue by category, with the level and duration of each track shown up front. Every course is free to start.",
+  });
 
   const [selectedCategory, setSelectedCategory] = useState("All");
   const revealRef = useRef<HTMLDivElement>(null);

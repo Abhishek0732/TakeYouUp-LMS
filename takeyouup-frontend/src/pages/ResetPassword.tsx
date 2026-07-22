@@ -4,12 +4,20 @@ import { Eye, EyeOff, Loader2, XCircle, CheckCircle2, ArrowRight } from "lucide-
 import AuthCard, { authInputStyle } from "@/components/AuthCard";
 import { resetPassword, validateResetToken } from "@/api/auth";
 import { apiErrorMessage } from "@/api/errors";
+import useSeo from "@/hooks/useSeo";
 
 const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
 const PASSWORD_HINT = "At least 8 characters, including a letter and a number.";
 
 /** Landing page for the link in the reset email: /reset-password?token=… */
 const ResetPassword = () => {
+  useSeo({
+    title: "Reset Password",
+    description:
+      "Choose a new password for your TakeYouUp account using the link from your reset email, then sign back in with the new one.",
+    noindex: true,
+  });
+
   const [params] = useSearchParams();
   const token = params.get("token") || "";
   const navigate = useNavigate();
@@ -24,7 +32,6 @@ const ResetPassword = () => {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    document.title = "Reset password | TakeYouUp";
     if (!token) {
       setLinkError("This link is missing its token. Open the link from your email again.");
       setChecking(false);

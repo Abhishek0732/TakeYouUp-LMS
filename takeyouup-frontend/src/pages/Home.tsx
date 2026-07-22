@@ -22,11 +22,14 @@ import TypedHeadline from "@/components/home/TypedHeadline";
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchStats } from "@/api/stats";
+import useSeo from "@/hooks/useSeo";
 
 const Home = () => {
-  useEffect(() => {
-    document.title = "TakeYouUp - Master Programming & Build Your Future";
-  }, []);
+  useSeo({
+    title: "",
+    description:
+      "Free structured courses in DSA, Java, Python, web development and machine learning, with a built-in compiler, quizzes and saved progress.",
+  });
 
   // Real catalogue counts. The strip used to claim "5,000+ students enrolled",
   // "50+ expert instructors" and "4.9★ average rating" — all invented, and the

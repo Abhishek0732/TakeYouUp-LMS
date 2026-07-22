@@ -11,6 +11,7 @@ import EntityModal, { Field } from "@/components/admin/EntityModal";
 import CourseContent from "@/components/admin/CourseContent";
 import QuizEditor from "@/components/admin/QuizEditor";
 import ResourceCategoryContent from "@/components/admin/ResourceCategoryContent";
+import useSeo from "@/hooks/useSeo";
 
 // ---------------------------------------------------------------- helpers
 const clientPager = (loader: () => Promise<any[]>, searchKeys: string[]) =>
@@ -235,9 +236,12 @@ const NAV: { section: string; items: NavItem[] }[] = [
 ];
 
 export default function Admin() {
-  useEffect(() => {
-    document.title = "Admin | TakeYouUp - Master Programming & Build Your Future";
-  }, []);
+  useSeo({
+    title: "Admin",
+    description:
+      "Staff console for managing the catalogue: courses and lessons, quizzes, coding questions with their topics and platforms, resources and users.",
+    noindex: true,
+  });
 
   const role = localStorage.getItem("role");
   const token = localStorage.getItem("token");

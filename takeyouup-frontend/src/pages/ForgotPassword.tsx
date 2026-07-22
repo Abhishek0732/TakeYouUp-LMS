@@ -1,12 +1,18 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Mail, CheckCircle2 } from "lucide-react";
 import AuthCard, { authInputStyle } from "@/components/AuthCard";
 import { requestPasswordReset } from "@/api/auth";
 import { apiErrorMessage } from "@/api/errors";
+import useSeo from "@/hooks/useSeo";
 
 const ForgotPassword = () => {
-  useEffect(() => { document.title = "Forgot password | TakeYouUp"; }, []);
+  useSeo({
+    title: "Forgot Password",
+    description:
+      "Enter the email address on your TakeYouUp account and we'll send a password reset link to it. The link stays valid for 60 minutes.",
+    noindex: true,
+  });
 
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);

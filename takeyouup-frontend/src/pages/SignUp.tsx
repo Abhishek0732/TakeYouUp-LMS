@@ -1,18 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Code2, Eye, EyeOff, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { registerUser } from "@/api/auth";
 import { apiErrorMessage, fieldErrorsOf, FieldErrors } from "@/api/errors";
+import useSeo from "@/hooks/useSeo";
 
 /** Mirrors the server rule on RegisterRequest.password — keep the two in step. */
 const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
 const PASSWORD_HINT = "Password must be at least 8 characters and include a letter and a number.";
 
 const Signup = () => {
-  useEffect(() => {
-    document.title = "Sign Up | TakeYouUp - Master Programming & Build Your Future";
-  }, []);
+  useSeo({
+    title: "Create Account",
+    description:
+      "Create a free TakeYouUp account to enrol in courses, save your progress lesson by lesson and claim a certificate when you finish.",
+    noindex: true,
+  });
+
   const navigate = useNavigate();
   const { toast } = useToast();
   const [formData, setFormData] = useState({ name: "", email: "", password: "", confirmPassword: "" });

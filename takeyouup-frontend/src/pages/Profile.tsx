@@ -18,6 +18,7 @@ import {
 import CourseCover from "@/components/CourseCover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatsSkeleton } from "@/components/Skeletons";
+import useSeo from "@/hooks/useSeo";
 
 const ORANGE = "#ff4d1c";
 const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
@@ -32,12 +33,18 @@ const card: React.CSSProperties = {
 };
 
 const Profile = () => {
+  useSeo({
+    title: "My Profile",
+    description:
+      "Your account in one place: course progress, quiz attempts and certificates, plus settings for your name, password and email verification.",
+    noindex: true,
+  });
+
   const { user, logout, login, emailVerified, setEmailVerified, ready } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("overview");
 
-  useEffect(() => { document.title = "My Profile | TakeYouUp"; }, []);
   // Only once the session has been restored: `user` is null during the
   // refresh that follows an expired access token.
   useEffect(() => { if (ready && !user) navigate("/login"); }, [ready, user, navigate]);

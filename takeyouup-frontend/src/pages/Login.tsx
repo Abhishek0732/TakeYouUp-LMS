@@ -1,15 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Code2, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { loginUser } from "@/api/auth";
 import { apiErrorMessage } from "@/api/errors";
 import { useToast } from "@/hooks/use-toast";
+import useSeo from "@/hooks/useSeo";
 
 const Login = () => {
-  useEffect(() => {
-    document.title = "Login | TakeYouUp - Master Programming & Build Your Future";
-  }, []);
+  useSeo({
+    title: "Sign In",
+    description:
+      "Sign in to your TakeYouUp account to pick up your courses where you left off and keep your lesson and practice progress in sync.",
+    noindex: true,
+  });
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

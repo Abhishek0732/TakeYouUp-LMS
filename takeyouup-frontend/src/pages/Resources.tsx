@@ -13,6 +13,7 @@ import { getCategories } from "@/api/resources";
 import { CardGridSkeleton } from "@/components/Skeletons";
 import StateMessage from "@/components/StateMessage";
 import { useNavigate } from "react-router-dom";
+import useSeo from "@/hooks/useSeo";
 
 const iconMap = {
   "quantitative-aptitude": BrainCircuit,
@@ -22,6 +23,12 @@ const iconMap = {
 };
 
 const Resources = () => {
+  useSeo({
+    title: "Aptitude Resources",
+    description:
+      "Aptitude practice grouped into quantitative, data interpretation, logical and verbal reasoning, each with topic pages full of solved MCQs.",
+  });
+
   const navigate = useNavigate();
   const [resourceCategories, setResourceCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +50,6 @@ const Resources = () => {
   };
 
   useEffect(() => {
-    document.title = "Resources | TakeYouUp - Master Programming & Build Your Future";
     loadCategories();
   }, []);
 
