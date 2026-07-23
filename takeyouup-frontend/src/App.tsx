@@ -40,6 +40,10 @@ const ResourceTopic = lazy(() => import("./pages/ResourceTopic"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Certificates = lazy(() => import("./pages/Certificates"));
 const VerifyCertificate = lazy(() => import("./pages/VerifyCertificate"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+const BlogEditor = lazy(() => import("./pages/BlogEditor"));
+const MyPosts = lazy(() => import("./pages/MyPosts"));
 
 import { ProgressProvider } from "./context/ProgressContext";
 
@@ -105,6 +109,37 @@ const App = () => (
                       </CourseProvider>
                     }
                   />
+                  {/* Community blog. The reader pages are public; writing and
+                      the author's dashboard need an account. Static segments
+                      (/blog/new, /blog/mine, /blog/edit) outrank the dynamic
+                      /blog/:slug, so an article slug never shadows them. */}
+                  <Route path="/blog" element={<Blog />} />
+                  <Route
+                    path="/blog/new"
+                    element={
+                      <ProtectedRoute>
+                        <BlogEditor />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/blog/edit/:id"
+                    element={
+                      <ProtectedRoute>
+                        <BlogEditor />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/blog/mine"
+                    element={
+                      <ProtectedRoute>
+                        <MyPosts />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/blog/:slug" element={<BlogPost />} />
+
                   {/* Public syllabus when signed out, full course when signed
                       in — see CourseEntry. Also what makes an unknown top-level
                       slug render the not-found page instead of the login form. */}

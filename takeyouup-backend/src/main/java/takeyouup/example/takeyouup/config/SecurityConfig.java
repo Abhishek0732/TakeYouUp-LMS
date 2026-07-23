@@ -113,6 +113,27 @@ public class SecurityConfig {
                         // first paint, so it must work signed out.
                         .requestMatchers(HttpMethod.GET, "/api/content").permitAll()
 
+                        // --- Community blog ---
+                        // Order matters, most specific first:
+                        //  1. Moderation is staff-only, every verb. This must
+                        //     come before the /me and public rules or a broader
+                        //     match would let a non-admin reach it.
+                        .requestMatchers("/api/blog/admin/**").hasRole("ADMIN")
+                        //  2. An author managing THEIR OWN posts. Any signed-in
+                        //     user, any verb — placed ahead of the blanket
+                        //     "POST/PUT/DELETE to /api/** is admin-only" rules
+                        //     below, which would otherwise block a USER from
+                        //     writing. Ownership itself is checked in the service.
+                        .requestMatchers("/api/blog/me/**").authenticated()
+                        //  3. The reader's view: topics and published posts are
+                        //     public, so the blog is findable without an account
+                        //     (the whole point — same reasoning as course
+                        //     overviews). Scoped to GET; the writer/admin verbs
+                        //     are already handled above.
+                        .requestMatchers(HttpMethod.GET, "/api/blog/topics").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/blog/posts").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/blog/posts/*").permitAll()
+
                         // --- All other content mutations are ADMIN-only ---
                         .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")

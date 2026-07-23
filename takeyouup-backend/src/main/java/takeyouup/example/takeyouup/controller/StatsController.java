@@ -12,6 +12,7 @@ import takeyouup.example.takeyouup.repository.dsa.QuestionRepository;
 import takeyouup.example.takeyouup.repository.resources.McqQuestionRepository;
 import takeyouup.example.takeyouup.repository.resources.ResourceCategoryRepository;
 import takeyouup.example.takeyouup.repository.resources.ResourceTopicRepository;
+import takeyouup.example.takeyouup.service.blog.BlogService;
 
 import java.util.Map;
 
@@ -38,6 +39,7 @@ public class StatsController {
     @Autowired private McqQuestionRepository mcqQuestionRepository;
     @Autowired private ResourceCategoryRepository resourceCategoryRepository;
     @Autowired private ResourceTopicRepository resourceTopicRepository;
+    @Autowired private BlogService blogService;
 
     @GetMapping
     public ResponseEntity<Map<String, Long>> stats() {
@@ -47,7 +49,9 @@ public class StatsController {
                 "practiceProblems", questionRepository.count(),
                 "quizQuestions", mcqQuestionRepository.count(),
                 "resourceCategories", resourceCategoryRepository.count(),
-                "resourceTopics", resourceTopicRepository.count()
+                "resourceTopics", resourceTopicRepository.count(),
+                // Published only — drafts and posts in review are not "content".
+                "blogPosts", blogService.countPublished()
         );
         return ResponseEntity.ok()
                 .header("Cache-Control", "public, max-age=300")

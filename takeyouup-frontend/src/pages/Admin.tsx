@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import {
   LayoutDashboard, BookOpen, ListChecks, Code2, Tags, Server, Gauge,
   FolderTree, Users as UsersIcon, Layers, Image as ImageIcon, Menu, X,
-  FileText, Type,
+  FileText, Type, Newspaper, Hash,
 } from "lucide-react";
 import api from "@/api/axios";
 import DataGrid, { Column } from "@/components/admin/DataGrid";
@@ -14,7 +14,18 @@ import QuizEditor from "@/components/admin/QuizEditor";
 import ResourceCategoryContent from "@/components/admin/ResourceCategoryContent";
 import PageContent from "@/components/admin/PageContent";
 import PageText from "@/components/admin/PageText";
+import BlogModeration from "@/components/admin/BlogModeration";
+import { fetchAdminTopics, createTopic, updateTopic, deleteTopic } from "@/api/blog";
 import useSeo from "@/hooks/useSeo";
+
+/** EntityModal hands back strings; the topic API wants typed sort/active. */
+const normalizeTopic = (v: any) => ({
+  name: v.name,
+  slug: v.slug?.trim() || undefined,
+  description: v.description?.trim() || undefined,
+  sortOrder: v.sortOrder === "" || v.sortOrder == null ? undefined : Number(v.sortOrder),
+  active: v.active === "" || v.active == null ? true : v.active === true || v.active === "true",
+});
 
 // ---------------------------------------------------------------- helpers
 const clientPager = (loader: () => Promise<any[]>, searchKeys: string[]) =>
@@ -235,6 +246,10 @@ const NAV: { section: string; items: NavItem[] }[] = [
     { key: "difficulties", label: "Difficulties", icon: Gauge },
   ] },
   { section: "Resources", items: [{ key: "categories", label: "Categories", icon: FolderTree }] },
+  { section: "Blog", items: [
+    { key: "blogModeration", label: "Moderation", icon: Newspaper },
+    { key: "blogTopics", label: "Topics", icon: Hash },
+  ] },
   { section: "Site copy", items: [
     { key: "pageContent", label: "Page Content", icon: FileText },
     { key: "pageText", label: "Page Text", icon: Type },
@@ -425,6 +440,29 @@ export default function Admin() {
         </button>
       ),
     },
+    blogTopics: {
+      title: "Blog Topics", createLabel: "Create Topic", idKey: "id",
+      columns: [
+        { key: "name", label: "Name" },
+        { key: "slug", label: "Slug" },
+        { key: "postCount", label: "Posts", width: "80px" },
+        { key: "sortOrder", label: "Order", width: "80px" },
+        { key: "active", label: "Status", width: "100px", render: (r) => yn(r.active) },
+      ],
+      fields: [
+        { name: "name", label: "Name", required: true },
+        { name: "slug", label: "Slug", placeholder: "Left blank, derived from the name", readOnlyOnEdit: false },
+        { name: "description", label: "Description", type: "textarea", hint: "Shown under the topic on the blog." },
+        { name: "sortOrder", label: "Sort order", type: "number", hint: "Low numbers come first in the filter." },
+        { name: "active", label: "Active", type: "select",
+          options: [{ value: "true", label: "Yes" }, { value: "false", label: "No" }],
+          hint: "A hidden topic keeps its posts but drops out of the public filter." },
+      ],
+      fetchPage: clientPager(() => fetchAdminTopics(), ["name", "slug"]),
+      create: (v) => createTopic(normalizeTopic(v)),
+      update: (row, v) => updateTopic(row.id, normalizeTopic(v)),
+      remove: (row) => deleteTopic(row.id),
+    },
     users: {
       title: "Users", idKey: "id",
       columns: [
@@ -492,6 +530,7 @@ export default function Admin() {
         {active === "quizzes" && <QuizzesView />}
         {active === "pageContent" && <PageContent />}
         {active === "pageText" && <PageText />}
+        {active === "blogModeration" && <BlogModeration />}
         {active === "courses" && manageCourse
           ? <CourseContent course={manageCourse} onBack={() => setManageCourse(null)} />
           : active === "categories" && manageCategory
