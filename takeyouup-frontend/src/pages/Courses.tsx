@@ -143,9 +143,10 @@ const Courses = () => {
         ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {filteredCourses.map((course: any, i: number) => (
-            <div
+            <Link
               key={course.id}
-              className={`reveal delay-${(i % 3) + 1} card-lift group rounded-2xl overflow-hidden border`}
+              to={`/${course.slug}`}
+              className={`reveal delay-${(i % 3) + 1} card-lift group block rounded-2xl overflow-hidden border`}
               style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}
             >
               {/* Image */}
@@ -178,16 +179,15 @@ const Courses = () => {
                 </p>
                 <div className="flex items-center justify-between">
                   <span className="pill-orange" style={{ fontSize: 10 }}>{course.category}</span>
-                  <Link
-                    to={`/${course.slug}`}
+                  <span
                     className="flex items-center gap-1.5 text-sm font-bold transition-all"
                     style={{ fontFamily: "'Syne', sans-serif", color: "#ff4d1c" }}
                   >
                     Details <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
+                  </span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
         )}

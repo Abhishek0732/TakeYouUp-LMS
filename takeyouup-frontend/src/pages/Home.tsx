@@ -20,6 +20,8 @@ import TypedHeadline from "@/components/home/TypedHeadline";
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchStats } from "@/api/stats";
+import { fetchBlogPosts } from "@/api/blog";
+import BlogCard from "@/components/blog/BlogCard";
 import useSeo from "@/hooks/useSeo";
 import useSiteContent from "@/hooks/useSiteContent";
 import { contentIcon } from "@/lib/contentIcons";
@@ -45,6 +47,17 @@ const Home = () => {
   const features = items("HOME_FEATURE");
   const steps = items("HOME_STEP");
 
+  // Latest published posts for the home strip. Defined here (before the reveal
+  // effect) so its length can sit in that effect's deps without a temporal
+  // dead-zone error. Lightweight — 3 cards — and the section hides itself when
+  // there are none, so the home page never shows an empty "blog" panel.
+  const { data: latestPosts } = useQuery({
+    queryKey: ["homeLatestPosts"],
+    queryFn: () => fetchBlogPosts({ size: 3 }),
+    staleTime: 60_000,
+  });
+  const blogPosts = latestPosts?.content ?? [];
+
   const revealRef = useRef<HTMLDivElement>(null);
   // Re-runs when content arrives, and skips anything already revealed.
   //
@@ -67,7 +80,7 @@ const Home = () => {
     );
     els.forEach((el) => obs.observe(el));
     return () => obs.disconnect();
-  }, [features.length, steps.length]);
+  }, [features.length, steps.length, blogPosts.length]);
 
 
   // Copy below is admin-editable. Each feature describes something the platform
@@ -505,14 +518,17 @@ const Home = () => {
               </div>
             )}
             {displayCourses.map((course: any, i: number) => (
-              <div
+              <Link
                 key={course.id}
+                to={`/${course.slug}`}
                 className={`card-lift group rounded-2xl overflow-hidden`}
                 style={{
                   background: "hsl(var(--card))",
                   border: "1px solid hsl(var(--border))",
                   display: "flex",
                   flexDirection: "column",
+                  textDecoration: "none",
+                  color: "inherit",
                 }}
               >
                 <div
@@ -620,8 +636,7 @@ const Home = () => {
                   >
                     {course.description}
                   </p>
-                  <Link
-                    to={`/${course.slug}`}
+                  <span
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
@@ -635,13 +650,68 @@ const Home = () => {
                     className="hover:gap-3 transition-all"
                   >
                     View course <ArrowRight style={{ width: 14, height: 14 }} />
-                  </Link>
+                  </span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
       </section>
+
+      {/* ═══════════════════ LATEST FROM THE BLOG ═══════════════════ */}
+      {/* Mirrors the Featured Courses block above. Rendered only when there is
+          at least one published post, so the home page never shows an empty
+          community section. */}
+      {blogPosts.length > 0 && (
+        <section style={{ padding: "96px 0", background: "hsl(var(--card))", borderTop: "1px solid hsl(var(--border))" }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-end",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: 16,
+                marginBottom: 52,
+              }}
+            >
+              <div className="reveal">
+                <div className="section-tag">From the Community</div>
+                <h2
+                  style={{
+                    fontFamily: "'Syne', sans-serif",
+                    fontWeight: 800,
+                    fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)",
+                    letterSpacing: "-0.025em",
+                    margin: 0,
+                  }}
+                >
+                  Latest from the Blog
+                </h2>
+              </div>
+              <Link
+                to="/blog"
+                className="reveal flex items-center gap-2 font-bold text-sm transition-colors hover:text-orange-500"
+                style={{ fontFamily: "'Syne', sans-serif", color: "hsl(var(--muted-foreground))" }}
+              >
+                View all <ChevronRight style={{ width: 16, height: 16 }} />
+              </Link>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))",
+                gap: 24,
+              }}
+            >
+              {blogPosts.map((post) => (
+                <BlogCard key={post.slug} post={post} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {steps.length > 0 && (
       <section
