@@ -11,6 +11,7 @@ import takeyouup.example.takeyouup.model.Course;
 import takeyouup.example.takeyouup.model.resources.ResourceCategory;
 import takeyouup.example.takeyouup.repository.CourseRepository;
 import takeyouup.example.takeyouup.repository.resources.ResourceCategoryRepository;
+import takeyouup.example.takeyouup.service.blog.BlogService;
 import takeyouup.example.takeyouup.util.RequestOrigin;
 
 import java.util.List;
@@ -39,6 +40,7 @@ public class SitemapController {
             // path, changefreq, priority
             {"/",                 "weekly",  "1.0"},
             {"/courses",          "weekly",  "0.9"},
+            {"/blog",             "daily",   "0.8"},
             {"/resources",        "weekly",  "0.8"},
             {"/online-compiler",  "monthly", "0.7"},
             {"/about",            "monthly", "0.5"},
@@ -50,6 +52,9 @@ public class SitemapController {
 
     @Autowired
     private CourseRepository courseRepository;
+
+    @Autowired
+    private BlogService blogService;
 
     @Value("${app.frontend-url:http://localhost:5174}")
     private String fallbackOrigin;
@@ -70,6 +75,14 @@ public class SitemapController {
         for (Course course : courseRepository.findAll()) {
             if (course.getSlug() != null && !course.getSlug().isBlank()) {
                 append(xml, origin + "/" + course.getSlug(), "weekly", "0.9");
+            }
+        }
+
+        // Published blog posts — public, admin-approved, and exactly the kind of
+        // fresh content a crawler should keep coming back for.
+        for (String slug : blogService.getPublishedSlugs()) {
+            if (slug != null && !slug.isBlank()) {
+                append(xml, origin + "/blog/" + slug, "monthly", "0.6");
             }
         }
 

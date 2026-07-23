@@ -54,7 +54,10 @@ function splitFences(src: string): Block[] {
   return blocks;
 }
 
-const INLINE = /(`[^`]+`)|(\*\*[^*]+\*\*)|(__[^_]+__)|(\*[^*\n]+\*)|(\[[^\]]+\]\([^)\s]+\))/g;
+// The image alternative comes FIRST, because `![alt](url)` contains the link
+// pattern `[alt](url)` — without the leading `!` being consumed here, the link
+// rule would grab it and leave a stray "!" behind.
+const INLINE = /(!\[[^\]]*\]\([^)\s]+\))|(`[^`]+`)|(\*\*[^*]+\*\*)|(__[^_]+__)|(\*[^*\n]+\*)|(\[[^\]]+\]\([^)\s]+\))/g;
 
 /** Parse bold / italic / inline-code / links inside a single run of text. */
 function inline(text: string, keyPrefix: string): React.ReactNode[] {
@@ -67,7 +70,14 @@ function inline(text: string, keyPrefix: string): React.ReactNode[] {
     if (m.index > last) nodes.push(text.slice(last, m.index));
     const token = m[0];
     const key = `${keyPrefix}-i${i++}`;
-    if (token.startsWith("`")) {
+    if (token.startsWith("![")) {
+      const split = token.indexOf("](");
+      const alt = token.slice(2, split);
+      const src = token.slice(split + 2, -1);
+      nodes.push(
+        <img key={key} src={src} alt={alt} loading="lazy" className="tyu-img tyu-img--inline" />
+      );
+    } else if (token.startsWith("`")) {
       nodes.push(<code key={key} className="tyu-inline-code">{token.slice(1, -1)}</code>);
     } else if (token.startsWith("**") || token.startsWith("__")) {
       nodes.push(<strong key={key}>{token.slice(2, -2)}</strong>);
@@ -136,6 +146,17 @@ function renderProse(src: string, keyPrefix: string): React.ReactNode[] {
       const level = heading[1].length;
       const Tag = (`h${Math.min(level + 1, 6)}`) as keyof JSX.IntrinsicElements;
       out.push(<Tag key={`${keyPrefix}-h${n++}`} className={`tyu-h tyu-h${level}`}>{inline(heading[2], `${keyPrefix}-h${n}`)}</Tag>);
+      continue;
+    }
+
+    // A line that is only an image becomes a block image rather than being
+    // wrapped in a paragraph — the common case, and it gets its own spacing.
+    const image = /^\s*!\[([^\]]*)\]\(([^)\s]+)\)\s*$/.exec(line);
+    if (image) {
+      flushAll();
+      out.push(
+        <img key={`${keyPrefix}-img${n++}`} src={image[2]} alt={image[1]} loading="lazy" className="tyu-img" />
+      );
       continue;
     }
 

@@ -15,6 +15,7 @@ import {
   ChartColumn,
   Languages,
   Target,
+  PenLine,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getCategories } from "@/api/resources";
@@ -49,6 +50,7 @@ const Navbar = () => {
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Courses", path: "/courses" },
+    { name: "Blog", path: "/blog" },
     { name: "Practice", path: "/online-compiler" },
     { name: "Problems", path: "/problems" },
     { name: "About", path: "/about" },
@@ -369,6 +371,13 @@ const Navbar = () => {
                       onClick={() => setDropOpen(false)}
                     >
                       <User className="h-4 w-4 opacity-60" /> My Certificates
+                    </Link>
+                    <Link
+                      to="/blog/mine"
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-muted"
+                      onClick={() => setDropOpen(false)}
+                    >
+                      <PenLine className="h-4 w-4 opacity-60" /> My Posts
                     </Link>
                     {localStorage.getItem("role") === "ADMIN" && (
                       <Link

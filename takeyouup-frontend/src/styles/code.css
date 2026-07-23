@@ -278,6 +278,24 @@
 
 .tyu-rich .tyu-link { color: #ff4d1c; text-decoration: underline; text-underline-offset: 2px; }
 
+/* Block image on its own line — responsive, never wider than the column. */
+.tyu-rich .tyu-img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 4px 0 16px;
+  border-radius: 12px;
+  border: 1px solid hsl(var(--border));
+}
+
+/* Image sitting inside a run of text. */
+.tyu-rich .tyu-img--inline {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 2px;
+  border-radius: 8px;
+}
+
 .tyu-inline-code {
   font-family: "DM Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.86em;
