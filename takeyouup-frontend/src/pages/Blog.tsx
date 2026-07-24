@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { PenLine, ChevronLeft, ChevronRight, Newspaper, SlidersHorizontal } from "lucide-react";
 import { fetchBlogPosts, fetchBlogTopics } from "@/api/blog";
 import BlogCard from "@/components/blog/BlogCard";
+import { BlogGridSkeleton, ChipsSkeleton } from "@/components/Skeletons";
 import StateMessage from "@/components/StateMessage";
 import useSeo from "@/hooks/useSeo";
 
@@ -87,27 +88,27 @@ const Blog = () => {
         {/* Topic filter — same bar as the Courses page. */}
         <div className="flex items-center gap-3 mb-10 scroll-x pb-2">
           <SlidersHorizontal className="h-4 w-4 flex-shrink-0 opacity-40" />
-          <div className="flex gap-2 flex-shrink-0">
-            <TopicChip label="All" active={!topic} onClick={() => selectTopic("")} />
-            {(topicsQuery.data ?? []).map((t) => (
-              <TopicChip
-                key={t.slug}
-                label={t.name}
-                count={t.postCount}
-                active={topic === t.slug}
-                onClick={() => selectTopic(t.slug)}
-              />
-            ))}
-          </div>
+          {topicsQuery.isLoading ? (
+            <ChipsSkeleton count={5} />
+          ) : (
+            <div className="flex gap-2 flex-shrink-0">
+              <TopicChip label="All" active={!topic} onClick={() => selectTopic("")} />
+              {(topicsQuery.data ?? []).map((t) => (
+                <TopicChip
+                  key={t.slug}
+                  label={t.name}
+                  count={t.postCount}
+                  active={topic === t.slug}
+                  onClick={() => selectTopic(t.slug)}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Posts */}
         {postsQuery.isLoading ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }, (_, i) => (
-              <div key={i} className="skeleton h-80 rounded-2xl" />
-            ))}
-          </div>
+          <BlogGridSkeleton count={6} />
         ) : postsQuery.error ? (
           <StateMessage
             tone="error"

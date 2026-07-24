@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getCategories } from "@/api/resources";
+import api from "@/api/axios";
 
 const resourceIcons: Record<string, any> = {
   "quantitative-aptitude": BrainCircuit,
@@ -35,11 +36,19 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileRes, setMobileRes] = useState(false);
   const [resourceCategories, setResourceCategories] = useState<any[]>([]);
+  // Course pages live at top-level slugs (/data-structures-and-algorithms), not
+  // under /courses, so the header needs the slug list to know when a course page
+  // is open and keep "Courses" highlighted there.
+  const [courseSlugs, setCourseSlugs] = useState<string[]>([]);
 
   useEffect(() => {
     // The catalogue is public, so the menu fills in for visitors too — it used
     // to bail out when signed out, leaving the dropdown empty.
     getCategories().then(setResourceCategories).catch(() => setResourceCategories([]));
+    api
+      .get("/courses/basic")
+      .then((r) => setCourseSlugs((r.data || []).map((c: any) => c.slug).filter(Boolean)))
+      .catch(() => setCourseSlugs([]));
   }, []);
   const [scrolled, setScrolled] = useState(false);
   const [dropOpen, setDropOpen] = useState(false);
@@ -78,7 +87,18 @@ const Navbar = () => {
     setMobileRes(false);
   }, [location.pathname]);
 
-  const isActive = (p: string) => location.pathname === p;
+  // Match sub-routes too, so an article (/blog/my-post) still highlights "Blog"
+  // in the header — the same way Resources stays lit on a category page. Home is
+  // kept exact, otherwise "/" would read as active on every page. "Courses" also
+  // covers the top-level course-slug routes (/data-structures-and-algorithms and
+  // its lesson pages), which don't sit under /courses.
+  const firstSegment = location.pathname.split("/")[1] || "";
+  const isActive = (p: string) => {
+    if (p === "/") return location.pathname === "/";
+    if (p === "/courses")
+      return location.pathname === "/courses" || location.pathname.startsWith("/courses/") || courseSlugs.includes(firstSegment);
+    return location.pathname === p || location.pathname.startsWith(p + "/");
+  };
   const isResActive = location.pathname.startsWith("/resources");
 
   const linkStyle = (active: boolean): React.CSSProperties => ({

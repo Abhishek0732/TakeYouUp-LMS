@@ -12,7 +12,8 @@ import { getCategory } from "@/api/resources";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProgress } from "@/context/ProgressContext";
-import { HeroSkeleton, ListSkeleton } from "@/components/Skeletons";
+import { ResourceTopicsSkeleton } from "@/components/Skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import StateMessage from "@/components/StateMessage";
 import useSeo from "@/hooks/useSeo";
 
@@ -46,11 +47,28 @@ const ResourceCategory = () => {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <HeroSkeleton />
-        <div className="mt-10">
-          <ListSkeleton count={6} height={92} />
-        </div>
+      <div className="bg-background">
+        {/* Hero band — same bordered section as the loaded page. */}
+        <section className="relative overflow-hidden border-b border-border">
+          <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-12">
+            <Skeleton className="mb-8 h-4 w-36" />
+            <Skeleton className="mb-3 h-3 w-28" />
+            <Skeleton className="mb-4 h-9 w-1/2" />
+            <div className="max-w-3xl space-y-2">
+              <Skeleton className="h-3.5 w-full" />
+              <Skeleton className="h-3.5 w-2/3" />
+            </div>
+          </div>
+        </section>
+
+        {/* Topics section — its own header, then the 2-column card grid. */}
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-12">
+          <div className="mb-8">
+            <Skeleton className="mb-3 h-3 w-28" />
+            <Skeleton className="h-9 w-80 max-w-full" />
+          </div>
+          <ResourceTopicsSkeleton count={4} />
+        </section>
       </div>
     );
   }

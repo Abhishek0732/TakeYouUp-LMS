@@ -3,7 +3,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, CheckCircle2, CircleHelp, RotateCcw, XCircle } from "lucide-react";
 import { getTopic } from "@/api/resources";
 import { useProgress } from "@/context/ProgressContext";
-import { DetailSkeleton } from "@/components/Skeletons";
+import { QuizSkeleton } from "@/components/Skeletons";
 import StateMessage from "@/components/StateMessage";
 import useSeo from "@/hooks/useSeo";
 
@@ -42,8 +42,8 @@ const ResourceTopic = () => {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <DetailSkeleton />
+      <div className="w-full mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <QuizSkeleton />
       </div>
     );
   }

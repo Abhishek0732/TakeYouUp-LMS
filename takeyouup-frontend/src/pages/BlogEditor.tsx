@@ -17,6 +17,7 @@ import {
 import MarkdownEditor from "@/components/admin/MarkdownEditor";
 import PostStatusBadge from "@/components/blog/PostStatusBadge";
 import StateMessage from "@/components/StateMessage";
+import { FormSkeleton } from "@/components/Skeletons";
 import useSeo from "@/hooks/useSeo";
 
 const inp = "w-full rounded-lg border px-3 py-2.5 text-sm bg-transparent";
@@ -159,8 +160,13 @@ const BlogEditor = () => {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-        <div className="skeleton h-96 rounded-2xl" />
+      <div className="w-full mx-auto max-w-3xl px-4 py-8 sm:px-6">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="skeleton h-4 w-24 rounded" />
+          <div className="skeleton h-6 w-20 rounded-full" />
+        </div>
+        <div className="skeleton mb-6 h-9 w-48 rounded" />
+        <FormSkeleton fields={5} />
       </div>
     );
   }

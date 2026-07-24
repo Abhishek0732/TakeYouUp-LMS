@@ -56,7 +56,7 @@ export default function Certificates() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
+    <div className="w-full max-w-4xl mx-auto px-4 py-10">
       <p className="text-xs tracking-widest text-orange-500 font-mono mb-2">// ACHIEVEMENTS</p>
       <h1 className="text-3xl font-bold mb-8" style={{ fontFamily: "'Syne', sans-serif" }}>My Certificates</h1>
 

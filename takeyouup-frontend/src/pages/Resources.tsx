@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getCategories } from "@/api/resources";
-import { CardGridSkeleton } from "@/components/Skeletons";
+import { ResourceCategoriesSkeleton } from "@/components/Skeletons";
 import StateMessage from "@/components/StateMessage";
 import { useNavigate } from "react-router-dom";
 import useSeo from "@/hooks/useSeo";
@@ -121,9 +121,11 @@ const Resources = () => {
           />
         )}
 
+        {loading && <ResourceCategoriesSkeleton count={4} />}
+
+        {!loading && !error && resourceCategories.length > 0 && (
         <div className="grid gap-6 md:grid-cols-2">
-          {loading && <CardGridSkeleton count={4} columns={2} media={false} />}
-          {!loading && resourceCategories.map((category) => {
+          {resourceCategories.map((category) => {
             const Icon =
               iconMap[category.slug as keyof typeof iconMap] ?? BookOpen;
 
@@ -185,6 +187,7 @@ const Resources = () => {
             );
           })}
         </div>
+        )}
       </section>
     </div>
   );

@@ -45,7 +45,7 @@ const CourseOverview = ({ slug }: { slug: string }) => {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-12">
         <DetailSkeleton />
       </div>
     );

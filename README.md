@@ -6,20 +6,26 @@
 
 ### _Master Programming. Crack Interviews. Build Your Future._
 
-A full-stack ed-tech platform where developers level up through structured courses, real-world projects, interview prep question banks, an in-browser code editor, an AI chatbot, and live quizzes — all in one place.
+A full-stack ed-tech platform where developers level up through structured courses, an in-browser code editor, live quizzes, an aptitude practice hub, a community blog with editorial review, an AI assistant, and verifiable certificates — all in one place.
 
 <br/>
 
 [![React](https://img.shields.io/badge/React_18-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
-[![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
-[![Java](https://img.shields.io/badge/Java-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript_5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite_5-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS_3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot_4-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java_21-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org)
+[![MySQL](https://img.shields.io/badge/MySQL_8.4-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://www.mysql.com)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com)
 
 <br/>
 
-[🌐 Live Demo](#) · [🐛 Report Bug](../../issues) · [✨ Request Feature](../../issues)
+[🐳 Quick Start](#-run-with-docker-recommended) · [✨ Features](#-features) · [📸 Screenshots](#-screenshots) · [🐛 Report Bug](../../issues)
+
+<br/>
+
+![TakeYouUp Home](./screenshots/home-hero.png)
 
 </div>
 
@@ -27,41 +33,54 @@ A full-stack ed-tech platform where developers level up through structured cours
 
 ## 📸 Screenshots
 
-| Page                  | Preview                                           |
-| --------------------- | ------------------------------------------------- |
-| 🏠 **Home — Hero**    | ![Home Hero](./screenshots/home-hero.png)         |
-| 📚 **Courses Page**   | ![Courses](./screenshots/courses.png)             |
-| 📖 **Course Detail**  | ![Course Detail](./screenshots/course-detail.png) |
-| 📚 **Problems Page**  | ![Problems](./screenshots/problems.png)           |
-| 🔐 **Login / Signup** | ![Auth](./screenshots/login.png)                  |
-| 🤖 **AI Chatbot**     | ![Chatbot](./screenshots/chatbot.png)             |
+| | |
+| :---: | :---: |
+| **🏠 Home** <br/> ![Home](./screenshots/home-hero.png) | **📚 Courses** <br/> ![Courses](./screenshots/courses.png) |
+| **📖 Lesson + Live Compiler** <br/> ![Course Detail](./screenshots/course-detail.png) | **✍️ Community Blog** <br/> ![Blog](./screenshots/blog.png) |
+| **📰 Blog Article** <br/> ![Blog Post](./screenshots/blog-post.png) | **🧠 Aptitude Resources** <br/> ![Resources](./screenshots/resources.png) |
+| **❓ MCQ Practice** <br/> ![Quiz](./screenshots/quiz.png) | **💻 Online Compiler** <br/> ![Code Editor](./screenshots/code-editor.png) |
+| **🧩 Coding Problems** <br/> ![Problems](./screenshots/problems.png) | **🤖 AI Assistant** <br/> ![Chatbot](./screenshots/chatbot.png) |
 
 ---
 
 ## ✨ Features
 
-### 🎓 Learning
+### 🎓 Learn
 
-- **Structured Course Catalog** — Browse courses by category (Programming, Development, AI/ML)
-- **Lesson-by-Lesson Navigation** — Module-based sidebar with progress tracking per lesson
-- **Live Quizzes** — Topic-specific quizzes for DSA, Java, and Python with instant feedback
-- **Interview Prep Bank** — Curated question sets for DSA, Python, Java, OOPS, React, DBMS
+- **Structured course catalog** — browse by category (Programming, Development, AI/ML), each course a module-and-lesson syllabus with per-lesson progress tracking.
+- **In-lesson code, runnable** — Markdown lessons with fenced code blocks that get syntax highlighting and a **Run** button that executes right there via the online compiler.
+- **Live quizzes** — per-course quizzes graded **server-side**, with instant feedback and a saved attempt history.
+- **Verifiable certificates** — earn a certificate once a course is 100 % complete; anyone can verify it by serial number **without logging in**.
+
+### 🧠 Aptitude Resources
+
+- **Topic-wise MCQ practice** across Quantitative Aptitude, Data Interpretation, Logical Reasoning and Verbal Reasoning.
+- **Focused practice flow** — one question at a time, the correct answer with a worked explanation, a progress tracker, and an end-of-set score.
+
+### ✍️ Community Blog
+
+- **Anyone can write** — any signed-in user can draft a post in Markdown with a cover image and inline images.
+- **Editorial review workflow** — posts go **Draft → Pending → Published** (or **Rejected** with a reason); nothing is public until an admin approves it.
+- **Re-review on edit** — editing a published post automatically sends it back to pending, so live content is always reviewed.
+- **Topic filtering, SEO & sitemap** — shareable topic filters, `BlogPosting` structured data, and blog URLs in the sitemap.
 
 ### 💻 Practice
 
-- **In-Browser Code Editor** — Monaco-powered online compiler to write and run code without setup
-- **Coding Problems** — Curated coding challenges (protected — login required)
+- **In-browser code editor** — a Monaco-powered online compiler to write and run code with no local setup.
+- **Coding problems** — a curated problem set (login required).
 
 ### 🤖 AI & Personalization
 
-- **AI Chatbot** — Context-aware chatbot powered by your Spring Boot backend for course queries
-- **Dark / Light Mode** — Fully persistent theme toggle across the entire app
+- **AI assistant** — a context-aware chatbot (Google Gemini via the Spring Boot backend) for course and programming questions.
+- **Dark / light mode** — a fully persistent theme toggle across every page.
+- **Layout-matched loading skeletons** — every page shows a shimmer shaped like its real content, so nothing reflows when data lands.
 
-### 🔐 Auth & Profiles
+### 🔐 Auth & Admin
 
-- **JWT Authentication** — Secure login / signup with token-based sessions
-- **User Profile** — View and edit display name, protected by auth middleware
-- **Protected Routes** — Course detail, problems, and profile pages require login
+- **JWT auth with refresh tokens** — short-lived access token + long-lived refresh token, auto-refreshed on the client.
+- **Email verification & password reset** — token-based flows (emails viewable locally via Mailpit).
+- **Protected routes** — lessons, problems, profile, certificates and the blog editor require login.
+- **Admin dashboard** — `/admin` manages courses, quizzes, the DSA question bank, resource content, and blog moderation.
 
 ---
 
@@ -69,162 +88,93 @@ A full-stack ed-tech platform where developers level up through structured cours
 
 ### Frontend
 
-| Technology                   | Purpose                         |
-| ---------------------------- | ------------------------------- |
-| **React 18**                 | UI library                      |
-| **TypeScript**               | Type safety                     |
-| **Vite**                     | Build tool & dev server         |
-| **Tailwind CSS**             | Utility-first styling           |
-| **shadcn/ui + Radix UI**     | Accessible component primitives |
-| **React Router v6**          | Client-side routing             |
-| **TanStack Query**           | Server state & data fetching    |
-| **Axios**                    | HTTP client                     |
-| **Monaco Editor**            | In-browser code editor          |
-| **Lucide React**             | Icon library                    |
-| **React Hook Form + Zod**    | Form management & validation    |
-| **Syne + DM Mono + DM Sans** | Custom Google Fonts typography  |
+| Technology | Purpose |
+| --- | --- |
+| **React 18 + TypeScript** | UI library with type safety |
+| **Vite 5** | Build tool & dev server |
+| **Tailwind CSS 3** | Utility-first styling |
+| **shadcn/ui + Radix UI** | Accessible component primitives |
+| **React Router v6** | Client-side routing (lazy-loaded routes) |
+| **TanStack Query v5** | Server state & data fetching |
+| **Axios** | HTTP client with JWT interceptors |
+| **Monaco Editor** | In-browser code editor |
+| **highlight.js** | Code syntax highlighting in lessons/blog |
+| **React Hook Form + Zod** | Form management & validation |
+| **Lucide React** | Icon library |
+| **Syne · DM Mono · DM Sans** | Custom typography |
 
 ### Backend
 
-| Technology                | Purpose                                        |
-| ------------------------- | ---------------------------------------------- |
-| **Spring Boot**           | REST API framework                             |
-| **Java**                  | Backend language                               |
-| **JWT (JSON Web Tokens)** | Authentication & authorization                 |
-| **Spring Security**       | Route protection & token validation            |
-| **Spring Data JPA**       | ORM & database access                          |
-| **REST API**              | Course, Auth, Contact, Chatbot, User endpoints |
-
----
-
-## 📁 Project Structure
-
-```
-takeyouup-frontend/
-├── public/                     # Static assets
-├── src/
-│   ├── api/                    # Axios instance & auth API calls
-│   │   ├── auth.ts
-│   │   └── axios.ts
-│   ├── assets/                 # Images & static media
-│   ├── components/
-│   │   ├── ui/                 # shadcn/ui component library
-│   │   ├── Navbar.tsx          # Responsive sticky navbar
-│   │   ├── Footer.tsx          # Site footer
-│   │   ├── Chatbot.tsx         # Floating AI chatbot widget
-│   │   ├── QuizSection.tsx     # Interactive quiz component
-│   │   └── ThemeProvider.tsx   # Dark/light mode context
-│   ├── context/
-│   │   ├── AuthContext.tsx     # Global auth state (user, login, logout)
-│   │   └── CourseContext.jsx   # Course data fetching context
-│   ├── data/                   # Static course & quiz data
-│   │   ├── dsaCourse.js
-│   │   ├── javaCourse.js
-│   │   ├── pythonCourse.js
-│   │   ├── machineLearningCourse.js
-│   │   ├── systemDesignCourse.js
-│   │   ├── webDevCourse.js
-│   │   ├── dsaInterview.js
-│   │   └── quizzes/
-│   │       ├── dsaQuiz.ts
-│   │       ├── javaQuiz.ts
-│   │       └── pythonQuiz.ts
-│   ├── hooks/                  # Custom React hooks
-│   ├── pages/
-│   │   ├── Home.tsx            # Landing page
-│   │   ├── Courses.tsx         # Course catalog with filtering
-│   │   ├── CourseDetail.tsx    # Lesson viewer + quiz tabs
-│   │   ├── InterviewPrep.tsx   # Interview question catalog
-│   │   ├── InterviewPrepDetail.tsx  # Interview question viewer
-│   │   ├── About.tsx           # About page with team & stats
-│   │   ├── Contact.tsx         # Contact form
-│   │   ├── CodeEditor.tsx      # Monaco-powered compiler
-│   │   ├── CodingQuestions.tsx # Problem set (protected)
-│   │   ├── Login.tsx           # Login page
-│   │   ├── SignUp.tsx          # Registration page
-│   │   ├── Profile.tsx         # User profile (protected)
-│   │   └── NotFound.tsx        # 404 page
-│   ├── routes/
-│   │   └── ProtectedRoute.tsx  # Auth guard wrapper
-│   ├── lib/
-│   │   └── utils.ts
-│   ├── App.tsx                 # Root router & providers
-│   ├── main.tsx
-│   └── index.css               # Global styles & design tokens
-├── .env                        # Environment variables
-├── package.json
-├── tailwind.config.ts
-├── tsconfig.json
-└── vite.config.ts
-```
-
----
-
-## 🔐 Security & platform capabilities
-
-Recent hardening and feature work (all covered by the docker-compose stack):
-
-| Area | What it does |
+| Technology | Purpose |
 | --- | --- |
-| **Role-based access** | Content mutations (courses, quizzes, DSA bank, resources) require `ADMIN`; normal users get `403`. Reads and user actions (progress, quiz attempts, certificates) need only login. |
-| **Refresh tokens** | Short-lived access token (15 min) + long-lived refresh token (7 days). The client auto-refreshes on `401` via `/api/auth/refresh`. |
-| **Login throttling** | 5 failed attempts per email → `429` for 15 minutes. |
-| **Email verification** | Registration issues a verification token + email; `GET /api/auth/verify?token=…` confirms it. Enforcement is off by default (`REQUIRE_VERIFIED_EMAIL=true` to require it). |
-| **Consistent errors** | `GlobalExceptionHandler` returns proper `400/401/403/404/409/429` with `{timestamp,status,error,message}` instead of 500s. |
-| **Quiz attempts** | `POST /api/quizzes/attempts` grades answers server-side and stores the score; `GET /api/quizzes/attempts/mine` lists history. |
-| **Course progress** | `GET /api/progress/courses/{id}/summary` returns completion `%`. |
-| **Certificates** | `POST /api/certificates/courses/{id}` issues a certificate once a course is 100% complete; `GET /api/certificates/verify/{serial}` verifies it publicly (no login). |
-| **Admin dashboard** | `/admin` (admins only) manages courses, DSA topics/questions, and quizzes from the UI. |
-| **Tests + CI** | Unit tests (`mvn test`) plus a GitHub Actions pipeline building & testing backend, frontend, and both Docker images. |
+| **Spring Boot 4 (Java 21)** | REST API framework |
+| **Spring Security 7 + JWT** | Authentication, refresh tokens & role-based access |
+| **Spring Data JPA** | ORM & database access |
+| **MySQL 8.4** | Relational database |
+| **Flyway** | Versioned schema migrations |
+| **Google Gemini** | AI assistant responses |
+| **Maven** | Build & dependency management |
+
+### Infrastructure
+
+| Technology | Purpose |
+| --- | --- |
+| **Docker Compose** | One-command full-stack orchestration |
+| **nginx** | Serves the SPA & reverse-proxies the API |
+| **Mailpit** | Local SMTP capture for dev emails |
+| **Adminer** | Lightweight DB console |
+| **GitHub Actions** | CI: build & test backend, frontend, and Docker images |
 
 ---
 
 ## 🐳 Run with Docker (recommended)
 
-The entire stack — MySQL, the Spring Boot API, the React SPA, and an Adminer DB
-console — runs with a single command. No local Java, Node, or MySQL required.
+The entire stack — MySQL, the Spring Boot API, the React SPA, Mailpit, and an
+Adminer DB console — runs with a single command. No local Java, Node, or MySQL
+required.
 
 ```bash
+git clone https://github.com/Abhishek0732/TakeYouUp-LMS.git
+cd TakeYouUp-LMS
 cp .env.example .env      # optional: add your own Gemini/SMTP keys
 docker compose up -d --build
 ```
 
-| Service        | URL                                            |
-| -------------- | ---------------------------------------------- |
-| 🖥️ Frontend    | http://localhost:5174                          |
-| ⚙️ Backend API | http://localhost:8082                          |
-| ❤️ Health      | http://localhost:8082/actuator/health          |
-| 🗄️ Adminer     | http://localhost:8083 (server `db`, user `root`, pass `takeyouup`) |
+| Service | URL |
+| --- | --- |
+| 🖥️ Frontend | http://localhost:5174 |
+| ⚙️ Backend API | http://localhost:8082 |
+| ❤️ Health | http://localhost:8082/actuator/health |
+| 📬 Mailpit (dev inbox) | http://localhost:8026 |
+| 🗄️ Adminer | http://localhost:8083 (server `db`, user `root`, pass `takeyouup`) |
 
 **Seeded demo accounts** (created automatically on first boot):
 
-| Role  | Email                    | Password      |
-| ----- | ------------------------ | ------------- |
-| Admin | `admin@takeyouup.com`    | `admin1234`   |
-| User  | `student@takeyouup.com`  | `student1234` |
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | `admin@takeyouup.com` | `admin1234` |
+| User | `student@takeyouup.com` | `student1234` |
 
-The database schema is created and versioned by **Flyway** migrations
+The schema is created and versioned by **Flyway** migrations
 (`takeyouup-backend/src/main/resources/db/migration`), and starter content
-(courses, lessons, quizzes, DSA question bank, and interview-prep resources) is
-inserted by an idempotent seeder (`seed/DataSeeder.java`). Ports, credentials,
-and API keys are all configurable in `.env`.
+(courses, lessons, quizzes, the DSA question bank, aptitude resources, and a
+welcome blog post) is inserted by idempotent seeders (`seed/`). Ports,
+credentials, and API keys are all configurable in `.env`.
 
-**Works on any host.** The React app talks to the API using **relative** URLs,
-which nginx proxies to the backend. So the same build works whether you open it
-at `http://localhost:5174`, a LAN address like `http://192.168.1.9:5174`, or a
-real domain — no rebuild, nothing hardcoded. Course cover images are generated
-locally and served from `/uploads`, so there are no external image dependencies.
+**Works on any host.** The React app talks to the API using **relative** URLs
+that nginx proxies to the backend, so the same build works at
+`http://localhost:5174`, a LAN address like `http://192.168.1.9:5174`, or a real
+domain — no rebuild, nothing hardcoded. Cover images are served locally from
+`/uploads`, so there are no external image dependencies.
 
 **Your data persists.** MySQL data (`db_data`) and uploaded files
-(`uploads_data`) live in named Docker volumes. They survive `up`, `down`, and
-restarts — the seeder only fills empty tables, so it never overwrites or removes
-anything you create. Data is wiped **only** if you explicitly run `down -v`.
-
-Common commands:
+(`uploads_data`) live in named Docker volumes and survive `up`, `down`, and
+restarts. The seeders only fill empty tables, so they never overwrite anything
+you create. Data is wiped **only** if you explicitly run `down -v`.
 
 ```bash
 docker compose logs -f backend      # follow API logs
-docker compose restart backend      # restart after a rebuild (keeps data)
+docker compose up -d --build frontend   # rebuild just the SPA after UI changes
 docker compose down                 # stop containers (KEEPS data)
 docker compose down -v              # stop AND wipe the database (fresh start)
 ```
@@ -235,148 +185,204 @@ docker compose down -v              # stop AND wipe the database (fresh start)
 
 ### Prerequisites
 
-Make sure you have the following installed:
+- **Node.js** ≥ 18 · **npm** ≥ 9 — [Download](https://nodejs.org)
+- **Java** 21 (JDK) — [Download](https://adoptium.net)
+- **Maven** 3.9+ (or use the bundled `./mvnw` wrapper)
+- **MySQL** 8.x running locally
 
-- **Node.js** >= 18.x — [Download](https://nodejs.org)
-- **npm** >= 9.x (comes with Node)
-- **Java** >= 17 (for backend) — [Download](https://adoptium.net)
-- **Maven** or **Gradle** (for Spring Boot backend)
-
----
-
-### 1. Clone the Repository
+### 1. Backend (Spring Boot)
 
 ```bash
-git clone https://github.com/Abhishek0732/TakeYouUp-LMS.git
-cd TakeYouUp-LMS
-```
-
----
-
-### 2. Backend Setup (Spring Boot)
-
-```bash
-# Navigate to the backend directory
-cd backend
-
-# Build and run with Maven
+cd takeyouup-backend
 ./mvnw spring-boot:run
-
-# OR with Gradle
-./gradlew bootRun
 ```
 
-The backend API will start on **`http://localhost:8080`**
+The API starts on **`http://localhost:8080`**. Configure the datasource, JWT
+secret, and Gemini key in `src/main/resources/application.properties` (or via
+environment variables — see below).
 
-> Make sure your database is configured in `src/main/resources/application.properties` or `application.yml`
-
----
-
-### 3. Frontend Setup (React + Vite)
+### 2. Frontend (React + Vite)
 
 ```bash
-# Navigate to the frontend directory
 cd takeyouup-frontend
-
-# Install dependencies
-yarn install
-
-# Create environment file
-cp .env.example .env
+npm install
+npm run dev
 ```
 
-Edit `.env` and set your backend URL:
+The SPA is served at **`http://localhost:5173`**. It calls `/api` relative to
+its own origin; set `VITE_API_URL` if your backend lives elsewhere.
 
-```env
-VITE_API_URL=http://localhost:8080
-```
+### 3. Production build
 
 ```bash
-# Start the development server
-yarn dev
-```
-
-The frontend will be available at **`http://localhost:5173`**
-
----
-
-### 4. Build for Production
-
-```bash
-# Frontend production build
 cd takeyouup-frontend
-npm run build
-
-# Preview the production build locally
-npm run preview
+npm run build      # type-checks (tsc) then bundles with Vite
+npm run preview    # preview the production build locally
 ```
 
 ---
 
-## 🌐 API Endpoints
+## 📁 Project Structure
 
-The frontend communicates with the Spring Boot backend through these endpoints:
+```
+TakeYouUp-LMS/
+├── docker-compose.yml           # Full stack: db, backend, frontend, mailpit, adminer
+├── .env.example                 # Ports, credentials, JWT & Gemini config
+├── screenshots/                 # README media
+├── takeyouup-backend/
+│   └── src/main/
+│       ├── java/takeyouup/example/takeyouup/
+│       │   ├── controller/      # REST controllers (auth, courses, blog, quizzes, …)
+│       │   │   └── blog/        # Blog: public, author, admin & topic controllers
+│       │   ├── service/         # Business logic (incl. blog review workflow)
+│       │   ├── model/           # JPA entities
+│       │   ├── repository/      # Spring Data repositories
+│       │   ├── dto/             # Request/response DTOs
+│       │   ├── config/          # Spring Security & app config
+│       │   ├── security/        # JWT filter, token providers
+│       │   └── seed/            # Idempotent content seeders
+│       └── resources/
+│           ├── application.properties
+│           └── db/migration/    # Flyway migrations (V1…Vn)
+└── takeyouup-frontend/
+    └── src/
+        ├── api/                 # Axios instance + typed API clients
+        │   ├── axios.ts  auth.ts  courses.ts  blog.ts
+        │   ├── resources.ts  profile.ts  execute.ts  stats.ts
+        ├── components/
+        │   ├── ui/              # shadcn/ui primitives
+        │   ├── blog/            # BlogCard, PostStatusBadge, …
+        │   ├── admin/           # Admin panels (blog moderation, editors)
+        │   ├── Navbar.tsx  Footer.tsx  Chatbot.tsx
+        │   ├── RichContent.tsx  # Markdown renderer (code + images)
+        │   └── Skeletons.tsx    # Layout-matched loading skeletons
+        ├── context/             # AuthContext, CourseContext, ProgressContext
+        ├── pages/               # Home, Courses, CourseDetail, CourseOverview,
+        │                        # Blog, BlogPost, BlogEditor, MyPosts,
+        │                        # Resources, ResourceCategory, ResourceTopic,
+        │                        # CodeEditor, CodingQuestions, Certificates,
+        │                        # Profile, Admin, auth pages, …
+        ├── hooks/               # Custom hooks (useSeo, useSiteContent, …)
+        ├── App.tsx              # Router & providers
+        └── main.tsx
+```
 
-| Method | Endpoint                  | Description           | Auth Required |
-| ------ | ------------------------- | --------------------- | :-----------: |
-| `POST` | `/api/auth/register`      | Register new user     |      ❌       |
-| `POST` | `/api/auth/login`         | Login & get JWT token |      ❌       |
-| `GET`  | `/api/courses`            | Fetch all courses     |      ❌       |
-| `GET`  | `/api/courses/slug/:slug` | Fetch course by slug  |      ✅       |
-| `PUT`  | `/api/users/update-name`  | Update display name   |      ✅       |
-| `POST` | `/api/contacts`           | Submit contact form   |      ✅       |
-| `POST` | `/api/chatbot/generate`   | AI chatbot response   |      ✅       |
+---
 
-> All protected routes require the `Authorization: Bearer <token>` header.
+## 🌐 API Overview
+
+All protected routes require an `Authorization: Bearer <token>` header. Content
+mutations require the `ADMIN` role; author actions require login.
+
+| Method | Endpoint | Description | Auth |
+| --- | --- | --- | :---: |
+| `POST` | `/api/auth/register` · `/login` · `/refresh` | Register, login, refresh token | ❌ |
+| `GET` | `/api/auth/verify` · `POST /api/auth/reset-password` | Email verify & password reset | ❌ |
+| `GET` | `/api/courses` · `/api/courses/overview/{slug}` | Course catalog & syllabus | ❌ |
+| `GET` | `/api/courses/slug/{slug}` | Full course with lesson bodies | ✅ |
+| `POST` | `/api/execute` | Run code in the online compiler | ❌ |
+| `POST` | `/api/quizzes/attempts` · `GET /attempts/mine` | Grade a quiz & list attempts | ✅ |
+| `GET` | `/api/progress/courses/{id}/summary` | Course completion % | ✅ |
+| `POST` | `/api/certificates/courses/{id}` | Issue a certificate (course 100 %) | ✅ |
+| `GET` | `/api/certificates/verify/{serial}` | Publicly verify a certificate | ❌ |
+| `GET` | `/api/resources/categories` · `/{slug}` · `/topics/{topic}` | Aptitude categories & MCQs | ❌ |
+| `GET` | `/api/blog/posts` · `/posts/{slug}` · `/topics` | Public blog listing & articles | ❌ |
+| `*` | `/api/blog/me/**` | Author: draft, submit, edit, upload images | ✅ |
+| `*` | `/api/blog/admin/**` | Admin: approve / reject / delete posts | 👑 |
+| `POST` | `/api/chatbot/generate` | AI assistant response (Gemini) | ✅ |
+| `PUT` | `/api/users/update-name` · `POST /api/contacts` | Profile & contact form | ✅ |
+
+👑 = requires `ADMIN` role.
 
 ---
 
 ## ⚙️ Environment Variables
 
-### Frontend (`.env`)
+Everything is configured through `.env` (see `.env.example`):
 
 ```env
-VITE_API_URL=http://localhost:8080
+# Ports
+DB_HOST_PORT=3308
+BACKEND_HOST_PORT=8082
+FRONTEND_HOST_PORT=5174
+ADMINER_HOST_PORT=8083
+MAILPIT_UI_PORT=8026
+
+# Database
+MYSQL_DATABASE=takeyouup
+MYSQL_ROOT_PASSWORD=takeyouup
+
+# JPA / migrations
+JPA_DDL_AUTO=validate
+SPRING_FLYWAY_ENABLED=true
+
+# Auth
+JWT_SECRET=change-me-to-a-long-random-string
+JWT_EXPIRATION_MS=3600000
+REQUIRE_VERIFIED_EMAIL=false
+
+# AI assistant (Google Gemini)
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-3-flash-preview
+
+# Mail
+MAIL_FROM=no-reply@takeyouup.local
 ```
 
-### Backend (`application.properties`)
-
-```properties
-# Server
-server.port=8080
-
-# Database (configure your DB here)
-spring.datasource.url=jdbc:mysql://localhost:3306/takeyouup
-spring.datasource.username=root
-spring.datasource.password=yourpassword
-
-# JWT
-jwt.secret=your_jwt_secret_key
-jwt.expiration=86400000
-```
+> The frontend needs no build-time config for Docker (it uses relative `/api`
+> URLs). For the manual dev server, set `VITE_API_URL` if the backend is not on
+> the same origin.
 
 ---
 
 ## 🎨 Design System
 
-TakeYouUp uses a custom design system built on top of Tailwind CSS and shadcn/ui:
+TakeYouUp uses a custom design system on top of Tailwind CSS and shadcn/ui.
 
-| Token       | Value          | Usage                               |
-| ----------- | -------------- | ----------------------------------- |
-| `--orange`  | `#ff4d1c`      | Primary accent, CTAs, active states |
-| `--gold`    | `#ffb800`      | Gradient partner, ratings           |
-| `--ink`     | `#0c0c0e`      | Dark backgrounds, hero sections     |
-| **Syne**    | Display font   | All headings & titles               |
-| **DM Mono** | Monospace font | Labels, badges, metadata            |
-| **DM Sans** | Body font      | Paragraphs & UI text                |
+| Token | Value | Usage |
+| --- | --- | --- |
+| `--orange` | `#ff4d1c` | Primary accent, CTAs, active states |
+| `--gold` | `#ffb800` | Gradient partner, highlights |
+| `--ink` | `#0c0c0e` | Dark backgrounds, hero sections |
+| **Syne** | Display font | Headings & titles |
+| **DM Mono** | Monospace | Labels, badges, metadata |
+| **DM Sans** | Body font | Paragraphs & UI text |
 
-Dark mode is fully supported across all pages using CSS variables and the `ThemeProvider` context.
+Dark and light modes are fully supported across every page via CSS variables and
+a persistent theme toggle.
+
+---
+
+## 🔐 Security & Platform Notes
+
+| Area | What it does |
+| --- | --- |
+| **Role-based access** | Content mutations (courses, quizzes, DSA bank, resources, blog moderation) require `ADMIN`; normal users get `403`. Reads and user actions need only login. |
+| **Refresh tokens** | Short-lived access token + long-lived refresh token; the client auto-refreshes on `401` via `/api/auth/refresh`. |
+| **Blog review workflow** | Posts are public only after admin approval; editing a published post sends it back to pending automatically. Uploads are auth-gated. |
+| **Login throttling** | Repeated failed logins per email are rate-limited (`429`). |
+| **Email verification** | Registration issues a verification token; enforcement is off by default (`REQUIRE_VERIFIED_EMAIL=true` to require it). |
+| **Consistent errors** | A global handler returns proper `400/401/403/404/409/429` with a structured body instead of `500`s. |
+| **Tests + CI** | Backend unit tests plus a GitHub Actions pipeline that builds & tests the backend, frontend, and both Docker images. |
+
+---
+
+## 🗺️ Roadmap
+
+- [x] JWT auth with refresh tokens & email verification
+- [x] Certificates on course completion (with public verification)
+- [x] Admin dashboard for courses, quizzes & content
+- [x] Aptitude resources with topic-wise MCQ practice
+- [x] Community blog with editorial review workflow
+- [ ] Discussion threads per lesson
+- [ ] Student leaderboard & XP system
+- [ ] Payment integration for premium courses
+- [ ] Video lesson support (embedded player)
+- [ ] Mobile app (React Native)
 
 ---
 
 ## 🤝 Contributing
-
-Contributions are welcome! Here's how to get started:
 
 1. **Fork** the repository
 2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
@@ -384,32 +390,14 @@ Contributions are welcome! Here's how to get started:
 4. **Push** to the branch: `git push origin feature/amazing-feature`
 5. **Open** a Pull Request
 
-Please follow the existing code style and make sure your changes don't break existing functionality.
-
----
-
-## 📋 Roadmap
-
-- [ ] Payment integration for premium courses
-- [ ] Video lesson support (embedded player)
-- [ ] Discussion forums per course
-- [ ] Student leaderboard & XP system
-- [ ] Certificate generation on course completion
-- [ ] Mobile app (React Native)
-- [ ] Admin dashboard for course management
-
----
-
-## 🐛 Known Issues
-
-- Chatbot requires the backend AI service to be running; displays an error message if unavailable
-- Some static fallback course data is used when the backend API is unreachable
+Please follow the existing code style and make sure your changes don't break
+existing functionality.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+Licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 ---
 
