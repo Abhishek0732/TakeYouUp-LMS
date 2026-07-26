@@ -5,7 +5,7 @@ import { fetchBlogPost, BlogPostNotFound } from "@/api/blog";
 import { formatPostDate } from "@/components/blog/BlogCard";
 import RichContent from "@/components/RichContent";
 import StateMessage from "@/components/StateMessage";
-import { DetailSkeleton } from "@/components/Skeletons";
+import { ArticleSkeleton } from "@/components/Skeletons";
 import useSeo from "@/hooks/useSeo";
 
 /**
@@ -56,8 +56,8 @@ const BlogPost = () => {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-        <DetailSkeleton />
+      <div className="px-4 py-10 sm:px-6">
+        <ArticleSkeleton />
       </div>
     );
   }

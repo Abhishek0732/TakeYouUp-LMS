@@ -11,6 +11,7 @@ import {
 import PostStatusBadge from "@/components/blog/PostStatusBadge";
 import { formatPostDate } from "@/components/blog/BlogCard";
 import StateMessage from "@/components/StateMessage";
+import { PostRowsSkeleton } from "@/components/Skeletons";
 import useSeo from "@/hooks/useSeo";
 
 const errText = (e: any, fallback: string) => e?.response?.data?.message || e?.message || fallback;
@@ -73,9 +74,7 @@ const MyPosts = () => {
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 3 }, (_, i) => <div key={i} className="skeleton h-20 rounded-xl" />)}
-        </div>
+        <PostRowsSkeleton count={4} />
       ) : error ? (
         <StateMessage
           tone="error"
