@@ -176,8 +176,8 @@ const BlogPost = () => {
           <img
             src={post.coverImageUrl}
             alt=""
-            className="mb-8 w-full rounded-2xl border object-cover"
-            style={{ borderColor: "hsl(var(--border))", aspectRatio: "16/9" }}
+            className="mb-8 h-auto w-full rounded-2xl border object-contain"
+            style={{ borderColor: "hsl(var(--border))" }}
           />
         )}
 
