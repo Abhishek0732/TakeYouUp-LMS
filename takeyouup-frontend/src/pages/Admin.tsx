@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import {
   LayoutDashboard, BookOpen, ListChecks, Code2, Tags, Server, Gauge,
   FolderTree, Users as UsersIcon, Layers, Image as ImageIcon, Menu, X,
-  FileText, Type, Newspaper, Hash,
+  FileText, Type, Newspaper, Hash, UserSquare,
 } from "lucide-react";
 import api from "@/api/axios";
 import DataGrid, { Column } from "@/components/admin/DataGrid";
@@ -254,7 +254,10 @@ const NAV: { section: string; items: NavItem[] }[] = [
     { key: "pageContent", label: "Page Content", icon: FileText },
     { key: "pageText", label: "Page Text", icon: Type },
   ] },
-  { section: "People", items: [{ key: "users", label: "Users", icon: UsersIcon }] },
+  { section: "People", items: [
+    { key: "team", label: "Team", icon: UserSquare },
+    { key: "users", label: "Users", icon: UsersIcon },
+  ] },
 ];
 
 export default function Admin() {
@@ -462,6 +465,52 @@ export default function Admin() {
       create: (v) => createTopic(normalizeTopic(v)),
       update: (row, v) => updateTopic(row.id, normalizeTopic(v)),
       remove: (row) => deleteTopic(row.id),
+    },
+    team: {
+      title: "Team", createLabel: "Create Member", idKey: "id",
+      columns: [
+        { key: "photoUrl", label: "Photo", width: "90px", render: (r) => <CoverThumb src={r.photoUrl} /> },
+        { key: "name", label: "Name" },
+        { key: "role", label: "Role" },
+        { key: "bio", label: "Subtitle" },
+        { key: "sortOrder", label: "Order", width: "80px" },
+      ],
+      fields: [
+        { name: "photoUrl", label: "Photo", type: "image", hint: "Square works best. PNG/JPG/WEBP/GIF, up to 5 MB." },
+        { name: "name", label: "Name", required: true },
+        { name: "role", label: "Role", placeholder: "e.g. Founder & CEO" },
+        { name: "bio", label: "Subtitle", placeholder: "e.g. Software Engineer" },
+        { name: "sortOrder", label: "Sort order", type: "number", hint: "Low numbers come first on the About page." },
+      ],
+      fetchPage: clientPager(() => api.get("/team/admin").then((r) => r.data), ["name", "role", "bio"]),
+      create: (v) => {
+        // One multipart request so the photo is stored with the member itself.
+        const { photoUrlFile, photoUrlCleared, ...rest } = v;
+        const fd = new FormData();
+        fd.append("member", new Blob([JSON.stringify({
+          name: rest.name,
+          role: rest.role || null,
+          bio: rest.bio || null,
+          sortOrder: rest.sortOrder === "" || rest.sortOrder == null ? null : Number(rest.sortOrder),
+        })], { type: "application/json" }));
+        if (photoUrlFile) fd.append("image", photoUrlFile);
+        return api.post("/team", fd);
+      },
+      update: async (row, v) => {
+        const { photoUrlFile, photoUrlCleared, ...rest } = v;
+        const fd = new FormData();
+        fd.append("member", new Blob([JSON.stringify({
+          name: rest.name,
+          role: rest.role || null,
+          bio: rest.bio || null,
+          sortOrder: rest.sortOrder === "" || rest.sortOrder == null ? row.sortOrder : Number(rest.sortOrder),
+        })], { type: "application/json" }));
+        if (photoUrlFile) fd.append("image", photoUrlFile);
+        await api.put(`/team/${row.id}`, fd);
+        // Removing the photo is a separate call — PUT only ever sets one.
+        if (!photoUrlFile && photoUrlCleared) await api.delete(`/team/${row.id}/photo`);
+      },
+      remove: (row) => api.delete(`/team/${row.id}`),
     },
     users: {
       title: "Users", idKey: "id",

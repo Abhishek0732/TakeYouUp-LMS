@@ -134,6 +134,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/blog/posts").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/blog/posts/*").permitAll()
 
+                        // --- About-page team roster ---
+                        // The admin listing goes first (it may later return rows
+                        // the public shouldn't see). The public read powers the
+                        // About page and must work signed out. Writes fall through
+                        // to the blanket admin-only rules below.
+                        .requestMatchers(HttpMethod.GET, "/api/team/admin").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/team").permitAll()
+
                         // --- All other content mutations are ADMIN-only ---
                         .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")

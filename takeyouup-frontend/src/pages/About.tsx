@@ -1,12 +1,16 @@
 import { Award, Code, BookOpen, GraduationCap } from "lucide-react";
-import abhishek from "../assets/abhishek-photo.jpeg";
 import { useEffect, useRef } from "react";
 import CountUp from "react-countup";
 import { useQuery } from "@tanstack/react-query";
 import { fetchStats } from "@/api/stats";
+import { fetchTeam } from "@/api/team";
 import useSeo from "@/hooks/useSeo";
 import useSiteContent from "@/hooks/useSiteContent";
 import { contentIcon } from "@/lib/contentIcons";
+
+/** Two-letter monogram shown when a team member has no uploaded photo. */
+const initials = (name: string) =>
+  name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
 
 const About = () => {
   useSeo({
@@ -20,6 +24,16 @@ const About = () => {
   const whyReasons = items("ABOUT_REASON");
   const story = items("ABOUT_STORY");
 
+  // The team roster is admin-managed content (About-page "Team" section), so it
+  // arrives from the API after mount — the same reveal-observer caveat applies,
+  // hence team?.length is in the effect deps below. Declared before the effect
+  // that reads it to avoid a temporal-dead-zone reference.
+  const { data: team } = useQuery({
+    queryKey: ["team"],
+    queryFn: fetchTeam,
+    staleTime: 5 * 60_000,
+  });
+
   const revealRef = useRef<HTMLDivElement>(null);
   // Deps and the :not(.in-view) filter matter here for the same reason as on
   // Home: the values, story and why-us rows now load from the content API after
@@ -32,7 +46,7 @@ const About = () => {
     );
     els.forEach((el) => obs.observe(el));
     return () => obs.disconnect();
-  }, [values.length, whyReasons.length, story.length]);
+  }, [values.length, whyReasons.length, story.length, team?.length]);
 
   // Every figure here used to be invented: "10,000+ Active Students" (against a
   // handful of real accounts, and contradicting the Home page's "5,000+"),
@@ -160,28 +174,41 @@ const About = () => {
         </div>
         )}
 
-        {/* Team */}
+        {/* Team — admin-managed roster (Admin → Team). Hidden entirely if empty. */}
+        {team && team.length > 0 && (
         <div>
           <div className="text-center mb-10 reveal">
             <div className="section-tag justify-center">The People</div>
             <h2 className="text-3xl font-bold" style={{ fontFamily: "'Syne', sans-serif" }}>Meet Our Team</h2>
           </div>
-          <div className="flex justify-center">
-            <div
-              className="reveal card-lift rounded-2xl overflow-hidden border group w-64"
-              style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}
-            >
-              <div className="aspect-square overflow-hidden">
-                <img src={abhishek} alt={text("about.team.name", "Abhishek Kumar Verma")} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <div className="flex flex-wrap justify-center gap-6">
+            {team.map((member) => (
+              <div
+                key={member.id}
+                className="reveal card-lift rounded-2xl overflow-hidden border group w-64"
+                style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}
+              >
+                <div className="aspect-square overflow-hidden">
+                  {member.photoUrl ? (
+                    <img src={member.photoUrl} alt={member.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center" style={{ background: "hsl(var(--muted))" }}>
+                      <span className="text-4xl font-bold" style={{ fontFamily: "'Syne', sans-serif", color: "hsl(var(--muted-foreground))" }}>
+                        {initials(member.name)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-5">
+                  <h3 className="font-bold mb-1" style={{ fontFamily: "'Syne', sans-serif" }}>{member.name}</h3>
+                  {member.role && <span className="pill-orange text-xs">{member.role}</span>}
+                  {member.bio && <p className="mt-2 text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>{member.bio}</p>}
+                </div>
               </div>
-              <div className="p-5">
-                <h3 className="font-bold mb-1" style={{ fontFamily: "'Syne', sans-serif" }}>{text("about.team.name", "Abhishek Kumar Verma")}</h3>
-                <span className="pill-orange text-xs">{text("about.team.role", "Founder & CEO")}</span>
-                <p className="mt-2 text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>Software Engineer</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
+        )}
 
         {/* Why Choose Us */}
         {whyReasons.length > 0 && (
