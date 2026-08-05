@@ -38,7 +38,7 @@ public class TeamService {
                 .sortOrder(req.getSortOrder() != null ? req.getSortOrder() : nextSortOrder())
                 .build();
         if (image != null && !image.isEmpty()) {
-            member.setPhotoUrl("/uploads/" + fileStorageService.storeImage(image, "team"));
+            member.setPhotoUrl(FileStorageService.publicUrl(fileStorageService.storeImage(image, "team")));
         }
         return toResponse(repository.save(member));
     }
@@ -55,7 +55,7 @@ public class TeamService {
         }
         if (image != null && !image.isEmpty()) {
             String previous = member.getPhotoUrl();
-            member.setPhotoUrl("/uploads/" + fileStorageService.storeImage(image, "team"));
+            member.setPhotoUrl(FileStorageService.publicUrl(fileStorageService.storeImage(image, "team")));
             fileStorageService.deleteQuietly(previous);   // best-effort; ignores null/external
         }
         return toResponse(repository.save(member));

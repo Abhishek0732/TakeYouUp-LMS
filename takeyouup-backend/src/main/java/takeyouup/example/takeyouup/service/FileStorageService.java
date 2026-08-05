@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -48,7 +51,19 @@ public class FileStorageService {
     @Value("${file.upload-dir}")
     private String uploadDir;
 
+    /**
+     * Cloudinary connection string, e.g. {@code cloudinary://key:secret@cloud}.
+     * When present, images are stored on Cloudinary (a persistent CDN) instead
+     * of the local disk — which on ephemeral hosts (Render free tier, etc.) is
+     * wiped on every restart. Blank/unset keeps the local-disk behaviour.
+     */
+    @Value("${CLOUDINARY_URL:}")
+    private String cloudinaryUrl;
+
     private Path root;
+
+    /** Non-null only when CLOUDINARY_URL is configured. */
+    private Cloudinary cloudinary;
 
     @PostConstruct
     void init() throws IOException {
@@ -59,7 +74,13 @@ public class FileStorageService {
                 ? configured.normalize()
                 : Paths.get(System.getProperty("user.dir")).resolve(configured).normalize();
         Files.createDirectories(root);
-        log.info("Uploads root: {}", root);
+
+        if (cloudinaryUrl != null && !cloudinaryUrl.isBlank()) {
+            this.cloudinary = new Cloudinary(cloudinaryUrl.trim());
+            log.info("Image storage: Cloudinary (persistent). Local uploads root {} kept as fallback.", root);
+        } else {
+            log.info("Image storage: local disk at {} (set CLOUDINARY_URL for persistent storage).", root);
+        }
     }
 
     /** Absolute uploads root — used by the static resource handler. */
@@ -82,7 +103,24 @@ public class FileStorageService {
             throw new IllegalArgumentException("Image is larger than 5 MB");
         }
 
-        String extension = resolveExtension(file);
+        String extension = resolveExtension(file);   // also validates the content type
+
+        // Persistent path: upload to Cloudinary and hand back the absolute https
+        // URL, which callers store as-is (see publicUrl below).
+        if (cloudinary != null) {
+            Map<?, ?> result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                    "folder", "takeyouup/" + folder,
+                    "public_id", UUID.randomUUID().toString(),
+                    "resource_type", "image",
+                    "overwrite", true));
+            Object url = result.get("secure_url");
+            if (url == null) {
+                throw new IOException("Cloudinary upload returned no URL");
+            }
+            return url.toString();
+        }
+
+        // Local-disk fallback: return a path relative to the uploads root.
         Path folderPath = root.resolve(folder).normalize();
         if (!folderPath.startsWith(root)) {
             throw new IllegalArgumentException("Invalid upload folder");
@@ -94,6 +132,22 @@ public class FileStorageService {
             Files.copy(in, folderPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
         }
         return folder + "/" + fileName;
+    }
+
+    /**
+     * Turn a value returned by {@link #storeImage} into a URL the browser can
+     * load. Cloudinary returns an absolute https URL (used as-is); local storage
+     * returns a bare {@code folder/file}, which is served under {@code /uploads/}.
+     * Values already absolute or root-relative pass through unchanged.
+     */
+    public static String publicUrl(String stored) {
+        if (stored == null || stored.isBlank()) {
+            return stored;
+        }
+        if (stored.startsWith("http://") || stored.startsWith("https://") || stored.startsWith("/")) {
+            return stored;
+        }
+        return "/uploads/" + stored;
     }
 
     /**

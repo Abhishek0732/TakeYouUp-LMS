@@ -73,7 +73,7 @@ public class BlogAuthorController {
                                          @RequestPart("image") MultipartFile file) {
         try {
             String stored = fileStorageService.storeImage(file, "blog");
-            BlogPostResponse post = blogService.setCover(id, "/uploads/" + stored);
+            BlogPostResponse post = blogService.setCover(id, FileStorageService.publicUrl(stored));
             return ResponseEntity.ok(post);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -95,7 +95,7 @@ public class BlogAuthorController {
     public ResponseEntity<?> uploadInlineImage(@RequestPart("image") MultipartFile file) {
         try {
             String stored = fileStorageService.storeImage(file, "blog");
-            return ResponseEntity.ok(Map.of("url", "/uploads/" + stored));
+            return ResponseEntity.ok(Map.of("url", FileStorageService.publicUrl(stored)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (IOException e) {
