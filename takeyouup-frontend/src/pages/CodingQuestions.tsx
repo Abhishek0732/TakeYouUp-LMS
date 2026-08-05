@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   Circle,
   Check,
+  Sparkles,
 } from "lucide-react";
 import leetcodeLogo from "@/assets/leetcode-logo.png";
 import gfgLogo from "@/assets/gfg-logo.png";
@@ -31,6 +32,7 @@ import {
 } from "@/services/questionService";
 import { useProgress } from "@/context/ProgressContext";
 import useSeo from "@/hooks/useSeo";
+import ProblemAiHelp from "@/components/ProblemAiHelp";
 
 /** Topics, difficulties and platforms all come from the DB — never hardcode them. */
 type Difficulty = string;
@@ -184,6 +186,9 @@ const CodingQuestions = () => {
   // ---- solved tracking ----
   const queryClient = useQueryClient();
   const { isCompleted, toggleProgress } = useProgress();
+
+  // Which row's AI helper panel is expanded. One at a time keeps the list tidy.
+  const [aiOpenId, setAiOpenId] = useState<number | null>(null);
 
   const toggleSolved = useCallback(async (questionId: number) => {
     await toggleProgress("QUESTION", String(questionId));
@@ -511,7 +516,8 @@ const CodingQuestions = () => {
                         }
                         <span style={{ fontSize: 12, color: "hsl(var(--muted-foreground))", fontFamily: "'DM Mono', monospace" }}>{q.platform}</span>
                       </span>
-                      <span className="col-span-1 flex justify-end">
+                      <span className="col-span-1 flex items-center justify-end gap-2">
+                        <AiTrigger open={aiOpenId === q.id} onClick={() => setAiOpenId(aiOpenId === q.id ? null : q.id)} />
                         <SolvedToggle solved={solved} onToggle={() => toggleSolved(q.id)} />
                       </span>
                     </div>
@@ -538,9 +544,11 @@ const CodingQuestions = () => {
                           alt={q.platform}
                           style={{ width: 20, height: 20, borderRadius: 4, objectFit: "contain" }}
                         />
+                        <AiTrigger open={aiOpenId === q.id} onClick={() => setAiOpenId(aiOpenId === q.id ? null : q.id)} />
                         <SolvedToggle solved={solved} onToggle={() => toggleSolved(q.id)} />
                       </div>
                     </div>
+                    {aiOpenId === q.id && <ProblemAiHelp questionId={q.id} />}
                   </div>
                 </div>
               );
@@ -775,6 +783,28 @@ function StreakCard({ streak }: { streak?: QuestionStreak }) {
         <span>Best: {longest}</span>
       </div>
     </div>
+  );
+}
+
+/* ═══════════════ AI help trigger ═══════════════ */
+function AiTrigger({ open, onClick }: { open: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClick(); }}
+      title="AI hint & solution"
+      aria-label="AI hint and solution"
+      aria-expanded={open}
+      style={{
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        width: 27, height: 27, borderRadius: 7, cursor: "pointer",
+        border: `1px solid ${open ? "transparent" : "rgba(255,77,28,0.35)"}`,
+        background: open ? "linear-gradient(135deg, #ff4d1c, #ffb800)" : "rgba(255,77,28,0.08)",
+        color: open ? "#fff" : "#ff4d1c", transition: "all 0.15s",
+      }}
+    >
+      <Sparkles style={{ width: 15, height: 15 }} />
+    </button>
   );
 }
 

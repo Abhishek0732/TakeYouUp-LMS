@@ -92,6 +92,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,
                                 "/api/chatbot/generate",
                                 "/api/quizzes/attempts").authenticated()
+                        // AI hint/solution helpers on the practice problems. Each
+                        // call spends a paid Gemini request, so it is signed-in
+                        // only — same reasoning as the chatbot above. Must sit
+                        // ahead of the blanket "POST /api/** is admin-only" rule.
+                        .requestMatchers(HttpMethod.POST, "/api/ai/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/progress/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/certificates/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/users/update-name").authenticated()
