@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import takeyouup.example.takeyouup.service.blog.BlogService;
 import takeyouup.example.takeyouup.service.dsa.DifficultyService;
 import takeyouup.example.takeyouup.service.dsa.PlatformService;
+import takeyouup.example.takeyouup.service.dsa.QuestionService;
 import takeyouup.example.takeyouup.service.dsa.TopicService;
 import takeyouup.example.takeyouup.service.resources.CategoryService;
 import takeyouup.example.takeyouup.service.team.TeamService;
@@ -44,6 +45,7 @@ public class SiteKnowledgeService {
     private final TeamService teamService;
     private final BlogService blogService;
     private final CategoryService categoryService;
+    private final QuestionService questionService;
 
     private volatile String cached;
     private volatile long cachedAt;
@@ -54,7 +56,8 @@ public class SiteKnowledgeService {
                                 DifficultyService difficultyService,
                                 TeamService teamService,
                                 BlogService blogService,
-                                CategoryService categoryService) {
+                                CategoryService categoryService,
+                                QuestionService questionService) {
         this.courseService = courseService;
         this.topicService = topicService;
         this.platformService = platformService;
@@ -62,6 +65,7 @@ public class SiteKnowledgeService {
         this.teamService = teamService;
         this.blogService = blogService;
         this.categoryService = categoryService;
+        this.questionService = questionService;
     }
 
     /** Combined live-data + static-guide knowledge, cached for {@link #CACHE_TTL_MS}. */
@@ -81,6 +85,8 @@ public class SiteKnowledgeService {
         StringBuilder sb = new StringBuilder();
 
         sb.append("=== LIVE SITE DATA (current, from the database) ===\n\n");
+
+        appendTotals(sb);
 
         section(sb, "Courses offered", () -> courseService.getAllCoursesBasic().stream()
                 .map(c -> "- " + safe(c.getTitle())
@@ -105,9 +111,11 @@ public class SiteKnowledgeService {
                 .map(d -> safe(d.getLevel()))
                 .collect(Collectors.joining(", ")));
 
-        section(sb, "Blog topics", () -> blogService.getPublicTopics().stream()
-                .map(t -> safe(t.name()))
-                .collect(Collectors.joining(", ")));
+        section(sb, "Blog topics (with number of published articles)",
+                () -> blogService.getPublicTopics().stream()
+                        .map(t -> "- " + safe(t.name()) + ": " + t.postCount() + " article"
+                                + (t.postCount() == 1 ? "" : "s"))
+                        .collect(Collectors.joining("\n")));
 
         section(sb, "Team members", () -> teamService.getAll().stream()
                 .map(m -> "- " + safe(m.getName())
@@ -131,6 +139,33 @@ public class SiteKnowledgeService {
             sb.append(title).append(":\n").append(content).append("\n\n");
         } catch (Exception e) {
             log.warn("Skipping chatbot knowledge section '{}': {}", title, e.getMessage());
+        }
+    }
+
+    /**
+     * A "Site totals" block answering "how many …" questions. Each count is
+     * computed independently so one failing query only drops its own line.
+     */
+    private void appendTotals(StringBuilder sb) {
+        StringBuilder totals = new StringBuilder();
+        countLine(totals, "Courses", () -> (long) courseService.getAllCoursesBasic().size());
+        countLine(totals, "Coding-practice problems",
+                () -> questionService.countByDifficulty(null, null).values().stream()
+                        .mapToLong(Long::longValue).sum());
+        countLine(totals, "Published blog articles", blogService::countPublished);
+        if (totals.length() > 0) {
+            sb.append("Site totals:\n").append(totals).append('\n');
+        }
+    }
+
+    private void countLine(StringBuilder sb, String label, Supplier<Long> count) {
+        try {
+            Long n = count.get();
+            if (n != null) {
+                sb.append("- ").append(label).append(": ").append(n).append('\n');
+            }
+        } catch (Exception e) {
+            log.warn("Skipping chatbot total '{}': {}", label, e.getMessage());
         }
     }
 
