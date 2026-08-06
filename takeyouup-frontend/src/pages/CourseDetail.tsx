@@ -224,7 +224,7 @@ const CourseDetail = () => {
                                   <div style={{ marginTop: 3, flexShrink: 0, width: 20, height: 20, borderRadius: "50%", background: "rgba(255,77,28,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                                     <CheckCircle2 style={{ width: 12, height: 12, color: "#ff4d1c" }} />
                                   </div>
-                                  <div>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
                                     <p style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: 2 }}>{point.point}</p>
                                     {point.explanation && <RichContent text={point.explanation} compact />}
                                   </div>

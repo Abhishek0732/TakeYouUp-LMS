@@ -304,7 +304,9 @@
   background: hsl(var(--muted));
   border: 1px solid hsl(var(--border));
   color: #ff4d1c;
-  white-space: nowrap;
+  /* Let a long token break rather than push the page wider on mobile. */
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .tyu-rich--compact { font-size: 0.85rem; line-height: 1.6; }
