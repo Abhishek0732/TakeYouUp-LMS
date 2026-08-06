@@ -44,14 +44,6 @@ const ResourceCategory = () => {
       : "Pick a practice topic in this aptitude category and work through its multiple-choice questions, with a worked explanation after every answer.",
   });
 
-  useEffect(() => {
-    setLoading(true);
-    getCategory(categorySlug!)
-      .then((c) => setCategory(c))
-      .catch(() => setCategory(null))
-      .finally(() => setLoading(false));
-  }, [categorySlug]);
-
   if (loading) {
     return (
       <div className="bg-background">

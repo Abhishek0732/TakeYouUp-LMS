@@ -29,14 +29,6 @@ const ResourceTopic = () => {
       : "Answer this topic's multiple-choice questions one at a time, see the correct option and its explanation, and get your score at the end.",
   });
 
-  useEffect(() => {
-    setLoading(true);
-    getTopic(categorySlug!, topicSlug!)
-      .then(setData)
-      .catch(() => setData({ category: null, topic: null }))
-      .finally(() => setLoading(false));
-  }, [categorySlug, topicSlug]);
-
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [score, setScore] = useState(0);
