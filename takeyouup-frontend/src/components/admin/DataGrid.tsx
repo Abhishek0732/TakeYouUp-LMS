@@ -19,6 +19,8 @@ interface Props {
   reloadToken?: number;
   createLabel?: string;
   onCreate?: () => void;
+  /** Extra buttons shown next to the Create button (e.g. Bulk import). */
+  headerActions?: React.ReactNode;
   onEdit?: (row: any) => void;
   onDelete?: (row: any) => Promise<void> | void;
   onBulkDelete?: (rows: any[]) => Promise<void> | void;
@@ -32,7 +34,7 @@ const cell = "px-4 py-3 text-sm align-top";
 
 export default function DataGrid({
   title, columns, idKey = "id", fetchPage, reloadToken = 0,
-  createLabel, onCreate, onEdit, onDelete, onBulkDelete, rowActions,
+  createLabel, onCreate, headerActions, onEdit, onDelete, onBulkDelete, rowActions,
   filters, filterState, searchPlaceholder = "Search…",
 }: Props) {
   const hasActions = !!(onEdit || onDelete || rowActions);
@@ -86,12 +88,15 @@ export default function DataGrid({
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-2xl font-bold" style={{ fontFamily: "'Syne', sans-serif" }}>{title}</h1>
-        {createLabel && onCreate && (
-          <button onClick={onCreate}
-            className="flex items-center gap-2 rounded-lg bg-orange-500 text-white px-4 py-2 text-sm font-semibold">
-            <Plus className="h-4 w-4" /> {createLabel}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {headerActions}
+          {createLabel && onCreate && (
+            <button onClick={onCreate}
+              className="flex items-center gap-2 rounded-lg bg-orange-500 text-white px-4 py-2 text-sm font-semibold">
+              <Plus className="h-4 w-4" /> {createLabel}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Toolbar */}

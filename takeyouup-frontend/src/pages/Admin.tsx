@@ -4,11 +4,12 @@ import { toast } from "sonner";
 import {
   LayoutDashboard, BookOpen, ListChecks, Code2, Tags, Server, Gauge,
   FolderTree, Users as UsersIcon, Layers, Image as ImageIcon, Menu, X,
-  FileText, Type, Newspaper, Hash, UserSquare,
+  FileText, Type, Newspaper, Hash, UserSquare, FileUp,
 } from "lucide-react";
 import api from "@/api/axios";
 import DataGrid, { Column } from "@/components/admin/DataGrid";
 import EntityModal, { Field } from "@/components/admin/EntityModal";
+import { useModalA11y } from "@/components/admin/useModalA11y";
 import CourseContent from "@/components/admin/CourseContent";
 import QuizEditor from "@/components/admin/QuizEditor";
 import ResourceCategoryContent from "@/components/admin/ResourceCategoryContent";
@@ -68,6 +69,13 @@ interface ResourceConfig {
   remove?: (row: any) => Promise<any>;
   renderFilters?: (state: any, setState: (s: any) => void) => React.ReactNode;
   rowActions?: (row: any) => React.ReactNode;
+  /** When set, a "Bulk import" button opens a paste box that calls submit(). */
+  bulkImport?: {
+    help: React.ReactNode;
+    placeholder: string;
+    /** Parse + send the pasted text; returns how many records were created. */
+    submit: (text: string) => Promise<number>;
+  };
 }
 
 function ResourceView({ config }: { config: ResourceConfig }) {
@@ -75,6 +83,7 @@ function ResourceView({ config }: { config: ResourceConfig }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [filterState, setFilterState] = useState<any>({});
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const bump = () => setReload((n) => n + 1);
 
@@ -119,6 +128,12 @@ function ResourceView({ config }: { config: ResourceConfig }) {
         fetchPage={config.fetchPage}
         createLabel={config.create ? config.createLabel : undefined}
         onCreate={config.create ? () => { setEditing(null); setModalOpen(true); } : undefined}
+        headerActions={config.bulkImport ? (
+          <button onClick={() => setBulkOpen(true)}
+            className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold">
+            <FileUp className="h-4 w-4" /> Bulk import
+          </button>
+        ) : undefined}
         onEdit={config.update ? (row) => { setEditing(row); setModalOpen(true); } : undefined}
         onDelete={config.remove ? onDelete : undefined}
         onBulkDelete={config.remove ? onBulkDelete : undefined}
@@ -136,7 +151,67 @@ function ResourceView({ config }: { config: ResourceConfig }) {
           onSubmit={onSubmit}
         />
       )}
+      {config.bulkImport && bulkOpen && (
+        <BulkImportModal
+          title={`Bulk import — ${config.title}`}
+          help={config.bulkImport.help}
+          placeholder={config.bulkImport.placeholder}
+          onClose={() => setBulkOpen(false)}
+          onSubmit={async (text) => {
+            const n = await config.bulkImport!.submit(text);
+            toast.success(`Imported ${n} ${n === 1 ? "record" : "records"}`);
+            bump();
+          }}
+        />
+      )}
     </>
+  );
+}
+
+// ---------------------------------------------------------------- bulk import modal
+function BulkImportModal({ title, help, placeholder, onClose, onSubmit }: {
+  title: string;
+  help: React.ReactNode;
+  placeholder: string;
+  onClose: () => void;
+  onSubmit: (text: string) => Promise<void>;
+}) {
+  const [text, setText] = useState("");
+  const [saving, setSaving] = useState(false);
+  const panelRef = useModalA11y(onClose);
+
+  const submit = async () => {
+    if (!text.trim()) { toast.error("Paste something to import first"); return; }
+    setSaving(true);
+    try { await onSubmit(text); onClose(); }
+    catch (e: any) { toast.error(e.response?.data || e.response?.data?.message || "Import failed"); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={onClose}>
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="bulk-import-title"
+        className="w-full max-w-3xl rounded-2xl border p-6 max-h-[88vh] overflow-y-auto" style={{ background: "hsl(var(--card))" }} onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 id="bulk-import-title" className="text-lg font-bold">{title}</h2>
+          <button onClick={onClose} aria-label="Close"><X className="h-5 w-5 opacity-60" /></button>
+        </div>
+        <div className="rounded-lg border p-3 text-xs opacity-80 mb-3 space-y-1">{help}</div>
+        <textarea
+          className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent font-mono"
+          rows={14}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={placeholder}
+        />
+        <div className="flex justify-end gap-3 mt-4">
+          <button className="rounded-lg border px-4 py-2 text-sm" onClick={onClose}>Cancel</button>
+          <button className="rounded-lg bg-orange-500 text-white px-4 py-2 text-sm font-semibold disabled:opacity-50" disabled={saving} onClick={submit}>
+            {saving ? "Importing…" : "Save all"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -386,6 +461,32 @@ export default function Admin() {
           </select>
         </>
       ),
+      bulkImport: {
+        help: (
+          <>
+            <p className="font-semibold opacity-100">One problem per line, fields separated by <code>|</code>:</p>
+            <p><code>Title | URL | Topic | Platform | Difficulty</code></p>
+            <p>Only Title and Topic are required; URL, Platform and Difficulty are optional (leave them blank or omit). New topics/platforms/difficulties are created automatically.</p>
+          </>
+        ),
+        placeholder:
+          "Two Sum | https://leetcode.com/problems/two-sum | Arrays | LeetCode | Easy\n" +
+          "Valid Parentheses | https://leetcode.com/problems/valid-parentheses | Stack | LeetCode | Easy\n" +
+          "Merge Intervals | | Arrays | | Medium",
+        submit: async (text: string) => {
+          const rows = text.split("\n")
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .map((line) => {
+              const [title, url, topic, platform, difficulty] = line.split("|").map((s) => s.trim());
+              return { title, url: url || undefined, topic, platform: platform || undefined, difficulty: difficulty || undefined };
+            });
+          const bad = rows.find((r) => !r.title || !r.topic);
+          if (bad) throw { response: { data: "Every line needs at least a Title and a Topic (Title | URL | Topic | …)." } };
+          const { data } = await api.post("/questions/bulk", rows);
+          return Array.isArray(data) ? data.length : rows.length;
+        },
+      },
     },
     topics: {
       title: "DSA Topics", createLabel: "Create Topic",
