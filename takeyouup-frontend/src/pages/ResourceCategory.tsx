@@ -9,7 +9,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { getCategory } from "@/api/resources";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useProgress } from "@/context/ProgressContext";
 import { ResourceTopicsSkeleton } from "@/components/Skeletons";
@@ -26,8 +26,15 @@ const difficultyStyles: Record<string, string> = {
 const ResourceCategory = () => {
   const { categorySlug } = useParams();
   const navigate = useNavigate();
-  const [category, setCategory] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  // Cached per slug in the app-wide query client, so revisiting a category is
+  // instant. retry:false keeps an unknown slug redirecting promptly (below).
+  const { data: category = null, isLoading: loading } = useQuery({
+    queryKey: ["resource-category", categorySlug],
+    queryFn: () => getCategory(categorySlug!),
+    enabled: !!categorySlug,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
   const { isCompleted } = useProgress();
 
   useSeo({

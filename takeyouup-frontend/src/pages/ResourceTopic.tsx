@@ -1,4 +1,5 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, CheckCircle2, CircleHelp, RotateCcw, XCircle } from "lucide-react";
 import { getTopic } from "@/api/resources";
@@ -9,8 +10,15 @@ import useSeo from "@/hooks/useSeo";
 
 const ResourceTopic = () => {
   const { categorySlug, topicSlug } = useParams();
-  const [data, setData] = useState<{ category: any; topic: any }>({ category: null, topic: null });
-  const [loading, setLoading] = useState(true);
+  // Cached per category+topic in the app-wide query client, so returning to a
+  // topic is instant. retry:false keeps an unknown slug redirecting promptly.
+  const { data = { category: null, topic: null }, isLoading: loading } = useQuery({
+    queryKey: ["resource-topic", categorySlug, topicSlug],
+    queryFn: () => getTopic(categorySlug!, topicSlug!),
+    enabled: !!categorySlug && !!topicSlug,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
   const { category, topic } = data;
   const { isCompleted, toggleProgress } = useProgress();
 

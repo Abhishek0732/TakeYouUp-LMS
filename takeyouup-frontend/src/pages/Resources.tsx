@@ -8,7 +8,7 @@ import {
   Sparkles,
   Target,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getCategories } from "@/api/resources";
 import { ResourceCategoriesSkeleton } from "@/components/Skeletons";
 import StateMessage from "@/components/StateMessage";
@@ -30,28 +30,15 @@ const Resources = () => {
   });
 
   const navigate = useNavigate();
-  const [resourceCategories, setResourceCategories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  // Kept apart from the empty list so an outage never reads as "no categories".
-  const [error, setError] = useState(false);
-
-  const loadCategories = () => {
-    setLoading(true);
-    setError(false);
-    // Browsing the catalogue is public — the sign-in gate lives on the topic
-    // page, where practising actually starts.
-    getCategories()
-      .then(setResourceCategories)
-      .catch(() => {
-        setResourceCategories([]);
-        setError(true);
-      })
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    loadCategories();
-  }, []);
+  // Cached in the app-wide React Query client so leaving and returning to
+  // /resources shows the catalogue instantly instead of re-fetching each time.
+  // Browsing is public — the sign-in gate lives on the topic page.
+  const { data, isLoading: loading, isError: error, refetch } = useQuery({
+    queryKey: ["resource-categories"],
+    queryFn: getCategories,
+    staleTime: 5 * 60 * 1000,
+  });
+  const resourceCategories: any[] = data ?? [];
 
   return (
     <div className="bg-background">
@@ -107,7 +94,7 @@ const Resources = () => {
             tone="error"
             title="Couldn't load the resource categories"
             description="Something went wrong while fetching the catalogue. The categories are still there — please try again."
-            onRetry={loadCategories}
+            onRetry={() => refetch()}
             retryLabel="Reload categories"
           />
         )}
