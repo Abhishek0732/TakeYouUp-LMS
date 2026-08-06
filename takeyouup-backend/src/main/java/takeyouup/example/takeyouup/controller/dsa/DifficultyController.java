@@ -11,6 +11,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/difficulties")
 @RequiredArgsConstructor
+@CrossOrigin
 public class DifficultyController {
 
     private final DifficultyService difficultyService;
