@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Pencil, Trash2, X, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, X, ChevronDown, ChevronRight, FileUp } from "lucide-react";
 import api from "@/api/axios";
 import EntityModal from "@/components/admin/EntityModal";
 import MarkdownEditor from "@/components/admin/MarkdownEditor";
@@ -17,6 +17,7 @@ export default function CourseContent({ course, onBack }: { course: any; onBack:
   const [open, setOpen] = useState<Record<number, boolean>>({});
   const [moduleModal, setModuleModal] = useState<{ open: boolean; editing: Module | null }>({ open: false, editing: null });
   const [lessonModal, setLessonModal] = useState<{ open: boolean; moduleId: number | null; lesson: Lesson | null }>({ open: false, moduleId: null, lesson: null });
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const load = () =>
     api.get(`/courses/${course.id}/modules`).then((r) => setModules(r.data || [])).catch(() => setModules([]));
@@ -34,6 +35,15 @@ export default function CourseContent({ course, onBack }: { course: any; onBack:
     if (!confirm(`Delete module "${m.title}" and its lessons?`)) return;
     try { await api.delete(`/courses/${course.id}/modules/${m.id}`); toast.success("Module deleted"); load(); }
     catch (e: any) { toast.error(e.response?.data?.message || "Failed"); }
+  };
+
+  // ---- bulk import ----
+  const importOutline = async (text: string) => {
+    const { data } = await api.post(`/courses/${course.id}/modules/import`, { text });
+    const added = (data?.modules?.length ?? 0);
+    toast.success("Modules imported");
+    load();
+    return added;
   };
 
   // ---- lessons ----
@@ -60,10 +70,16 @@ export default function CourseContent({ course, onBack }: { course: any; onBack:
           <p className="text-xs tracking-widest text-orange-500 font-mono">// COURSE CONTENT</p>
           <h1 className="text-2xl font-bold" style={{ fontFamily: "'Syne', sans-serif" }}>{course.title}</h1>
         </div>
-        <button onClick={() => setModuleModal({ open: true, editing: null })}
-          className="flex items-center gap-2 rounded-lg bg-orange-500 text-white px-4 py-2 text-sm font-semibold">
-          <Plus className="h-4 w-4" /> Add module
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setBulkOpen(true)}
+            className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold">
+            <FileUp className="h-4 w-4" /> Bulk import
+          </button>
+          <button onClick={() => setModuleModal({ open: true, editing: null })}
+            className="flex items-center gap-2 rounded-lg bg-orange-500 text-white px-4 py-2 text-sm font-semibold">
+            <Plus className="h-4 w-4" /> Add module
+          </button>
+        </div>
       </div>
 
       {modules.length === 0 && <p className="opacity-60">No modules yet. Add one to start building the course.</p>}
@@ -123,6 +139,11 @@ export default function CourseContent({ course, onBack }: { course: any; onBack:
           onClose={() => setLessonModal({ open: false, moduleId: null, lesson: null })}
           onSave={saveLesson}
         />
+      )}
+
+      {/* Bulk import (paste a whole outline, saved in one request) */}
+      {bulkOpen && (
+        <BulkImportModal onClose={() => setBulkOpen(false)} onImport={importOutline} />
       )}
     </div>
   );
@@ -242,6 +263,78 @@ function LessonModal({ moduleId, lesson, onClose, onSave }: {
           <button className="rounded-lg bg-orange-500 text-white px-4 py-2 text-sm font-semibold disabled:opacity-50" disabled={saving} onClick={submit}>
             {saving ? "Saving…" : lesson ? "Update lesson" : "Add lesson"}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ------------------------------------------------------------ Bulk import modal
+const BULK_EXAMPLE = `# Module: Introduction
+## Lesson: What is Java | 10 min
+Java is a general-purpose, object-oriented language.
+It runs on the JVM, so the same program works everywhere.
+- Runs on the JVM
+- Write once, run anywhere :: the same bytecode runs on any OS
+
+## Lesson: Setup | 15 min
+Install the JDK and set up your editor.
+- Set JAVA_HOME
+
+# Module: Basics
+## Lesson: Variables | 8 min
+A variable stores a value you can reuse.
+- Declare a type, then a name`;
+
+function BulkImportModal({ onClose, onImport }: {
+  onClose: () => void; onImport: (text: string) => Promise<number>;
+}) {
+  const [text, setText] = useState("");
+  const [saving, setSaving] = useState(false);
+  const panelRef = useModalA11y(onClose);
+
+  const submit = async () => {
+    if (!text.trim()) { toast.error("Paste an outline first"); return; }
+    setSaving(true);
+    try { await onImport(text); onClose(); }
+    catch (e: any) { toast.error(e.response?.data || e.response?.data?.message || "Import failed"); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={onClose}>
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="bulk-modal-title"
+        className="w-full max-w-3xl rounded-2xl border p-6 max-h-[88vh] overflow-y-auto" style={{ background: "hsl(var(--card))" }} onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 id="bulk-modal-title" className="text-lg font-bold">Bulk import modules</h2>
+          <button onClick={onClose} aria-label="Close"><X className="h-5 w-5 opacity-60" /></button>
+        </div>
+
+        <div className="rounded-lg border p-3 text-xs opacity-80 mb-3 space-y-1">
+          <p className="font-semibold opacity-100">Paste your whole outline — it's added in one go.</p>
+          <p><code>{"# Module: <title>"}</code> starts a module.</p>
+          <p><code>{"## Lesson: <title> | <duration>"}</code> starts a lesson (duration optional).</p>
+          <p>Plain lines are lesson content (Markdown). Lines starting with <code>-</code> become key points; add an explanation with <code>point :: explanation</code>.</p>
+        </div>
+
+        <textarea
+          className="w-full rounded-lg border px-3 py-2 text-sm bg-transparent font-mono"
+          rows={16}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={BULK_EXAMPLE}
+        />
+
+        <div className="flex items-center justify-between mt-3">
+          <button className="text-xs underline opacity-70 hover:opacity-100" onClick={() => setText(BULK_EXAMPLE)}>
+            Insert example
+          </button>
+          <div className="flex gap-3">
+            <button className="rounded-lg border px-4 py-2 text-sm" onClick={onClose}>Cancel</button>
+            <button className="rounded-lg bg-orange-500 text-white px-4 py-2 text-sm font-semibold disabled:opacity-50" disabled={saving} onClick={submit}>
+              {saving ? "Importing…" : "Save all"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

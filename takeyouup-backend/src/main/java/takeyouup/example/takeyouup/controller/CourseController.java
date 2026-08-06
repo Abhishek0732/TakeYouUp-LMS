@@ -108,6 +108,31 @@ public class CourseController {
         }
     }
 
+    /**
+     * Bulk-import a whole outline (one or more modules with their lessons,
+     * content and key points) in a single request. The {@code text} body is the
+     * plain-text outline; see {@link takeyouup.example.takeyouup.service.CourseOutlineParser}
+     * for the format. Parsed modules are appended to the course.
+     */
+    @PostMapping("/{courseId}/modules/import")
+    public ResponseEntity<?> importModules(
+            @PathVariable Long courseId,
+            @RequestBody Map<String, String> body) {
+        try {
+            List<CourseModule> modules =
+                    takeyouup.example.takeyouup.service.CourseOutlineParser.parse(body.get("text"));
+            Course updatedCourse = courseService.addModuleToCourse(courseId, modules);
+            return ResponseEntity.status(HttpStatus.CREATED).body(updatedCourse);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error importing modules: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/{courseId}/modules/{moduleId}/lessons")
     public ResponseEntity<?> addLessonsToModule(
             @PathVariable Long courseId,
